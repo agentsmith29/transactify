@@ -1,0 +1,77 @@
+{% extends "./sidebar/sidebar.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Add New Customer</h1>
+    <form method="post" class="border p-4 shadow-sm bg-light">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="card_number">Card Number</label>
+            <input type="text" class="form-control" id="card_number" name="card_number" required maxlength="16">
+        </div>
+        <div class="form-group">
+            <label for="name">First Name</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+            <label for="surname">Last Name</label>
+            <input type="text" class="form-control" id="surname" name="surname" required>
+        </div>
+        <div class="form-group">
+            <label for="balance">Initial Balance (€)</label>
+            <input type="number" class="form-control" id="balance" name="balance" step="0.01" required>
+        </div>
+        <button type="submit" class="btn btn-success">Add Customer</button>
+    </form>
+</div>
+
+<div class="container mt-5">
+    <h1 class="mb-4">Customer List</h1>
+
+    <!-- Scrollable Table -->
+    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Card Number</th>
+                    <th>Name</th>
+                    <th>Surname</th>
+                    <th>Issued At</th>
+                    <th>Balance (€)</th>
+                    <th>Transaction</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td>{{ customer.card_number }}</td>
+                    <td>{{ customer.name }}</td>
+                    <td>{{ customer.surname }}</td>
+                    <td>{{ customer.issued_at }}</td>
+                    <td>{{ customer.balance }}</td>
+                    <td>
+                        <!-- Single Transaction Form -->
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="card_number" value="{{ customer.card_number }}">
+                            <div class="input-group">
+                                <input type="number" name="amount" class="form-control" placeholder="Enter amount (€)" step="0.01" required>
+                                <select class="form-select" name="action" required>
+                                    <option value="deposit">Deposit</option>
+                                    <option value="withdraw">Withdraw</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </div>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No customers available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
