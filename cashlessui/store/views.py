@@ -1,7 +1,10 @@
 import asyncio
+import sys
 
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
+
+sys.path.append('..')
 
 from mfrc522 import SimpleMFRC522
 from .models import Product, StockProductPurchase, StockProductSale, Customer

@@ -1,3 +1,3 @@
-Django
-django-bootstrap-v5
+Django>=5.1.3
+django-bootstrap5
 asyncio
