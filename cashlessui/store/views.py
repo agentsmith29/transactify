@@ -1,5 +1,9 @@
+import asyncio
+
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+
+from mfrc522 import SimpleMFRC522
 from .models import Product, StockProductPurchase, StockProductSale, Customer
 from decimal import Decimal
 from django.db.models import Sum, F
@@ -86,27 +90,36 @@ def view_customers(request):
 
     return render(request, 'store/view_customers.html', {'customers': customers})
 
+async def nfc_read():
+    reader = SimpleMFRC522()
+    loop = asyncio.get_event_loop()
+    id, text = await loop.run_in_executor(None, reader.read)
+    return id, text
 
 def add_customer(request):
     """View to add a new customer."""
     customers = Customer.objects.all()
-    if request.method == 'POST':
-        card_number = request.POST.get('card_number')
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Extract customer data
         name = request.POST.get('name')
         surname = request.POST.get('surname')
         balance = request.POST.get('balance')
 
-        # Create and save the new customer
-        Customer.objects.create(
-            card_number=card_number,
-            name=name,
-            surname=surname,
-            balance=balance
-        )
-        #return redirect('customer_list')  # Redirect to the customer list after adding
+        # Trigger NFC read
+        try:
+            id, text = asyncio.run(nfc_read())  # Perform NFC reading
+            # Create and save the new customer
+            Customer.objects.create(
+                card_number=id,
+                name=name,
+                surname=surname,
+                balance=balance
+            )
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
 
     return render(request, 'store/view_customers.html', {'customers': customers})
-
 
 # old
 def view_financial_summary(request):
