@@ -1,0 +1,139 @@
+{% extends "./sidebar/sidebar.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Customer Detail</h1>
+            </div>
+
+            <!-- Customer Info -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Customer Information</h5>
+                    <ul class="list-group">
+                        <li class="list-group-item">Name: {{ customer.name }}</li>
+                        <li class="list-group-item">Balance: ${{ customer.balance }}</li>
+                        <li class="list-group-item">Issue Date: {{ customer.issued_at }}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Deposit Form -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Update Balance</h5>
+                    <form id="updateBalanceForm">
+                        <div class="mb-3">
+                            <label for="depositAmount" class="form-label">Amount</label>
+                            <input type="number" class="form-control" id="depositAmount" step="0.01" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Add Deposit</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- NFC Overlay -->
+            <div id="nfcOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 9999; color: white; text-align: center; padding-top: 20%;">
+                <div>
+                    <img src="https://icons.getbootstrap.com/assets/icons/rss.svg" alt="NFC Scan" style="width: 150px;">
+                    <p>Processing your deposit...</p>
+                </div>
+            </div>
+
+            <!-- Deposits Table -->
+            <div class="row">
+                <div class="col-md-12">
+                    <h5>Deposit History</h5>
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for deposit in deposits %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>${{ deposit.amount }}</td>
+                                    <td>{{ deposit.timestamp|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12">
+                    <h5>Deposit History</h5>
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Date</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for purchase in purchases %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>${{ purchase.product }}</td>
+                                    <td>${{ purchase.quantity }}</td>
+                                    <td>${{ purchase.sale_price }}</td>
+                                    <td>${{ purchase.sale_date }}</td>
+                                    <td>{{ purchase.timestamp|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script>
+    document.getElementById('updateBalanceForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent form submission
+        const overlay = document.getElementById('nfcOverlay');
+        overlay.style.display = 'block'; // Show NFC overlay
+
+        // Make a POST request to update the balance
+        fetch("{% url 'customer_update_balance' customer.card_number %}", { // Use card_number for URL
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': "{{ csrf_token }}",
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                amount: document.getElementById('depositAmount').value
+            })
+        }).then(response => {
+            if (response.ok) {
+                location.reload(); // Reload the page after success
+            } else {
+                alert('Error occurred. Please try again.');
+            }
+        }).finally(() => {
+            overlay.style.display = 'none'; // Hide NFC overlay
+        });
+    });
+</script>
+
+
+{% endblock %}

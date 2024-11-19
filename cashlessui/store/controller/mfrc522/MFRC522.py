@@ -371,8 +371,6 @@ class MFRC522:
         # Send the request to the card using the MFRC522_ToCard method
         (status, backData, backBits) = self.MFRC522_ToCard(
             self.PCD_TRANSCEIVE, TagType)
-        
-        print(f"{status}, {backData}, {backBits}")
 
         # If the status is not MI_OK or the back bits are not 0x10, set status to MI_ERR
         if ((status != self.MI_OK) | (backBits != 0x10)):

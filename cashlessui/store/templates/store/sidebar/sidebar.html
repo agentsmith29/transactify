@@ -11,10 +11,14 @@
     <title>Sidebars · Bootstrap v5.3</title>
 
     <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/sidebars/">
-
-    
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    
 
 <link href="{% static 'assets/dist/css/bootstrap.min.css' %}" rel="stylesheet">
 
@@ -189,9 +193,9 @@
     <hr>
     <ul class="nav nav-pills flex-column mb-auto">
       <li class="nav-item">
-        <a href="{% url 'add_product' %}" class="nav-link {% if request.path == '/store/add-product/' %}active{% else %}text-white{% endif %}" aria-current="page">
+        <a href="{% url 'manage_products' %}" class="nav-link {% if request.path == '/store/manage_products/' %}active{% else %}text-white{% endif %}" aria-current="page">
           <svg class="bi pe-none me-2" width="16" height="16"><use xlink:href="#home"/></svg>
-          Add new Product
+          Manage Products
         </a>
       </li>
       <li>
@@ -217,7 +221,14 @@
         <a href="{% url 'customers' %}"
            class="nav-link {% if request.path == '/store/customers/' %}active{% else %}text-white{% endif %}">
           <svg class="bi pe-none me-2" width="16" height="16"><use xlink:href="#people-circle"/></svg>
-          Customers
+          Add Customers
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'present_card' %}"
+           class="nav-link {% if request.path == '/store/present_card/' %}active{% else %}text-white{% endif %}">
+          <svg class="bi pe-none me-2" width="16" height="16"><use xlink:href="#people-circle"/></svg>
+          Edit Customer
         </a>
       </li>
     </ul>

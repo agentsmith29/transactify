@@ -20,14 +20,17 @@ from demo_opts import get_device
 from luma.core.render import canvas
 from luma.core.sprite_system import framerate_regulator
 
-from luma.core.interface.serial import i2c, spi, pcf8574
+
 from luma.core.interface.parallel import bitbang_6800
 from luma.core.render import canvas
-from luma.oled.device import ssd1306, ssd1309, ssd1325, ssd1331, sh1106, sh1107, ws0010, ssd1322
+
 
 from server.TCPServer import TCPServer
 from controller.MainController import MainController
-from controller.KeyPad import KeyPad
+
+from luma.core.interface.serial import spi
+from luma.oled.device import ssd1322 as OLED
+from controller.KeyPad import KeyPad 
 from mfrc522.SimpleMFRC522 import SimpleMFRC522
 
 import RPi.GPIO as GPIO

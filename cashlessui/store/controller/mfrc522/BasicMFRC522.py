@@ -99,14 +99,10 @@ class BasicMFRC522:
 
         block_addr = (trailer_block-3, trailer_block-2, trailer_block-1)
 
-        # Send request to RFID tag^
-        print("Sending request to RFID tag")
+        # Send request to RFID tag
         (status, TagType) = self.MFRC522.Request(self.MFRC522.PICC_REQIDL)
-        #(status, TagType) = self.MFRC522.Request(self.MFRC522.PICC_REQALL)
-        print(f"Request status: {status}")
         if status != self.MFRC522.MI_OK:
             return None, None
-       
 
         # Anticollision, return UID if successful
         (status, uid) = self.MFRC522.Anticoll()

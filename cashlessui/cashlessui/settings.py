@@ -25,12 +25,15 @@ SECRET_KEY = 'django-insecure-65f!o_#nl=6pseeo6ia_dz&3pppr49idmkch&^%gsccp$is&b^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.190']
+ALLOWED_HOSTS = ['192.168.1.190', '192.168.137.34']
+
+
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,8 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "store.apps.StoreConfig",
-    "django_bootstrap5"
+    "django_bootstrap5",
+    'channels'
 ]
+ASGI_APPLICATION = 'cashlessui.asgi.application'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -50,6 +55,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 ROOT_URLCONF = 'cashlessui.urls'
 

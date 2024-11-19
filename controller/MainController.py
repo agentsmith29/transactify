@@ -5,6 +5,7 @@ from mfrc522 import MFRC522, SimpleMFRC522
 from controller.KeyPad import KeyPad
 import jsonpickle
 import hashlib
+
 class MainController():
 
     def __init__(self, rfid_reader: SimpleMFRC522, keypad: KeyPad):

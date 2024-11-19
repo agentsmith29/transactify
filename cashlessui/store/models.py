@@ -49,6 +49,8 @@ class Customer(models.Model):
 
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
+    #card_content = models.CharField(default="")
+
     def __str__(self):
         return f"{self.name}"
 

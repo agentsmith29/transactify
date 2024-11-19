@@ -1,0 +1,31 @@
+{% extends "./sidebar/sidebar.html" %}
+{% load static %}
+{% block content %}
+<div class="container text-center">
+    <h1>Present Card</h1>
+    <p>Please present your card to the NFC reader...</p>
+    <div id="status-message" class="mt-3"></div>
+
+    <script>
+        async function pollNFCReader() {
+            const response = await fetch('/store/nfc_read/');
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                // Redirect to the customer detail page
+                window.location.href = '/store/customer/' +  data.customer_id + '/';
+            } else if (data.status === 'timeout') {
+                document.getElementById('status-message').innerText = 'Timeout: No card detected. Please try again.';
+            } else if (data.status === 'error') {
+                document.getElementById('status-message').innerText = data.message;
+            } else {
+                // Retry after 1 second
+                setTimeout(pollNFCReader, 1000);
+            }
+        }
+
+        // Start polling immediately
+        pollNFCReader();
+    </script>
+</div>
+{% endblock %}

@@ -23,12 +23,3 @@ class StockProductSaleAdmin(admin.ModelAdmin):
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ('card_number', 'name', 'surname',
                     'issued_at', 'balance')
-
-#@admin.register(Stock)
-#class StockAdmin(admin.ModelAdmin):
-#    list_display = ('product_info', )
-
-
-#@admin.register(Sale)
-#class SaleAdmin(admin.ModelAdmin):
-#    list_display = ('ean', 'quantity', 'sale_date', 'revenue', 'expense')
