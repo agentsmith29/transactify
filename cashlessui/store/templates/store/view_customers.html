@@ -111,4 +111,55 @@
         });
     });
 </script>
+
+
+<script>
+    const webpage = "view_customers";
+    const socket = new WebSocket(`ws://${window.location.host}/ws/page/${webpage}/`);
+
+    socket.onopen = function () {
+        console.log(`WebSocket connection established for page: ${webpage}`);
+    };
+
+    socket.onmessage = function (event) {
+        console.log("Message received from server:", event.data); // Log raw message
+
+        try {
+            const data = JSON.parse(event.data); // Parse the JSON message
+            if (data.message) {
+                console.log("Message:", data.message);
+                console.log("card_id:", data.card_id);
+
+                // Display the message in the toast notification
+                const toastMessage = document.getElementById('toastMessage');
+                toastMessage.textContent = data.message;
+                const toast = new bootstrap.Toast(document.getElementById('barcodeToast'));
+                toast.show();
+            }
+
+            if (data.barcode) {
+                console.log("Barcode:", data.card_id);
+
+                // Update the EAN input field with the barcode value
+                const eanField = document.getElementById('ean');
+                if (eanField) {
+                    eanField.value = data.barcode;
+                } else {
+                    console.error("EAN field not found in the DOM");
+                }
+            }
+        } catch (error) {
+            console.error("Error parsing WebSocket message:", error);
+        }
+    };
+
+    socket.onclose = function () {
+        console.log("WebSocket connection closed");
+    };
+
+    socket.onerror = function (error) {
+        console.error("WebSocket error:", error);
+    };
+</script>
+
 {% endblock %}

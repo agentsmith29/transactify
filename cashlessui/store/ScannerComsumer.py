@@ -36,8 +36,8 @@ class PageSpecificConsumer(AsyncWebsocketConsumer):
 
     async def page_message(self, event):
         # Send all fields (message and barcode) to the client
-        await self.send(text_data=json.dumps({
-            "message": event.get("message"),
-            "barcode": event.get("barcode"),
-        }))
+        # convert all fields to JSON
+        asdict = dict(event)
+        asjason = json.dumps(asdict)
+        await self.send(text_data=asjason)
         print(f"Message broadcasted: {event}")

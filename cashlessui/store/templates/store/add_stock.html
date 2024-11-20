@@ -11,7 +11,7 @@
             <!-- Create a dropdown menu for the product -->
             <select class="form-control" id="ean" name="ean" required>
                 {% for product in products %}
-                <option value="{{ product.ean }}">{{product.name }} (EAN: {{ product.ean }})</option>
+                <option value="{{ product.ean }}">{{ product.name }} (EAN: {{ product.ean }})</option>
                 {% endfor %}
             </select>
         </div>
@@ -23,37 +23,111 @@
         <div class="form-group">
             <label for="purchase_price">Unit Price</label>
             <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="0.01" required>
+        </div>
         <button type="submit" class="btn btn-secondary">Add Stock</button>
     </form>
 </div>
-    <!-- Product List Section -->
-    <div>
-        <h2 class="mb-3">Product List</h2>
-        <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>EAN</th>
-                        <th>Name</th>
-                        <th>Price (€)</th>
-                        <th>Stock Quantity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for product in products %}
-                    <tr>
-                        <td>{{ product.ean }}</td>
-                        <td>{{ product.name }}</td>
-                        <td>{{ product.resell_price }}</td>
-                        <td>{{ product.stock_quantity }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center">No products available.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+<!-- Product List Section -->
+<div class="container mt-5">
+    <h2 class="mb-4">Product List</h2>
+    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>EAN</th>
+                    <th>Name</th>
+                    <th>Price (€)</th>
+                    <th>Stock Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.ean }}</td>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.resell_price }}</td>
+                    <td>{{ product.stock_quantity }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No products available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Stock Purchases and Sales Section -->
+<div class="container mt-5">
+    <h2 class="mb-4">Stock Purchases and Sales</h2>
+    <div class="row">
+        <!-- Stock Purchases Table -->
+        <div class="col-md-6">
+            <h5>Stock Purchases</h5>
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Unit Price (€)</th>
+                            <th>Total Cost (€)</th>
+                            <th>Purchase Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for purchase in purchases %}
+                        <tr>
+                            <td>{{ purchase.product.name }}</td>
+                            <td>{{ purchase.quantity }}</td>
+                            <td>{{ purchase.purchase_price }}</td>
+                            <td>{{ purchase.total_cost }}</td>
+                            <td>{{ purchase.purchase_date|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No purchases available.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Stock Sales Table -->
+        <div class="col-md-6">
+            <h5>Stock Sales</h5>
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Sale Price (€)</th>
+                            <th>Sold To</th>
+                            <th>Sale Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in sales %}
+                        <tr>
+                            <td>{{ sale.product.name }}</td>
+                            <td>{{ sale.quantity }}</td>
+                            <td>{{ sale.sale_price }}</td>
+                            <td>{{ sale.sold_to.name }}</td>
+                            <td>{{ sale.sale_date|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No sales available.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
+</div>
 {% endblock %}

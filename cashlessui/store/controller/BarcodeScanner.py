@@ -1,59 +1,116 @@
 from evdev import InputDevice, categorize, ecodes
+import serial
+import threading
 
+from django.core.signals import setting_changed
+from django.dispatch import Signal
+
+from ..models import Product
+
+class BarcodeScannerSignals():
+    barcode_read = Signal()
 
 class BarcodeScanner:
     """
     A class to encapsulate barcode/keypad reading from a specific HID device.
     """
-    def __init__(self, hid_device_path, message_handler):
-        """
-        Initialize the KeypadReader.
+    def __init__(self):
+        self.signals = BarcodeScannerSignals()
+       
+        scanner_thread  = threading.Thread(target=self.read_barcodes, daemon=True)
+        scanner_thread.start()
 
-        Args:
-            hid_device_path (str): Path to the HID device (e.g., /dev/input/eventX).
-            message_handler (callable): A function to handle the completed input.
-        """
-        self.hid_device_path = hid_device_path
-        self.message_handler = message_handler
-        self.device = None
-        self.barcode = ""  # Buffer to store the barcode/input
-        self.key_pressed = False  # Track if a key is currently pressed
+    
+    # Define the threaded function to read barcodes and broadcast them
+    def read_barcodes(self):
+        # Open the serial connection
+        try:
+            ser = serial.Serial('/dev/ttyACM0', 19200, timeout=1)  # Adjust the port and baud rate
+            print("Serial connection established")
+        except serial.SerialException as e:
+            print(f"Error connecting to serial port: {e}")
+            return
 
-    def start(self):
-        """Start reading from the HID device."""
+        buffer = ""  # Temporary storage for incoming data
+        
+        while True:
+            try:
+                # Read raw bytes from the serial port
+                raw_data = ser.read(ser.in_waiting or 1).decode('utf-8')
+                if raw_data:
+                    buffer += raw_data  # Append incoming data to the buffer
+                    
+                    if '\r' in buffer and '\n' in buffer:
+                        line = "".join(buffer.splitlines())  # Remove newline characters
+                        line = line.strip()  # Remove leading/trailing whitespace
+                        
+                        if line:  # Ensure the line is not empty
+                            print(f"Received complete barcode: {line}")
+                            self.signals.barcode_read.send(sender=self, barcode=line)
+                            #HardwareController.send_message_to_manage_clients(line)
+                            buffer = ""  # Clear the buffer
+                            line = ""
+                            
+
+            except serial.SerialException as e:
+                print(f"Serial error: {e}")
+                #break  # Exit if there's a serial connection issue
+
+            except Exception as e:
+                print(f"Error processing data: {e}")
+
+    def read_barcode_stdin(self):
         try:
             # Open the HID device
-            self.device = InputDevice(self.hid_device_path)
-            print(f"Listening for keypad input on {self.device.name} ({self.hid_device_path})")
+            device = InputDevice('/dev/input/event4')  # Adjust the event number
+            #print(f"Listening for barcodes on {device.name} ({hid_device_path})")
 
-            # Start processing events
-            self._process_events()
+            barcode = ""  # Buffer for building the barcode
+            key_pressed = False  # Track if a key is currently pressed
 
-        except FileNotFoundError:
-            print(f"Error: Device not found at {self.hid_device_path}")
-        except Exception as e:
-            print(f"Error initializing KeypadReader: {e}")
-
-    def _process_events(self):
-        """Process input events from the HID device."""
-        try:
-            for event in self.device.read_loop():
+            # Loop to read events
+            for event in device.read_loop():
                 if event.type == ecodes.EV_KEY:  # Only process key events
                     key_event = categorize(event)
 
-                    if key_event.keystate == key_event.key_down and not self.key_pressed:
+                    if key_event.keystate == key_event.key_down and not key_pressed:
                         # Process the key only if no key is currently pressed
-                        self.key_pressed = True
+                        #print(f"Key: {key_event.keycode}")
+                        key_pressed = True
                         key = key_event.keycode
 
                         if key == "KEY_ENTER":  # Barcode ends with Enter
-                            if self.barcode:  # Process only if buffer is not empty
-                                print(f"Received complete input: {self.barcode}")
-                                self.message_handler(self.barcode)  # Handle the barcode/input
-                                self.barcode = ""  # Reset buffer for the next input
+                            if barcode:  # Only process if buffer is not empty
+                                print(f"Received barcode: {barcode}")
+                                if self.current_view == "view_main":
+                                    # Get the product name and price from the database
+                                    try:
+                                        product = Product.objects.filter(ean=barcode).first()
+                                        self.view_price(product.name, product.resell_price)
+                                        # read nfc
+                                        id, text = self.nfc_read()
+                                        print(f"Received NFC: {id}")
+                                    except Exception as e:
+                                        print(f"Error fetching product: {e}")
+                                else:
+                                    print(f"Barcode received, but not in the main view {self.current_view}")
+                                    #HardwareController.send_message_to_manage_clients(barcode)  # Send barcode
+                                    self.barcode_read.send(sender=self, barcode=barcode)
+                                barcode = ""  # Reset buffer
                         elif key.startswith("KEY_") and len(key) > 4:
-                            # Map keys to characters (e.g., KEY_1 -> '1', KEY_A -> 'A')
+                            if key == "KEY_NUMLOCK" or key == "KEY_DOWN":
+                                continue
+                            #else:
+                            #    print(f"Key: {key}")
+                            # Map keys to characters (e.g., KEY_1 -> '1')
                             char = key[-1] if key[-1].isdigit() else key[-1].lower()
-                            self.barcode += char
+                            barcode += char
 
-                    elif key_event.ke
+                    elif key_event.keystate == key_event.key_up:
+                        # Reset the key_pressed state on key release
+                        key_pressed = False
+
+        except KeyboardInterrupt:
+            print("\nStopping barcode reader...")
+        except Exception as e:
+            print(f"Error: {e}")

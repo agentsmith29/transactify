@@ -16,6 +16,19 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} (EAN: {self.ean})"
 
+class Customer(models.Model):
+    card_number = models.CharField(max_length=16, primary_key=True)
+    name = models.CharField(max_length=100)
+    surname = models.CharField(max_length=100)
+    issued_at = models.DateTimeField(auto_now_add=True)
+
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    #card_content = models.CharField(default="")
+
+    def __str__(self):
+        return f"{self.name}"
+
 
 class StockProductPurchase(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -35,24 +48,12 @@ class StockProductSale(models.Model):
 
     sale_date = models.DateTimeField(auto_now_add=True)  # Timestamp of the sale
 
-    sold_to = models.ForeignKey('Customer', on_delete=models.CASCADE)
+    sold_to = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.quantity} units of {self.product.name} sold on {self.sale_date}"
 
 
-class Customer(models.Model):
-    card_number = models.CharField(max_length=16, primary_key=True)
-    name = models.CharField(max_length=100)
-    surname = models.CharField(max_length=100)
-    issued_at = models.DateTimeField(auto_now_add=True)
-
-    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-
-    #card_content = models.CharField(default="")
-
-    def __str__(self):
-        return f"{self.name}"
 
 
 class CustomerDeposit(models.Model):

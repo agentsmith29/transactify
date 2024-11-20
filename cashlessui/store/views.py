@@ -26,8 +26,8 @@ import PIL.Image
 
 from luma.core.interface.serial import spi
 from luma.oled.device import ssd1322 as OLED
-from controller.KeyPad import KeyPad 
-from mfrc522.SimpleMFRC522 import SimpleMFRC522
+from .controller.KeyPad import KeyPad 
+from .controller.mfrc522.SimpleMFRC522 import SimpleMFRC522
 
 from time import time
 from datetime import datetime
@@ -62,7 +62,7 @@ from django.views import View
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product
 
-class ManageProductsView(View):
+class oldManageProductsView(View):
     template_name = 'store/manage_products.html'
 
     def get(self, request):
@@ -134,8 +134,12 @@ def add_stock(request):
             product_info.save()
         except StockProductPurchase.DoesNotExist:
             return HttpResponse("Error: Product with the given EAN does not exist.")
-    return render(request, 'store/add_stock.html', {'products': Product.objects.all()})
+    return render(request, 'store/add_stock.html', {'products': Product.objects.all(),
+                                                    'sales': StockProductSale.objects.all(),
+                                                    'purchases': StockProductPurchase.objects.all()})
 
+
+from .webviews.ManageStock import ManageStock
 
 def make_sale(request):
     if request.method == 'POST':
@@ -145,21 +149,7 @@ def make_sale(request):
         customer = request.POST.get('customer')
 
         try:
-            product_info = Product.objects.get(ean=ean)
-            for s in range(quantity):
-                StockProductSale.objects.create(product_info=product_info,
-                                                quantity=1,
-                                                sale_price=sale_price,
-                                                sold_to=customer)
-
-            quantity_bough = StockProductPurchase.objects.filter(product=product_info).count()
-            quantity_sold = StockProductSale.objects.filter(product=product_info).count()
-            quantity = quantity_bough - quantity_sold
-
-            # Update the stock of the product with the given EAN
-            product_info.stock_quantity = quantity
-            product_info.save()
-
+            ManageStock.make_sale(ean, quantity, sale_price, customer)
         except StockProductPurchase.DoesNotExist:
             return HttpResponse("Error: Product with the given EAN does not exist.")
     return render(request, 'store/make_sale.html', {
@@ -199,116 +189,11 @@ class ViewCustomers(View):
         )
         return customer, deposit
     
-    def oled_view_start(self):
-        oled = hwcontroller.hwif.oled
-        # Ensure the image mode matches the display's mode
-        width = oled.width
-        height = oled.height
-        image = Image.new(oled.mode, (width, height))  # Use oled.mode for compatibility
-        draw = ImageDraw.Draw(image)
-
-        font_large = ImageFont.load_default(size=12)
-        font_small = ImageFont.load_default(size=10)
-
-        # Load and resize the NFC symbol image
-        try:
-            cmd_symbol = PIL.Image.open(r"/home/pi/workspace/cashless/cashlessui/static/icons/card-heading.png")
-            cmd_symbol = cmd_symbol.convert('RGB')
-            cmd_symbol = ImageOps.invert(cmd_symbol)
-        except Exception as e:
-            print(f"Error loading NFC symbol: {e}")
-            return
-
-        # Header Section
-        header_height = 20
-        header_text = f"Card Management"
-        draw.text((20, 1), header_text, font=font_large, fill=(255,255,255))  # Leave space for NFC symbol
-
-        # Paste the NFC symbol into the header
-        image.paste(cmd_symbol, (0, 0))  # Paste at (2, 2) in the top-left corner
-
-        # Divider line
-        draw.line([(0, header_height), (width, header_height)], fill=(255,255,255), width=1)
-
-        # Content Section: Display Name, Surname, and Balance
-        content_y_start = header_height + 5
-        draw.text((30, content_y_start), f"A new card is in preperation. Please wait.", font=font_small,fill=(255,255,255))
-        # inster spinner here
-
-        # Update the OLED display
-        oled.display(image)
-    
-
-    def oled_view_present_card(self, name, surname, balance):
-        """
-        Display information for issuing a new customer card on a 256x64 OLED.
-
-        Args:
-            oled: The initialized OLED display object from luma.oled.device.
-            name: Customer's first name.
-            surname: Customer's last name.
-            balance: Customer's account balance.
-            nfc_symbol_path: Path to the NFC symbol image.
-        """
-        oled = controller.hwif.oled
-        # Ensure the image mode matches the display's mode
-        width = oled.width
-        height = oled.height
-        image = Image.new(oled.mode, (width, height))  # Use oled.mode for compatibility
-        draw = ImageDraw.Draw(image)
-
-        # Load fonts (adjust paths and sizes as necessary)
-        #try:
-        #font_large = ImageFont.truetype("arial.ttf", 18)  # Large font for titles
-        #font_small = ImageFont.truetype("arial.ttf", 14)  # Smaller font for details
-        #except IOError:
-        font_large = ImageFont.load_default(size=12)
-        font_small = ImageFont.load_default(size=10)
-
-        # Load and resize the NFC symbol image
-        try:
-            cmd_symbol = PIL.Image.open(r"/home/pi/workspace/cashless/cashlessui/static/icons/card-heading.png")
-            cmd_symbol = cmd_symbol.convert('RGB')
-            cmd_symbol = ImageOps.invert(cmd_symbol)
-
-            nfc_symbol = PIL.Image.open(r"/home/pi/workspace/cashless/cashlessui/static/icons/rss_24_24.png")
-            nfc_symbol = nfc_symbol.convert('RGB')
-            nfc_symbol = ImageOps.invert(nfc_symbol)
-            #nfc_symbol = nfc_symbol.resize((20, 20))  # Resize the symbol to fit the header
-        except Exception as e:
-            print(f"Error loading NFC symbol: {e}")
-            return
-
-        # Header Section
-        header_height = 20
-        header_text = f"Issue new Card"
-        draw.text((20, 1), header_text, font=font_large, fill=(255,255,255))  # Leave space for NFC symbol
-
-        # Paste the NFC symbol into the header
-        image.paste(cmd_symbol, (0, 0))  # Paste at (2, 2) in the top-left corner
-
-        # Divider line
-        draw.line([(0, header_height), (width, header_height)], fill=(255,255,255), width=1)
-
-        # Content Section: Display Name, Surname, and Balance
-        content_y_start = header_height + 5
-        draw.text((30, content_y_start), f"Issue new card for: {name} {surname}", font=font_small,fill=(255,255,255))
-        draw.text((30, content_y_start + 12), f"Initial balance: EUR {float(balance):.2f}", font=font_small, fill=(255,255,255))
-        draw.text((30, content_y_start + 22), f"Please place your card now.", font=font_small, fill=(255,255,255))
-        image.paste(nfc_symbol, (2, content_y_start+5))  # Paste at (2, 2) in the top-left corner
-
-        # Draw NFC readiness indication
-        nfc_ready_text = "Tap card on NFC reader..."
-        draw.text((160, content_y_start + 40), nfc_ready_text, font=font_small, fill=(255,255,255))
-
-        # Update the OLED display
-        oled.display(image)
-
 
     def get(self, request):
         """Handle GET requests to display all customers."""
         customers = self.get_all_customers()
-        self.oled_view_start()
+        hwcontroller.view_start_card_management()
         return render(request, 'store/view_customers.html', {'customers': customers})
 
     def post(self, request):
@@ -320,10 +205,13 @@ class ViewCustomers(View):
         surname = data.get('surname')
         balance = data.get('balance')
         
-        self.oled_view_present_card(name, surname, balance)
+        hwcontroller.view_present_card(name, surname, balance)
+
+        
         # Trigger NFC read
         print("Waiting for NFC card...")
-        card_number, content = controller.nfc_read()
+        card_number, content = hwcontroller.hwif.nfc_reader.read_block()
+        #card_number, content = ("12345", "Test content")
         print(f"Card number: {card_number}, Content: {content}")
 
         # Create and save the new customer
@@ -342,77 +230,6 @@ class CheckNFCStatus(View):
         nfc_complete = request.session.get('nfc_complete', False)
         card_number = request.session.get('card_number', None)
         return JsonResponse({'nfc_complete': nfc_complete, 'card_number': card_number})
-
-# class ViewSingleCustomer(View):
-#     template_name = 'store/customer_detail.html'
-
-#     def __init__(self):
-#         serial_monitor = spi(port = 0, device=1, gpio_DC=23, gpio_RST=24)
-#         self.controller = CustomerController(nfc_reader=SimpleMFRC522(), keypad=KeyPad(), oled=OLED(serial_monitor))
-
-#     def get_customer_data(self, customer_id):
-#         """
-#         Fetches detailed customer data including purchased products and trends.
-#         """
-#         # Get customer details
-#         customer = get_object_or_404(Customer, card_number=customer_id)
-
-#         # Fetch purchased products related to the customer
-#         purchased_products = StockProductSale.objects.filter(
-#             sold_to=customer
-#         ).select_related('product')
-
-#         # Generate chart data for purchase trends
-#         purchases_by_month = purchased_products.annotate(
-#             month=TruncMonth('sale_date')
-#         ).values('month').annotate(total=Sum('quantity')).order_by('month')
-
-#         chart_data = {
-#             "labels": [purchase['month'].strftime("%B") for purchase in purchases_by_month],
-#             "values": [purchase['total'] for purchase in purchases_by_month],
-#         }
-
-#         return {
-#             "customer": {
-#                 "name": f"{customer.name} {customer.surname}",
-#                 "balance": customer.balance,
-#                 "issue_date": customer.issued_at,
-#             },
-#             "purchased_products": purchased_products,
-#             "chart_data": chart_data,
-#         }
-
-#     def get(self, request):
-#         """
-#         Handles GET requests to display the customer detail page.
-#         """
-#         # Display the webpage to present the card, http
-        
-        
-#         #self.controller.view_present_card("name", "surname", 0)
-#         ## Trigger NFC read
-#         #card_number, _ = asyncio.run(self.controller.nfc_read())
-#         #context = self.get_customer_data(card_number)
-#         #return render(request, self.template_name, context)
-#         return JsonResponse({'redirect_url': '/store/present_card/'})
-
-#     def post(self, request, customer_id):
-#         """
-#         Handles POST requests for updating customer information or other actions.
-#         """
-#         # Example: Update customer data (implement your own logic here)
-#         customer = get_object_or_404(Customer, id=customer_id)
-#         action = request.POST.get('action')
-
-#         if action == 'update_balance':
-#             new_balance = float(request.POST.get('balance', customer.balance))
-#             customer.balance = new_balance
-#             customer.save()
-        
-#         # Re-fetch the data to reflect updates
-#         context = self.get_customer_data(customer_id)
-#         return render(request, self.template_name, context)
-
 
 class ViewSingleCustomer(View):
     template_name = 'store/customer_detail.html'
@@ -475,7 +292,6 @@ class ViewSingleCustomer(View):
             return JsonResponse({'error': 'Invalid JSON data'}, status=400)
         except Exception as e:
             return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
-
 
 class UpdateCustomerBalance(View):
     def post(self, request, card_number):

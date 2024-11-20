@@ -111,6 +111,7 @@ class BasicMFRC522:
 
         # Convert UID to integer and store as the tag ID
         id = self._uid_to_num(uid)
+        #print(NotImplemented)
 
         # Select the RFID tag
         self.MFRC522.SelectTag(uid)

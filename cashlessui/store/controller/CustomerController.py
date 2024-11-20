@@ -19,7 +19,7 @@ from datetime import datetime
 class CustomerController:
     """Encapsulates customer-related logic."""
     def __init__(self, nfc_reader: SimpleMFRC522, keypad: KeyPad, oled: OLED):
-        self.reader = nfc_reader
+        self.reader = None #nfc_reader
         self.keypad = keypad
         self.oled = oled
         
