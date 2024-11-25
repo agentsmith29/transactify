@@ -7,6 +7,9 @@ export DJANGO_SETTINGS_MODULE=cashlessui.settings
 PYTHON_EXEC=python
 MANAGE_PY="python manage.py"
 
+# rename /app/cashlessui/store to /app/cashlessui/$DJANGO_DB_NAME
+#mv /app/cashlessui/store /app/cashlessui/$DJANGO_DB_NAME
+
 chmod +x make_migrations.sh
 # run make migrations
 #./make_migrations.sh

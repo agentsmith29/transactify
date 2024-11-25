@@ -97,7 +97,7 @@ $MANAGE_PY migrate --database=USER || {
 
 # Step 5: Create a superuser for the USER database (if needed)
 echo "Creating a superuser for the USER database (if not exists)..."
-$MANAGE_PY createsuperuser --username=admin --email=admin@admin.com --database=USER --noinput || {
+$MANAGE_PY createsuperuser --username=admin --password=admin --email=admin@admin.com --database=USER --noinput || {
     echo "ERROR: Failed to create superuser for the USER database."
     echo "To create manually, run: python manage.py createsuperuser --database=USER"
 }

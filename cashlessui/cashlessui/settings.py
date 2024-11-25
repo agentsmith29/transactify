@@ -152,3 +152,6 @@ LOGGING = {
     },
 }
 
+
+#LOGIN_REDIRECT_URL = f"/{os.getenv('DJANGO_DB_NAME', 'store')}/"
+LOGOUT_REDIRECT_URL = '/'
