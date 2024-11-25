@@ -5,6 +5,16 @@ from django.db.models import Sum
 class ManageStock():
 
     def make_sale(ean : str, quantity: int, sale_price: Decimal, customer: Customer):
+        
+        # update the balance of the customer by summing all deposits and substracting all buys
+        #customer.balance = customer.deposits.aggregate(
+        #    total=Sum('amount')
+        #)['total'] or 0 - customer.buys.aggregate(
+        #    total=Sum('total_cost')
+        #)['total'] or 0
+
+        if customer.balance < quantity * sale_price:
+            raise ValueError("Insufficient balance")
 
         product = Product.objects.get(ean=ean)
         for s in range(quantity):
@@ -21,6 +31,7 @@ class ManageStock():
             )['quantity'] or 0
         print(f"quantity_bough: {quantity_bought}, quantity_sold: {quantity_sold}")
         quantity = quantity_bought - quantity_sold
+
 
         # Update the stock of the product with the given EAN
         product.stock_quantity = quantity

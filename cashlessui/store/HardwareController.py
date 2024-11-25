@@ -138,7 +138,7 @@ class HardwareController():
 
         # Load and resize the NFC symbol image
         try:
-            cmd_symbol = PIL.Image.open(r"/home/pi/workspace/cashless/cashlessui/static/icons/card-heading.png")
+            cmd_symbol = PIL.Image.open(r"/app/static/icons/card-heading.png")
             cmd_symbol = cmd_symbol.convert('RGB')
             cmd_symbol = ImageOps.invert(cmd_symbol)
         except Exception as e:
@@ -262,7 +262,7 @@ class HardwareController():
 
         # Load and resize the NFC symbol image
         try:
-            cmd_symbol = PIL.Image.open(r"/home/pi/workspace/cashless/cashlessui/static/icons/card-heading.png")
+            cmd_symbol = PIL.Image.open(r"/app/static/icons/card-heading.png")
             cmd_symbol = cmd_symbol.convert('RGB')
             cmd_symbol = ImageOps.invert(cmd_symbol)
         except Exception as e:
@@ -324,11 +324,11 @@ class HardwareController():
 
         # Load and resize the NFC symbol image
         try:
-            cmd_symbol = PIL.Image.open(r"/home/pi/workspace/cashless/cashlessui/static/icons/card-heading.png")
+            cmd_symbol = PIL.Image.open(r"/app/static/icons/card-heading.png")
             cmd_symbol = cmd_symbol.convert('RGB')
             cmd_symbol = ImageOps.invert(cmd_symbol)
 
-            nfc_symbol = PIL.Image.open(r"/home/pi/workspace/cashless/cashlessui/static/icons/rss_24_24.png")
+            nfc_symbol = PIL.Image.open(r"/app/static/icons/rss_24_24.png")
             nfc_symbol = nfc_symbol.convert('RGB')
             nfc_symbol = ImageOps.invert(nfc_symbol)
             #nfc_symbol = nfc_symbol.resize((20, 20))  # Resize the symbol to fit the header

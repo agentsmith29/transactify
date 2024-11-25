@@ -24,6 +24,9 @@ class Customer(models.Model):
 
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
+    #deposits = models.ManyToManyField('CustomerDeposit', related_name='deposits')
+    #purchases = models.ManyToManyField('CustomerWithdrawal', related_name='withdrawals')
+
     #card_content = models.CharField(default="")
 
     def __str__(self):
@@ -52,8 +55,6 @@ class StockProductSale(models.Model):
 
     def __str__(self):
         return f"{self.quantity} units of {self.product.name} sold on {self.sale_date}"
-
-
 
 
 class CustomerDeposit(models.Model):

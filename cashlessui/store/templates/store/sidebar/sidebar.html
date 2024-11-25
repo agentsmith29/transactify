@@ -2,23 +2,24 @@
 {% load static %}
 <html lang="en" data-bs-theme="auto">
 <head>
-    <script src="{% static '/assets/js/color-modes.js' %}"></script>
+    <script src="{% static 'assets/js/color-modes.js' %}"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <title>Sidebars · Bootstrap</title>
 
-    <!-- Bootstrap CSS -->
-    <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/sidebars/">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <link href="{% static 'assets/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- Local Bootstrap CSS -->
+    <link href="{% static 'assets/dist/css/bootstrap-css.css' %}" rel="stylesheet">
+
+    <!-- Local jQuery -->
+    <script src="{% static 'assets/dist/js/jquery.js' %}"></script>
+
+    <!-- Local Bootstrap JS -->
+    <script src="{% static 'assets/dist/js/bootstrap-js.js' %}"></script>
+
+    <!-- Local DocSearch CSS -->
+    <link href="{% static 'assets/dist/css/docsearch-css.css' %}" rel="stylesheet">
+
     <style>
         body {
             display: flex;
@@ -54,12 +55,12 @@
         <hr>
         <ul class="nav nav-pills flex-column mb-auto">
             <li class="nav-item">
-                <a href="{% url 'manage-products' %}" class="nav-link {% if request.path == '/store/manage-products/' %}active{% else %}text-white{% endif %}" aria-current="page">
+                <a href="{% url 'manage_products' %}" class="nav-link {% if request.path == '/store/manage-products/' %}active{% else %}text-white{% endif %}" aria-current="page">
                     Manage Products
                 </a>
             </li>
             <li>
-                <a href="{% url 'manage-stock' %}" class="nav-link {% if request.path == '/store/manage-stock/' %}active{% else %}text-white{% endif %}">
+                <a href="{% url 'manage_stock' %}" class="nav-link {% if request.path == '/store/manage-stock/' %}active{% else %}text-white{% endif %}">
                     Update Stock
                 </a>
             </li>
@@ -102,6 +103,6 @@
         {% endblock %}
     </div>
 
-    <script src="{% static '/assets/dist/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'assets/dist/js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>

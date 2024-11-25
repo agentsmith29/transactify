@@ -66,6 +66,7 @@ class oldManageProductsView(View):
     template_name = 'store/manage_products.html'
 
     def get(self, request):
+        
         """Handle GET requests to display all products."""
         products = Product.objects.all()
         return render(request, self.template_name, {'products': products})

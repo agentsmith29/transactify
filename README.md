@@ -14,3 +14,7 @@ sudo apt install python3-rpi-lgpio
 # Run the webserver
 python manage.py makemigrations store &&  python manage.py migrate store &&  python manage.py migrate
 python manage.py runserver 192.168.137.34:8000 
+
+# Run the database
+
+sudo apt-get install libpq-dev # For postgress databse

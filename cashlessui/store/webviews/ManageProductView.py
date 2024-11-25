@@ -4,7 +4,7 @@ from django.shortcuts import render
 from ..models import Product, StockProductPurchase, StockProductSale, Customer, CustomerDeposit
 from decimal import Decimal
 from django.db.models import Sum, F
-
+import os
 
 class ManageProductsView(View):
     template_name = 'store/manage_products.html'
@@ -12,11 +12,21 @@ class ManageProductsView(View):
     def get(self, request):
         """Handle GET requests to display all products."""
         products = Product.objects.all()
+
+        print("********* Running ls /app/static/assets/dist/js\n\n\n")
+        os.system("ls /app/static/assets/dist/js")
+        print("********* Done running ls /app/static/assets/dist/js\n\n\n")
+
+
         return render(request, self.template_name, {'products': products})
 
     def post(self, request):
         """Handle POST requests for adding or editing products."""
-            
+
+        # run ls app/static/assets/dist/js/bootstrap.bundle.min.js
+        import os
+  
+        #             
         ean = request.POST.get('ean')
         name = request.POST.get('name')
         resell_price = request.POST.get('resellprice')

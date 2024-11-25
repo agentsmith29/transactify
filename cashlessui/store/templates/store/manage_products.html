@@ -122,6 +122,49 @@
 
 
 <script>
+    const pageName = "manage_products";
+    const socket = new WebSocket(`ws://${window.location.host}/ws/page/${pageName}/`);
+
+    socket.onopen = function () {
+        console.log("WebSocket connection established for page:", pageName);
+    };
+
+    socket.onmessage = function (event) {
+        try {
+            const data = JSON.parse(event.data);
+            console.log("Message received from server:", data);
+
+            if (data.barcode) {
+                // Update the EAN input field with the barcode value
+                const eanField = document.getElementById('ean');
+                if (eanField) {
+                    eanField.value = data.barcode;
+                } else {
+                    console.error("EAN field not found.");
+                }
+
+                // Display a toast notification
+                const toastMessage = document.getElementById('toastMessage');
+                toastMessage.textContent = `New scanned barcode: ${data.barcode}`;
+                const toast = new bootstrap.Toast(document.getElementById('barcodeToast'));
+                toast.show();
+            }
+        } catch (error) {
+            console.error("Error processing WebSocket message:", error);
+        }
+    };
+
+    socket.onclose = function () {
+        console.log("WebSocket connection closed");
+    };
+
+    socket.onerror = function (error) {
+        console.error("WebSocket error:", error);
+    };
+</script>
+
+
+<script>
 function openEditModal(ean, name, resellPrice) {
     document.getElementById('modal_ean').value = ean;
     document.getElementById('modal_name').value = name;

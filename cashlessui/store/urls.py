@@ -5,8 +5,8 @@ from .webviews.ManageProductView import ManageProductsView
 from .webviews.ViewManageStock import ViewManageStock
 
 urlpatterns = [
-    path('manage-products/', ManageProductsView.as_view(), name='manage-products'),
-    path('manage-stock/',ViewManageStock.as_view(), name='manage-stock'),
+    path('manage-products/', ManageProductsView.as_view(), name='manage_products'),
+    path('manage-stock/',ViewManageStock.as_view(), name='manage_stock'),
     path('make-sale/', views.make_sale, name='make_sale'),
     path('view-stock/', views.view_stock, name='view_stock'),
     

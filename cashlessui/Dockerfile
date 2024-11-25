@@ -1,0 +1,38 @@
+# Base image optimized for Raspberry Pi
+FROM python:3.11-slim-bullseye
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Set the working directory
+WORKDIR /app
+
+# Install system dependencies for Python, GPIO, and PostgreSQL
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3-dev \
+    libgpiod-dev \
+    libpq-dev \
+    postgresql-client \
+    ntpdate \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+RUN pip install --upgrade pip
+#RUN ntpdate pool.ntp.org
+# Install Django 5 and Python dependencies
+COPY ./requirements.txt /app/
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ./entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh 
+
+# Copy project files into the container
+COPY . /app/
+
+# Expose the application port
+EXPOSE 8000
+
+# Run migrations and start the Django development server
+ENTRYPOINT ["/app/entrypoint.sh"]
