@@ -14,7 +14,20 @@ from django.conf import settings
 
 sys.path.append('..')
 
-from .models import Product, StockProductPurchase, StockProductSale, Customer, CustomerDeposit
+#from .models import Product, StockProductPurchase, StockProductSale, Customer, CustomerDeposit
+from django.views import View
+from django.shortcuts import render, redirect, get_object_or_404
+#from .models import Product
+from .webmodels.StoreProduct import StoreProduct
+from cashlessui.models import Customer
+from .webmodels.CustomerDeposit import CustomerDeposit
+from .webmodels.CustomerPurchase import CustomerPurchase
+from .webmodels.ProductRestock import ProductRestock
+from .webmodels.Store import Store
+from .webmodels.StoreProduct import StoreProduct
+
+
+
 from decimal import Decimal
 from django.db.models import Sum, F
 
@@ -58,9 +71,6 @@ def add_new_product(request):
         return HttpResponse(f"Product '{name}' added successfully.")
     return render(request, 'store/add_product.html')
 
-from django.views import View
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Product
 
 class oldManageProductsView(View):
     template_name = 'store/manage_products.html'
@@ -165,63 +175,63 @@ def view_customers(request):
 
 
 
-class ViewCustomers(View):
-    """Class-based view to handle customer-related operations."""
+# class ManageCustomers(View):
+#     """Class-based view to handle customer-related operations."""
 
-    def __init__(self):
-        pass
+#     def __init__(self):
+#         pass
     
-    def get_all_customers(self):
-        """Returns all customers."""
-        return Customer.objects.all()
+#     def get_all_customers(self):
+#         """Returns all customers."""
+#         return Customer.objects.all()
     
-    def create_new_customer(self,name, surname, balance, card_number):
-        """Creates and saves a new customer."""
-        customer = Customer.objects.create(
-            card_number=card_number,
-            name=name,  
-            surname=surname,
-            balance=balance
-        )
-        deposit = CustomerDeposit.objects.create(
-            customer=customer,
-            amount=balance,
-            timestamp=datetime.now()
-        )
-        return customer, deposit
+#     def create_new_customer(self,name, surname, balance, card_number):
+#         """Creates and saves a new customer."""
+#         customer = Customer.objects.create(
+#             card_number=card_number,
+#             name=name,  
+#             surname=surname,
+#             balance=balance
+#         )
+#         deposit = CustomerDeposit.objects.create(
+#             customer=customer,
+#             amount=balance,
+#             timestamp=datetime.now()
+#         )
+#         return customer, deposit
     
 
-    def get(self, request):
-        """Handle GET requests to display all customers."""
-        customers = self.get_all_customers()
-        hwcontroller.view_start_card_management()
-        return render(request, 'store/view_customers.html', {'customers': customers})
+#     def get(self, request):
+#         """Handle GET requests to display all customers."""
+#         customers = self.get_all_customers()
+#         hwcontroller.view_start_card_management()
+#         return render(request, 'store/view_customers.html', {'customers': customers})
 
-    def post(self, request):
-        """Handle POST requests to add a new customer."""
-        #try:
-            # Parse JSON data from the request body
-        data = json.loads(request.body)
-        name = data.get('name')
-        surname = data.get('surname')
-        balance = data.get('balance')
+#     def post(self, request):
+#         """Handle POST requests to add a new customer."""
+#         #try:
+#             # Parse JSON data from the request body
+#         data = json.loads(request.body)
+#         name = data.get('name')
+#         surname = data.get('surname')
+#         balance = data.get('balance')
         
-        hwcontroller.view_present_card(name, surname, balance)
+#         hwcontroller.view_present_card(name, surname, balance)
 
         
-        # Trigger NFC read
-        print("Waiting for NFC card...")
-        card_number, content = hwcontroller.hwif.nfc_reader.read_block()
-        #card_number, content = ("12345", "Test content")
-        print(f"Card number: {card_number}, Content: {content}")
+#         # Trigger NFC read
+#         print("Waiting for NFC card...")
+#         card_number, content = hwcontroller.hwif.nfc_reader.read_block()
+#         #card_number, content = ("12345", "Test content")
+#         print(f"Card number: {card_number}, Content: {content}")
 
-        # Create and save the new customer
-        self.create_new_customer(name, surname, balance, card_number)
+#         # Create and save the new customer
+#         self.create_new_customer(name, surname, balance, card_number)
 
-        return JsonResponse({'status': 'success'})
-        #except Exception as e:
-        #    print(f"Error: {e}")
-        #    return JsonResponse({'status': 'error', 'message': str(e)})
+#         return JsonResponse({'status': 'success'})
+#         #except Exception as e:
+#         #    print(f"Error: {e}")
+#         #    return JsonResponse({'status': 'error', 'message': str(e)})
 
 class CheckNFCStatus(View):
     def get(self, request):

@@ -5,7 +5,6 @@ import threading
 from django.core.signals import setting_changed
 from django.dispatch import Signal
 
-from ..models import Product
 
 class BarcodeScannerSignals():
     barcode_read = Signal()

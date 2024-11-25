@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views import View
-from ..models import Customer, CustomerDeposit
+from cashlessui.models import Customer
 import json
 
 class ViewSingleCustomer(View):

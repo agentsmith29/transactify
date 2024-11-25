@@ -1,5 +1,5 @@
 from django.db import models
-from .StoreProducts import StoreProduct
+from .StoreProduct import StoreProduct
 
 class ProductRestock(models.Model):
     """Represents restocking a product in a store."""

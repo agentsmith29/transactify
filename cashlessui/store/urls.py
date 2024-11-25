@@ -1,8 +1,9 @@
 from django.urls import path
 from . import views
-from .views import ViewCustomers, ViewSingleCustomer, PresentCardView, CheckNFCStatus, NFCReadView, UpdateCustomerBalance
+from .views import ViewSingleCustomer, PresentCardView, CheckNFCStatus, NFCReadView, UpdateCustomerBalance
 from .webviews.ManageProductView import ManageProductsView
 from .webviews.ViewManageStock import ViewManageStock
+from .webviews.ManageCustomers import ManageCustomers
 
 urlpatterns = [
     path('manage-products/', ManageProductsView.as_view(), name='manage_products'),
@@ -14,7 +15,7 @@ urlpatterns = [
     path('nfc_read/', NFCReadView.as_view(), name='nfc_read'),
     #path('customer/', ViewSingleCustomer.as_view(), name='customer'),
 
-    path('customers/', ViewCustomers.as_view(), name='customers'),
+    path('customers/', ManageCustomers.as_view(), name='customers'),
     path('customer/<str:card_number>/', ViewSingleCustomer.as_view(), name='customer_detail'),
     path('customer/<str:card_number>/update_balance/', UpdateCustomerBalance.as_view(), name='customer_update_balance'),
 

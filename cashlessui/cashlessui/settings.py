@@ -12,6 +12,9 @@ DEBUG = True  # Set to False in production
 
 ALLOWED_HOSTS = ['*']  # Adjust this for production (e.g., ['yourdomain.com'])
 
+
+
+
 # Application definition
 INSTALLED_APPS = [
     'channels',
@@ -23,10 +26,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Add your custom apps here
-    'store.apps.StoreConfig',
-    
-   
+    #'store.apps.StoreConfig',
+    'cashlessui',
+    'store',
 ]
+ 
+#AUTH_USER_MODEL = 'cashlessui.User'
+
 
 CHANNEL_LAYERS = {
     'default': {
@@ -68,6 +74,14 @@ ASGI_APPLICATION = 'project_name.asgi.application'
 
 # Database
 DATABASES = {
+       'USER': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'USER',
+        'USER': os.getenv('DJANGO_DB_USER', 'default_user'),
+        'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', 'default_password'),
+        'HOST': os.getenv('DJANGO_DB_HOST', 'localhost'),
+        'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
+    },
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DJANGO_DB_NAME', 'default_db'),
@@ -77,6 +91,7 @@ DATABASES = {
         'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
     }
 }
+DATABASE_ROUTERS = ['cashlessui.db_router.MultiDatabaseRouter']
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -136,5 +151,4 @@ LOGGING = {
         },
     },
 }
-
 

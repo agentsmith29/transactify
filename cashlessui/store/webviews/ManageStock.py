@@ -1,4 +1,6 @@
-from ..models import Customer, Product, StockProductPurchase, StockProductSale
+from ..webmodels.StoreProduct import StoreProduct
+from ..webmodels.CustomerPurchase import CustomerPurchase
+from cashlessui.models import Customer
 from decimal import Decimal
 from django.db.models import Sum
 
@@ -16,17 +18,17 @@ class ManageStock():
         if customer.balance < quantity * sale_price:
             raise ValueError("Insufficient balance")
 
-        product = Product.objects.get(ean=ean)
+        product = StoreProduct.objects.get(ean=ean)
         for s in range(quantity):
-            StockProductSale.objects.create(product=product,
+            CustomerPurchase.objects.create(product=product,
                                             quantity=1,
                                             sale_price=sale_price,
                                             sold_to=customer)
 
-        quantity_bought = StockProductPurchase.objects.filter(product=product).aggregate(
+        quantity_bought = CustomerPurchase.objects.filter(product=product).aggregate(
                 quantity=Sum('quantity')
             )['quantity'] or 0
-        quantity_sold = StockProductSale.objects.filter(product=product).aggregate(
+        quantity_sold = CustomerPurchase.objects.filter(product=product).aggregate(
                 quantity=Sum('quantity')
             )['quantity'] or 0
         print(f"quantity_bough: {quantity_bought}, quantity_sold: {quantity_sold}")
@@ -39,10 +41,10 @@ class ManageStock():
     
     def make_purchase(ean : str, quantity: int, purchase_price: Decimal):
         # Retrieve the product by EAN
-        product = Product.objects.get(ean=ean)
+        product = StoreProduct.objects.get(ean=ean)
 
         # Create a new StockProductPurchase record
-        StockProductPurchase.objects.create(
+        CustomerPurchase.objects.create(
             product=product,
             quantity=quantity,
             purchase_price=purchase_price,
@@ -50,10 +52,10 @@ class ManageStock():
         )
 
         # Calculate total purchased and sold quantities
-        quantity_bought = StockProductPurchase.objects.filter(product=product).aggregate(
+        quantity_bought = CustomerPurchase.objects.filter(product=product).aggregate(
             quantity=Sum('quantity')
         )['quantity'] or 0
-        quantity_sold = StockProductSale.objects.filter(product=product).aggregate(
+        quantity_sold = CustomerPurchase.objects.filter(product=product).aggregate(
             quantity=Sum('quantity')
         )['quantity'] or 0
 

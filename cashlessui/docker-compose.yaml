@@ -36,6 +36,10 @@ services:
       - /dev/i2c-1:/dev/i2c-1  # I2C access
       - /dev/serial0:/dev/serial0  # Serial access
       - /dev/ttyUSB0:/dev/ttyUSB0  # USB serial (if required)
+      # to allow dynamic reloading
+      #- ./cashlessui/store/templates:/app/cashlessui/store/templates  # Mount the project directory
+      #- ./cashlessui/store/webmodels:/app/cashlessui/store/webmodels  # Mount the project directory
+      #- ./cashlessui/store/webviews:/app/cashlessui/store/webviews  # Mount the project directory
     devices:
       - "/dev/gpiomem"
       - "/dev/spidev0.0"
@@ -53,3 +57,5 @@ services:
     restart: always
     ports:
       - 8080:8080
+    depends_on:
+      - django

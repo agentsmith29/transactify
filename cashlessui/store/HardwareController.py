@@ -16,7 +16,7 @@ import json
 
 from evdev import InputDevice, categorize, ecodes
 
-from .models import Product, StockProductPurchase, StockProductSale, Customer, CustomerDeposit
+from .webmodels.StoreProduct import StoreProduct
 from django.dispatch import Signal
 from django.http import HttpRequest
 
@@ -43,7 +43,7 @@ class HardwareController():
     def on_barcode_read(self, sender, barcode, **kwargs):
         print(f"Barcode read: {barcode}")
         if self.current_view == "view_main" or self.current_view == "view_price":
-            product = Product.objects.filter(ean=barcode).first()
+            product = StoreProduct.objects.filter(ean=barcode).first()
             if product:
                 self.view_price(product.name, product.resell_price)
                 self.current_products.append(product)

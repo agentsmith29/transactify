@@ -1,0 +1,16 @@
+from django.db import models
+from django.contrib.auth.models import User
+from django.conf import settings
+
+class Customer(models.Model):
+    """Represents a customer shared across all stores."""
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    card_number = models.AutoField(primary_key=True)
+    #name = models.CharField(max_length=100)
+    #surname = models.CharField(max_length=100)
+    issued_at = models.DateTimeField(auto_now_add=True)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def __str__(self):
+        return f"{self.user.name} {self.user.surname}"
+

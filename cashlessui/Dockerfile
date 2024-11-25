@@ -26,8 +26,9 @@ COPY ./requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./entrypoint.sh /app/entrypoint.sh
+COPY ./make_migrations.sh /app/make_migrations.sh
 RUN chmod +x /app/entrypoint.sh 
-
+RUN chmod +x /app/make_migrations.sh 
 # Copy project files into the container
 COPY . /app/
 

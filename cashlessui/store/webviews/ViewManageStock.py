@@ -3,7 +3,9 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Sum
 from decimal import Decimal
-from ..models import Product, StockProductPurchase, StockProductSale
+from ..webmodels.StoreProduct import StoreProduct
+from ..webmodels.CustomerPurchase import CustomerPurchase
+from ..webmodels.ProductRestock import ProductRestock
 from .ManageStock import ManageStock
 
 
@@ -17,7 +19,7 @@ class ViewManageStock(View):
 
         try:
            ManageStock.make_purchase(ean, quantity, purchase_price)
-        except Product.DoesNotExist:
+        except StoreProduct.DoesNotExist:
             return HttpResponse("Error: Product with the given EAN does not exist.", status=404)
 
         return self.get(request)
@@ -25,8 +27,9 @@ class ViewManageStock(View):
     def get(self, request):
         # Render the template with context
         context = {
-            'products': Product.objects.all(),
-            'sales': StockProductSale.objects.all(),
-            'purchases': StockProductPurchase.objects.all()
+            'products': StoreProduct.objects.all(),
+            'sales': CustomerPurchase.objects.all(),
+            # TODO: rename 'purchases' to 'restocks'
+            'purchases': ProductRestock.objects.all()
         }
         return render(request, self.template_name, context)
