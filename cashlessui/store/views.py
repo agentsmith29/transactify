@@ -257,8 +257,8 @@ class ViewSingleCustomer(View):
             card_number = request.GET.get('card_number')
 
         customer = get_object_or_404(Customer, card_number=card_number)
-        deposits = CustomerDeposit.objects.filter(customer=customer).order_by('-timestamp')
-        purchases = StockProductSale.objects.filter(sold_to=customer).order_by('-sale_date')
+        deposits = CustomerDeposit.objects.filter(customer=customer)#.order_by('-deposit_date')
+        purchases = CustomerPurchase.objects.filter(customer=customer)#.order_by('-purchase_date')
 
         return render(request, self.template_name, {
             'customer': customer,

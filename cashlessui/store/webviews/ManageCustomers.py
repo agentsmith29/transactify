@@ -51,29 +51,36 @@ class ManageCustomers(View):
 
     def post(self, request):
         """Handle POST requests to add a new customer."""
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
-        balance = request.POST.get('balance')
+        try:
+            data = json.loads(request.body)
+            first_name = data.get('first_name')
+            last_name = data.get('last_name')
+            email = data.get('email')
+            balance = data.get('balance')
 
-        # Validate the required fields
-        if not first_name or not last_name or not email or balance is None:
-            return JsonResponse({'status': 'error', 'message': 'Missing required fields'}, status=400)
-        username = f"{first_name[0].lower()}.{last_name.lower()}"
-        
-        #hwcontroller.view_present_card(username, email, balance)
+            #first_name = request.POST.get('first_name')
+            #last_name = request.POST.get('last_name')
+            #email = request.POST.get('email')
+            #balance = request.POST.get('balance')
 
-        # Trigger NFC read
-        print("Waiting for NFC card...")
-        #card_number, content = hwcontroller.hwif.nfc_reader.read_block()
-        card_number = 123456
-        content = "Some content"
-        print(f"Card number: {card_number}, Content: {content}")
+            # Validate the required fields
+            if not first_name or not last_name or not email or balance is None:
+                return JsonResponse({'status': 'error', 'message': 'Missing required fields'}, status=400)
+            username = f"{first_name[0].lower()}.{last_name.lower()}"
+            
+            #hwcontroller.view_present_card(username, email, balance)
 
-        # Create and save the new customer
-        self.create_new_customer(username, first_name, last_name, email, balance, card_number)
+            # Trigger NFC read
+            print("Waiting for NFC card...")
+            #card_number, content = hwcontroller.hwif.nfc_reader.read_block()
+            card_number = 123456
+            content = "Some content"
+            print(f"Card number: {card_number}, Content: {content}")
 
-        return JsonResponse({'status': 'success'})
-        #except Exception as e:
-        #    print(f"Error: {e}")
-        #    return JsonResponse({'status': 'error', 'message': str(e)})
+            # Create and save the new customer
+            self.create_new_customer(username, first_name, last_name, email, balance, card_number)
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)})
