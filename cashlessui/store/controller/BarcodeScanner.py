@@ -24,7 +24,12 @@ class BarcodeScanner:
     def read_barcodes(self):
         # Open the serial connection
         try:
-            ser = serial.Serial('/dev/ttyACM0', 19200, timeout=1)  # Adjust the port and baud rate
+            ser = serial.Serial('/dev/ttyACM0', 
+                                baudrate=115200, 
+                                bytesize=serial.EIGHTBITS,
+                                parity=serial.PARITY_NONE,
+                                stopbits=serial.STOPBITS_ONE,
+                                timeout=1)  # Adjust the port and baud rate
             print("Serial connection established")
         except serial.SerialException as e:
             print(f"Error connecting to serial port: {e}")

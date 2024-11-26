@@ -137,6 +137,9 @@ class HardwareController():
         
         font_large = ImageFont.load_default(size=12)
         font_small = ImageFont.load_default(size=10)
+        font_tiny = ImageFont.load_default(size=8)
+        # get horizontal and vertoincal size of one letter
+        
 
         # Load and resize the NFC symbol image
         try:
@@ -151,7 +154,10 @@ class HardwareController():
         header_height = 20
         header_text = f"Don Knabberello"
         draw.text((20, 1), header_text, font=font_large, fill=(255,255,255))  # Leave space for NFC symbol
-
+        ip_address = f"{os.getenv('DJANGO_WEB_HOST')}:{os.getenv('DJANGO_WEB_PORT')}"
+        (w, h), (offset_x, offset_y) = font_tiny.font.getsize(ip_address)
+        
+        draw.text((255-w, 10-h), f"{ip_address}", font=font_tiny,fill=(255,255,255))
         # Paste the NFC symbol into the header
         image.paste(cmd_symbol, (0, 0))  # Paste at (2, 2) in the top-left corner
 
@@ -161,10 +167,7 @@ class HardwareController():
         # Content Section: Display Name, Surname, and Balance
         content_y_start = header_height + 5
         draw.text((30, content_y_start), f"Scan a product of your choice", font=font_small,fill=(255,255,255))
-        ip_address = f"{os.getenv('DJANGO_WEB_HOST')}:{os.getenv('DJANGO_WEB_PORT')}"
-        draw.text((10, content_y_start + 15), f"Visit {ip_address} to manage ", font=font_small,fill=(255,255,255))
-        draw.text((10, content_y_start + 29), f"products and customers.", font=font_small,fill=(255,255,255))
-
+       
         # Update the OLED display
         self.hwif.oled.display(image)
         self.current_view = "view_main"

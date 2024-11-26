@@ -11,16 +11,16 @@
         <form method="post" class="border p-4 shadow-sm bg-light">
             {% csrf_token %}
             <div class="form-group">
-                <label for="ean">EAN (Article Number)</label>
-                <input type="text" class="form-control" id="ean" name="ean" required>
+                <label for="product_ean">EAN (Article Number)</label>
+                <input type="text" class="form-control" id="ean" name="product_ean" required>
             </div>
             <div class="form-group">
-                <label for="name">Product Name</label>
-                <input type="text" class="form-control" id="name" name="name" required>
+                <label for="product_name">Product Name</label>
+                <input type="text" class="form-control" id="name" name="product_name" required>
             </div>
             <div class="form-group">
-                <label for="resellprice">Resell Price</label>
-                <input type="number" class="form-control" id="resellprice" name="resellprice" step="0.01" required>
+                <label for="resell_price">Resell Price</label>
+                <input type="number" class="form-control" id="resell_price" name="resell_price" step="0.01" required>
             </div>
             <button type="submit" class="btn btn-primary">Add Product</button>
         </form>
@@ -43,17 +43,16 @@
                 <tbody>
                     {% for product in products %}
                     <tr>
-                        <!-- <td>{{ product.ean }}</td>
+                        <td>{{ product.ean }}</td>
                         <td>{{ product.name }}</td>
                         <td>{{ product.resell_price }}</td>
-                        <td>{{ product.stock_quantity }}</td> -->
+                        <td>{{ product.stock_quantity }}</td> 
                         <td>
                             <!-- Edit Button -->
-                            <!-- <button type="button" class="btn btn-warning btn-sm"
+                             <button type="button" class="btn btn-warning btn-sm"
                             onclick="openEditModal('{{ product.ean }}', '{{ product.name }}', '{{ product.resell_price }}')">
                             Edit
-                            </button> -->
-
+                            </button>
                             <!-- Delete Button -->
                             <form method="post" class="d-inline">
                                 {% csrf_token %}
@@ -83,20 +82,20 @@
             <form method="post">
                 {% csrf_token %}
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
+                    <h5 class="modal-title" id="editProductModalLabel">Edit Product </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeEditModal()">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="modal_ean" name="ean">
+                    <input type="" id="modal_ean" name="product_ean" readonly="true">
                     <div class="form-group">
                         <label for="modal_name">Name</label>
-                        <input type="text" class="form-control" id="modal_name" name="name" required>
+                        <input type="text" class="form-control" id="modal_name" name="product_name" required>
                     </div>
                     <div class="form-group">
                         <label for="modal_resellprice">Price (€)</label>
-                        <input type="number" class="form-control" id="modal_resellprice" name="resellprice" step="0.01" required>
+                        <input type="number" class="form-control" id="modal_resellprice" name="resell_price" step="0.01" required>
                     </div>
                 </div>
                 <div class="modal-footer">
