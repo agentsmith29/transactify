@@ -5,6 +5,11 @@ from .webviews.ManageProductView import ManageProductsView
 from .webviews.ViewManageStock import ViewManageStock
 from .webviews.ManageCustomers import ManageCustomers
 
+from .controller.HardwareController import HardwareController
+from .controller.HardwareInterface import HardwareInterface
+hwcontroller = HardwareController()
+
+
 urlpatterns = [
     path('manage-products/', ManageProductsView.as_view(), name='manage_products'),
     path('manage-stock/',ViewManageStock.as_view(), name='manage_stock'),

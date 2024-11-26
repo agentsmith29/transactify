@@ -1,5 +1,5 @@
 from django.apps import AppConfig
-from .controller.HardwareInterface import HardwareInterface
+from .HardwareInterface import HardwareInterface
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 import PIL.Image
 import sys
@@ -16,11 +16,12 @@ import json
 
 from evdev import InputDevice, categorize, ecodes
 
-from .webmodels.StoreProduct import StoreProduct
+from ..webmodels.StoreProduct import StoreProduct
 from django.dispatch import Signal
 from django.http import HttpRequest
 
 import time
+import os
 
 
 
@@ -48,7 +49,7 @@ class HardwareController():
                 self.view_price(product.name, product.resell_price)
                 self.current_products.append(product)
             else:
-                self.view_unknown_product()
+                self.view_unknown_product(barcode)
             
         self.send_message_to_page(
             "page_manage_products",
@@ -74,7 +75,7 @@ class HardwareController():
                 self.view_purchase_succesfull()
                 return
 
-            from .views import make_sale
+            from ..views import make_sale
 
             # Iterate through the current products and create a simulated HTTP POST request
             for p in self.current_products:
@@ -113,7 +114,6 @@ class HardwareController():
         #await loop.run_in_executor(None, self.reader.write, text)
         self.hwif.nfc_reader.write(text)
 
-
     def send_message_to_page(self, page, payload):
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
@@ -123,7 +123,9 @@ class HardwareController():
     
 
 
-
+    # =========================================================================================================================================
+    # Views
+    # =========================================================================================================================================
     def view_main(self):
         
         # Ensure the image mode matches the display's mode
@@ -159,6 +161,9 @@ class HardwareController():
         # Content Section: Display Name, Surname, and Balance
         content_y_start = header_height + 5
         draw.text((30, content_y_start), f"Scan a product of your choice", font=font_small,fill=(255,255,255))
+        ip_address = f"{os.getenv('DJANGO_WEB_HOST')}:{os.getenv('DJANGO_WEB_PORT')}"
+        draw.text((10, content_y_start + 15), f"Visit {ip_address} to manage ", font=font_small,fill=(255,255,255))
+        draw.text((10, content_y_start + 29), f"products and customers.", font=font_small,fill=(255,255,255))
 
         # Update the OLED display
         self.hwif.oled.display(image)
@@ -195,21 +200,21 @@ class HardwareController():
         # Update the OLED display
         self.hwif.oled.display(image)
 
-    def view_unknown_product(self):
+    def view_unknown_product(self, ean):
         self.current_view = "view_price"
         # Ensure the image mode matches the display's mode
         width = self.hwif.oled.width
         height = self.hwif.oled.height
         image = Image.new(self.hwif.oled.mode, (width, height))
         draw = ImageDraw.Draw(image)
-        font_extra_large = ImageFont.load_default(size=20)
-        font_large = ImageFont.load_default(size=12)
+        font_large = ImageFont.load_default(size=20)
+        font_regular = ImageFont.load_default(size=12)
         font_small = ImageFont.load_default(size=10)
 
         # Header Section
         header_height = 20
-        header_text = f"Noname"
-        draw.text((20, 1), header_text, font=font_large, fill=(255,255,255))  # Leave space for NFC symbol
+        header_text = f"Unknown Product `{ean}`"
+        draw.text((20, 1), header_text, font=font_regular, fill=(255,255,255))  # Leave space for NFC symbol
 
         # Paste the NFC symbol into the header
         #image.paste(cmd_symbol, (0, 0))  # Paste at (2, 2) in the top-left corner
@@ -218,13 +223,22 @@ class HardwareController():
         draw.line([(0, header_height), (width, header_height)], fill=(255,255,255), width=1)
 
         # Content Section: Display Name, Surname, and Balance
-        content_y_start = header_height + 5
+        content_y_start = header_height + 4
         #draw.text((30, content_y_start), f"Scan a product of your choice", font=font_small,fill=(255,255,255))
         #draw.text((30, content_y_start), f"{product_name}", font=font_large,fill=(255,255,255))
-        draw.text((30, content_y_start), f"EUR ???", font=font_extra_large,fill=(255,255,255))
-        draw.text((30, content_y_start + 25), f"Place NFC to buy", font=font_large,fill=(255,255,255))
+        ip_address = f"{os.getenv('DJANGO_WEB_HOST')}:{os.getenv('DJANGO_WEB_PORT')}"
+        draw.text((10, content_y_start), f"The scanned poduct was not found in the database.", font=font_small,fill=(255,255,255))
+        draw.text((10, content_y_start + 14), f"Please add it using the webinterface under", font=font_small,fill=(255,255,255))
+        draw.text((10, content_y_start + 28), f"{ip_address}", font=font_small,fill=(255,255,255))
         # Update the OLED display
         self.hwif.oled.display(image)
+
+         # start a asynchrounous timer
+        asynytimer = asyncio.new_event_loop()
+        def display_main():
+            time.sleep(10)
+            self.view_main()
+        asynytimer.run_in_executor(None, display_main)
 
     def view_purchase_succesfull(self):
         self.current_view = "view_purchase_succesfull"

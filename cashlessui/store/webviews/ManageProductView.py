@@ -5,9 +5,14 @@ from ..webmodels.StoreProduct import StoreProduct
 from decimal import Decimal
 from django.db.models import Sum, F
 import os
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+#from ..views import hwcontroller
+from ..apps import hwcontroller
 
 class ManageProductsView(View):
     template_name = 'store/manage_products.html'
+                                  
 
     def get(self, request):
         """Handle GET requests to display all products."""
@@ -42,5 +47,5 @@ class ManageProductsView(View):
         product.save()
 
         # Redirect to avoid resubmission issues
-        return redirect('manage-products')
+        return redirect('manage_products')
 

@@ -155,4 +155,4 @@ LOGGING = {
 
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
-LOGIN_URL = '/login/'  # In case of unauthorized access
+LOGIN_URL = '/'  # In case of unauthorized access

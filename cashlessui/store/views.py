@@ -47,9 +47,8 @@ from datetime import datetime
 
 import sys
 
-from .HardwareController import HardwareController
-from .controller.HardwareInterface import HardwareInterface
-hwcontroller = HardwareController()
+#from .controller.HardwareController import HardwareController
+#hwcontroller = HardwareController()
 
 
 
