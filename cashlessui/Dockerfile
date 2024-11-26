@@ -25,12 +25,18 @@ COPY ./requirements.txt /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./entrypoint.sh /app/entrypoint.sh
-COPY ./make_migrations.sh /app/make_migrations.sh
+COPY . /app/
+
+#COPY ./entrypoint.sh /app/entrypoint.sh
+#COPY ./make_migrations.sh /app/make_migrations.sh
+#COPY ./make_user_db_migration.sh /app/make_user_db_migration.sh
+#COPY ./make_store_db_migration.sh /app/make_store_db_migration.sh
+
 RUN chmod +x /app/entrypoint.sh 
 RUN chmod +x /app/make_migrations.sh 
-# Copy project files into the container
-COPY . /app/
+RUN chmod +x /app/make_user_db_migration.sh
+RUN chmod +x /app/make_store_db_migration.sh
+
 
 # Expose the application port
 EXPOSE 8000

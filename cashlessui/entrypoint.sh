@@ -11,7 +11,11 @@ MANAGE_PY="python manage.py"
 #mv /app/cashlessui/store /app/cashlessui/$DJANGO_DB_NAME
 
 chmod +x make_migrations.sh
+chmod +x make_user_db_migration.sh
+chmod +x make_store_db_migration..sh
 # run make migrations
+./make_user_db_migration.sh
+./make_store_db_migration.sh
 #./make_migrations.sh
 
 # Step 6: Collect static files

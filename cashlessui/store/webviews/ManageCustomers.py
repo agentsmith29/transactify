@@ -6,6 +6,8 @@ from django.views import View
 from django.contrib.auth.models import User
 from cashlessui.models import Customer
 from ..webmodels.CustomerDeposit import CustomerDeposit
+from django.contrib.auth.models import User, Group
+from django.shortcuts import render, redirect, get_object_or_404
 
 class ManageCustomers(View):
     """Class-based view to handle customer-related operations."""
@@ -26,13 +28,16 @@ class ManageCustomers(View):
             last_name=last_name,
             email=email
         )
+        group = Group.objects.get(name="Customer")
 
         # Create the Customer object linked to the User
         customer = Customer.objects.create(
             user=user,
             card_number=card_number,
-            balance=balance
+            balance=balance 
         )
+        customer.user.groups.add(group)
+        customer.save()
 
         # Log the initial deposit
         deposit = CustomerDeposit.objects.create(
@@ -46,13 +51,21 @@ class ManageCustomers(View):
     def get(self, request):
         """Handle GET requests to display all customers."""
         customers = self.get_all_customers()
+        #roles = Group.objects.all()
         #hwcontroller.view_start_card_management()
-        return render(request, 'store/manage_customers.html', {'customers': customers})
+        return render(request, 'store/manage_customers.html', {'customers': customers,})
 
     def post(self, request):
-        """Handle POST requests to add a new customer."""
+        """Handle POST requests to add a new customer."""       
         try:
             data = json.loads(request.body)
+            #if 'delete_user' in data:
+            #    card_number = request.POST.get('card_number')
+            #    print(f"********* Trying to delete User with card number: {card_number}\n\n\n")
+            #    # Delete the product with the given EAN
+            #    Customer.objects.filter(card_number=card_number).delete()
+            #    return redirect('manage_customers')
+        
             first_name = data.get('first_name')
             last_name = data.get('last_name')
             email = data.get('email')

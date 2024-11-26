@@ -23,19 +23,13 @@ execute_psql() {
     PGPASSWORD=$PGPASSWORD psql -h $PGHOST -U $PGUSER -p $PGPORT -d "$TEMP_DB" -c "$1"
 }
 
-# Drop USER database if it exists
-execute_psql "DROP DATABASE IF EXISTS \"$USER_DB\";"
-
 # Drop MAIN database if it exists
 execute_psql "DROP DATABASE IF EXISTS \"$MAIN_DB\";"
-
-# Create USER database
-execute_psql "CREATE DATABASE \"$USER_DB\" OWNER \"$PGUSER\";"
 
 # Create MAIN database
 execute_psql "CREATE DATABASE \"$MAIN_DB\" OWNER \"$PGUSER\";"
 
-echo "Databases $USER_DB and $MAIN_DB have been reset successfully."
+echo "Databases $MAIN_DB have been reset successfully."
 
 
 set -e
@@ -46,29 +40,18 @@ MANAGE_PY="python manage.py"
 
 echo "Starting Django setup script..."
 
-$MANAGE_PY makemigrations cashlessui || {
-    echo "ERROR: Failed to generate migrations cashlessui."
-    exit 1
-}
+
+#$MANAGE_PY makemigrations store || {
+#    echo "ERROR: Failed to generate migrations store."
+#    exit 1
+#}
 
 
-$MANAGE_PY makemigrations store || {
-    echo "ERROR: Failed to generate migrations store."
-    exit 1
-}
-
-
-echo "Generating migrations..."
-$MANAGE_PY makemigrations || {
-    echo "ERROR: Failed to generate migrations."
-    exit 1
-}
-
-echo "Applying cashlessui migrations for the USER database..."
-$MANAGE_PY migrate cashlessui --database=USER || {
-    echo "ERROR: Failed to apply cashlessui migrations for the USER database."
-    exit 1
-} 
+#echo "Generating migrations..."
+#$MANAGE_PY makemigrations || {
+#    echo "ERROR: Failed to generate migrations."
+#    exit 1
+#}
 
 
 # Step 4: Run migrations for the USER database
@@ -79,28 +62,9 @@ $MANAGE_PY migrate store --database=default || {
 } 
 
 
-
 # Step 3: Run migrations for the default database
 echo "Applying migrations for the default database..."
 $MANAGE_PY migrate --database=default || {
     echo "ERROR: Failed to apply migrations for the default database."
     exit 1
 }
-
-# Step 4: Run migrations for the USER database
-echo "Applying migrations for the USER database..."
-$MANAGE_PY migrate --database=USER || {
-    echo "ERROR: Failed to apply migrations for the USER database."
-    exit 1
-}
-
-
-
-
-# Step 5: Create a superuser for the USER database (if needed)
-echo "Creating a superuser for the USER database (if not exists)..."
-$MANAGE_PY createsuperuser --username=admin --password=admin --email=admin@admin.com --database=USER --noinput || {
-    echo "ERROR: Failed to create superuser for the USER database."
-    echo "To create manually, run: python manage.py createsuperuser --database=USER"
-}
-
