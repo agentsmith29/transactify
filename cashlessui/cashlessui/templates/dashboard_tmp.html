@@ -1,4 +1,45 @@
-<!doctype html>
+<div class="feature col">
+    <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3">
+      <svg class="bi" width="1em" height="1em"><use xlink:href="#people-circle"/></svg>
+    </div>
+    <h3 class="fs-2 text-body-emphasis">User Management</h3>
+    <p>Paragraph of text beneath the heading to explain the heading. We'll add onto it with another sentence and probably just keep going until we run out of words.</p>
+    <a href="#" class="icon-link">
+      Go to User Management
+      <svg class="bi"><use xlink:href="#chevron-right"/></svg>
+    </a>
+  </div>
+  <div class="feature col">
+    <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3">
+      <svg class="bi" width="1em" height="1em"><use xlink:href="#toggles2"/></svg>
+    </div>
+    <h3 class="fs-2 text-body-emphasis">Featured title</h3>
+    <p>Paragraph of text beneath the heading to explain the heading. We'll add onto it with another sentence and probably just keep going until we run out of words.</p>
+    <a href="#" class="icon-link">
+      Something Else?
+      <svg class="bi"><use xlink:href="#chevron-right"/></svg>
+    </a>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <!doctype html>
 {% load static %}
 <html lang="en" data-bs-theme="auto">
   <head><script src="{% static 'assets/js/color-modes.js' %}"></script>
@@ -12,11 +53,9 @@
 
     <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/features/">
 
-    
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
 
-<link href="{% static 'assets/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/dist/css/bootstrap.min.css' %}" rel="stylesheet">
 
     <style>
       .bd-placeholder-img {
@@ -96,12 +135,12 @@
         display: block !important;
       }
     </style>
-
-    
     <!-- Custom styles for this template -->
     <link href="{% static 'assets/dist/css/features.css' %}" rel="stylesheet">
   </head>
-  <body>
+
+
+  <body class="d-flex flex-column h-100">
     <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
       <symbol id="check2" viewBox="0 0 16 16">
         <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
@@ -206,50 +245,48 @@
     <path fill-rule="evenodd" d="M4 4a4 4 0 1 1 4.5 3.969V13.5a.5.5 0 0 1-1 0V7.97A4 4 0 0 1 4 3.999zm2.493 8.574a.5.5 0 0 1-.411.575c-.712.118-1.28.295-1.655.493a1.319 1.319 0 0 0-.37.265.301.301 0 0 0-.057.09V14l.002.008a.147.147 0 0 0 .016.033.617.617 0 0 0 .145.15c.165.13.435.27.813.395.751.25 1.82.414 3.024.414s2.273-.163 3.024-.414c.378-.126.648-.265.813-.395a.619.619 0 0 0 .146-.15.148.148 0 0 0 .015-.033L12 14v-.004a.301.301 0 0 0-.057-.09 1.318 1.318 0 0 0-.37-.264c-.376-.198-.943-.375-1.655-.493a.5.5 0 1 1 .164-.986c.77.127 1.452.328 1.957.594C12.5 13 13 13.4 13 14c0 .426-.26.752-.544.977-.29.228-.68.413-1.116.558-.878.293-2.059.465-3.34.465-1.281 0-2.462-.172-3.34-.465-.436-.145-.826-.33-1.116-.558C3.26 14.752 3 14.426 3 14c0-.599.5-1 .961-1.243.505-.266 1.187-.467 1.957-.594a.5.5 0 0 1 .575.411z"/>
   </symbol>
 </svg>
-<main>
-  <h1 class="visually-hidden">Features examples</h1>
 
-  <div class="container px-4 py-5" id="featured-3">
-    <h2 class="pb-2 border-bottom">Columns with icons</h2>
+<main class="flex-shrink-0">
+  <div class="container" id="featured-3">
+    <h2 class="pb-2 border-bottom">Welcome, {{ user.username }}!</h2>
     <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
-      <div class="feature col">
-        <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3">
-          <svg class="bi" width="1em" height="1em"><use xlink:href="#collection"/></svg>
+      {% for entry in entries %}
+        <div class="feature col">
+          <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3">
+            <svg class="bi" width="1em" height="1em"><use xlink:href="{{ entry.icon_link }}"/></svg>
+          </div>
+          <h3 class="fs-2 text-body-emphasis">{{ entry.name }}</h3>
+          <p>{{ entry.description }}</p>
+          <a href="{{ entry.url }}" class="icon-link">
+            {{ entry.goto_text }} 
+            <svg class="bi">
+              <use xlink:href="#chevron-right"/>
+            </svg>
+          </a>
         </div>
-        <h3 class="fs-2 text-body-emphasis">Don Knabberello</h3>
-        <p>Paragraph of text beneath the heading to explain the heading. We'll add onto it with another sentence and probably just keep going until we run out of words.</p>
-        <a href="/donknabberello/customers/" class="icon-link">
-          Go to store
-          <svg class="bi"><use xlink:href="#chevron-right"/></svg>
-        </a>
-      </div>
-      <div class="feature col">
-        <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3">
-          <svg class="bi" width="1em" height="1em"><use xlink:href="#people-circle"/></svg>
-        </div>
-        <h3 class="fs-2 text-body-emphasis">Featured title</h3>
-        <p>Paragraph of text beneath the heading to explain the heading. We'll add onto it with another sentence and probably just keep going until we run out of words.</p>
-        <a href="#" class="icon-link">
-          Call to action
-          <svg class="bi"><use xlink:href="#chevron-right"/></svg>
-        </a>
-      </div>
-      <div class="feature col">
-        <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3">
-          <svg class="bi" width="1em" height="1em"><use xlink:href="#toggles2"/></svg>
-        </div>
-        <h3 class="fs-2 text-body-emphasis">Featured title</h3>
-        <p>Paragraph of text beneath the heading to explain the heading. We'll add onto it with another sentence and probably just keep going until we run out of words.</p>
-        <a href="#" class="icon-link">
-          Call to action
-          <svg class="bi"><use xlink:href="#chevron-right"/></svg>
-        </a>
-      </div>
+      {% endfor %}
     </div>
   </div>
-
 </main>
+
+<footer class="footer mt-auto py-3 bg-body-tertiary">
+  <div class="container">
+      <div class="col-md-4 d-flex align-items-center">
+        <a href="/" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
+          <svg class="bi" width="30" height="24"><use xlink:href="#bootstrap"/></svg>
+        </a>
+        <span class="mb-3 mb-md-0 text-body-secondary">&copy; 2024 Company, Inc</span>
+      </div>
+      <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+        <li class="ms-3"><a class="text-body-secondary" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#twitter"/></svg></a></li>
+        <li class="ms-3"><a class="text-body-secondary" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#instagram"/></svg></a></li>
+        <li class="ms-3"><a class="text-body-secondary" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#facebook"/></svg></a></li>
+      </ul>
+  </div>
+</footer>
+
+
 <script src="{% static 'assets/dist/js/bootstrap.bundle.min.js' %}"></script>
 
-    </body>
+  </body>
 </html>

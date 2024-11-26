@@ -153,5 +153,6 @@ LOGGING = {
 }
 
 
-#LOGIN_REDIRECT_URL = f"/{os.getenv('DJANGO_DB_NAME', 'store')}/"
+LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
+LOGIN_URL = '/login/'  # In case of unauthorized access

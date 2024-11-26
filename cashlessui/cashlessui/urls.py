@@ -23,22 +23,29 @@ from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
 import os
+from django.views.generic.base import TemplateView  # new
+from .views import dashboard
+from django.contrib.auth.views import LoginView, LogoutView
 
-from .views import store_selection
+#class AccessUser:
+#    has_module_perms = has_perm = __getattr__ = lambda s,*a,**kw: True
 
-class AccessUser:
-    has_module_perms = has_perm = __getattr__ = lambda s,*a,**kw: True
+#admin.site.has_permission = lambda r: setattr(r, 'user', AccessUser()) or True
 
-admin.site.has_permission = lambda r: setattr(r, 'user', AccessUser()) or True
 
 
 urlpatterns = [
     #path('', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     # display the store selection page (store_selection.html) found in templates
-    path('', store_selection),
+    #path('', store_selection),
+    path("", LoginView.as_view(template_name='login.html'), name='login'),
+    path('logout/', LogoutView.as_view(next_page='/'), name='logout'),
+    path('dashboard/', dashboard, name='dashboard'),  # Dashboard post-login
 
-    path(os.getenv('DJANGO_DB_NAME', 'store') + "/", include("store.urls")),
+    path("accounts/", include("django.contrib.auth.urls")), 
     path("admin/", admin.site.urls),
+    path(os.getenv('DJANGO_DB_NAME', 'store') + "/", include("store.urls")),
+    
 
 ]
 
