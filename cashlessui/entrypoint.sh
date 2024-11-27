@@ -12,7 +12,8 @@ MANAGE_PY="python manage.py"
 
 chmod +x make_migrations.sh
 chmod +x make_user_db_migration.sh
-chmod +x make_store_db_migration..sh
+chmod +x make_store_db_migration.sh
+chmod +x convert_svg_png.py
 # run make migrations
 #./make_user_db_migration.sh
 #./make_store_db_migration.sh
@@ -24,6 +25,9 @@ $MANAGE_PY collectstatic --noinput || {
     echo "ERROR: Failed to collect static files."
     exit 1
 }
+
+python convert_svg_png.py
+
 
 # Step 7: Start the server
 echo "Starting the Django development server..."

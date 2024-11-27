@@ -86,6 +86,7 @@
 </div>
 
 <!-- NFC Overlay -->
+<!-- NFC Overlay -->
 <div id="nfcOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 9999; color: white; text-align: center; padding-top: 20%;">
     <div>
         <img src="https://icons.getbootstrap.com/assets/icons/rss.svg" alt="NFC Scan" style="width: 150px;">
@@ -93,10 +94,12 @@
     </div>
 </div>
 
-
 <script>
-    document.getElementById('addCustomerForm').addEventListener('delete_customer', function(event) {
+    document.getElementById('addCustomerForm').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent form submission
+        const overlay = document.getElementById('nfcOverlay');
+        overlay.style.display = 'block'; // Show NFC overlay
+
         // Make a POST request to trigger the NFC reader
         fetch("{% url 'customers' %}", {
             method: 'POST',
@@ -125,7 +128,7 @@
 
 
 <script>
-    const webpage = "customers";
+    const webpage = "view_customers";
     const socket = new WebSocket(`ws://${window.location.host}/ws/page/${webpage}/`);
 
     socket.onopen = function () {

@@ -5,9 +5,6 @@ from .webviews.ManageProductView import ManageProductsView
 from .webviews.ViewManageStock import ViewManageStock
 from .webviews.ManageCustomers import ManageCustomers
 
-from .controller.HardwareController import HardwareController
-from .controller.HardwareInterface import HardwareInterface
-hwcontroller = HardwareController()
 
 
 urlpatterns = [

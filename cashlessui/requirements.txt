@@ -15,3 +15,7 @@ psycopg2
 
 # For doenloading the static files
 requests
+
+# For the image processing
+pillow
+cairosvg

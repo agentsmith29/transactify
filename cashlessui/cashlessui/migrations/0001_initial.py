@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Customer',
             fields=[
-                ('card_number', models.AutoField(primary_key=True, serialize=False)),
+                ('card_number', models.CharField(primary_key=True, serialize=False)),
                 ('issued_at', models.DateTimeField(auto_now_add=True)),
                 ('balance', models.DecimalField(decimal_places=2, default=0, max_digits=10)),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='customer', to=settings.AUTH_USER_MODEL)),

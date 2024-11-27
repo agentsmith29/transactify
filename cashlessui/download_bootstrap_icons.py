@@ -46,7 +46,11 @@ def process_zip(file_path):
             # Extract SVG files
             if file_name.endswith(".svg"):
                 svg_filename = extract_svg(zip_ref, file_name)
-                process_png(svg_filename, file_name)
+                try:
+                    process_png(svg_filename, file_name)
+                except Exception as e:
+                    print(f"Failed to process PNG: {e}")
+                    print(f"Skipping file: {file_name}")
                
     print("Processing complete.")
 

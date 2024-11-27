@@ -9,6 +9,9 @@ from ..webmodels.CustomerDeposit import CustomerDeposit
 from django.contrib.auth.models import User, Group
 from django.shortcuts import render, redirect, get_object_or_404
 
+from ..apps import hwcontroller
+
+
 class ManageCustomers(View):
     """Class-based view to handle customer-related operations."""
 
@@ -34,6 +37,7 @@ class ManageCustomers(View):
         customer = Customer.objects.create(
             user=user,
             card_number=card_number,
+            issued_at=datetime.now(),
             balance=balance 
         )
         customer.user.groups.add(group)
@@ -52,13 +56,14 @@ class ManageCustomers(View):
         """Handle GET requests to display all customers."""
         customers = self.get_all_customers()
         #roles = Group.objects.all()
-        #hwcontroller.view_start_card_management()
+        # hwcontroller.view_start_card_management()
         return render(request, 'store/manage_customers.html', {'customers': customers,})
 
     def post(self, request):
         """Handle POST requests to add a new customer."""       
         try:
             data = json.loads(request.body)
+            print(f"********* data: {data}\n\n\n")
             #if 'delete_user' in data:
             #    card_number = request.POST.get('card_number')
             #    print(f"********* Trying to delete User with card number: {card_number}\n\n\n")
@@ -85,8 +90,7 @@ class ManageCustomers(View):
 
             # Trigger NFC read
             print("Waiting for NFC card...")
-            #card_number, content = hwcontroller.hwif.nfc_reader.read_block()
-            card_number = 123456
+            card_number, content = hwcontroller.hwif.nfc_reader.read_block()
             content = "Some content"
             print(f"Card number: {card_number}, Content: {content}")
 

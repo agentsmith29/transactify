@@ -8,6 +8,7 @@ class StoreConfig(AppConfig):
     name = 'store'
 
     def ready(self):
+        print("****** Store app is ready to go! ******")
         from .controller.HardwareController import HardwareController
         global hwcontroller
         hwcontroller = HardwareController()
