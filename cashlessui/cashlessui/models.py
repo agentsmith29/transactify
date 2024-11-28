@@ -23,7 +23,7 @@ class Customer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="customer")
     card_number = models.CharField(primary_key=True)
     issued_at = models.DateTimeField(auto_now_add=True)
-    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    #balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"Customer: {self.user.username}, Balance: {self.balance}"

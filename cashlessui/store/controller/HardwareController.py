@@ -28,6 +28,8 @@ class HardwareController():
         
         self.hwif.barcode_reader.signals.barcode_read.connect(self.on_barcode_read)
         self.hwif.nfc_reader.signals.tag_read.connect(self.on_nfc_read)
+        self.hwif.nfc_reader.signals.tag_reading_status.connect(self.on_nfc_reading_status)
+
         self.hwif.keypad.signals.key_pressed.connect(self.on_key_pressed)
 
 
@@ -35,8 +37,9 @@ class HardwareController():
         self.view.request_view(self.view.PAGE_MAIN)
 
 
-    def lock_hardware(self):
-        lock_interaction = True
+    def on_nfc_reading_status(self, sender, status, **kwargs):
+        self.view.current_view.display_nfc_overlay(status)
+
 
     def on_key_pressed(self, sender, col, row, btn, **kwargs):
         if self.view.current_view == "view_start_product_management":
@@ -51,14 +54,14 @@ class HardwareController():
 
     def on_barcode_read(self, sender, barcode, **kwargs):
         print(f"Barcode read: {barcode}")
-        if self.view.current_view == self.view.PAGE_MAIN or self.current_view == self.view.PAGE_PRICE:
+        if self.view.current_view == self.view.PAGE_MAIN or self.current_view == self.view.PAGE_PRODUCT:
             product = StoreProduct.objects.filter(ean=barcode).first()
             if product:
-                self.view.request_view(self.view.PAGE_PRICE, product_name=product.name, price=product.resell_price)
+                self.view.request_view(self.view.PAGE_PRODUCT, product_name=product.name, price=product.resell_price)
                 # self.current_products.append(product)
             else:
                 print(f"Product not found: {barcode}")
-                self.view.request_view(self.view.PAGE_UNKNOWN_PRODUCT, ean=barcode)
+                self.view.request_view(self.view.PAGE_PRODUCT_UNKNW, ean=barcode)
                 #self.view.request_view(self.view.view_unknown_product, barcode)
         else:
             print(f"Barcode read, but no view to handle it: {self.current_view}")
@@ -75,13 +78,15 @@ class HardwareController():
         
     def on_nfc_read(self, sender, id, text, **kwargs):
         print(f"NFC read {id}: {text}")
-        if self.view.current_view == "view_main":
+        if self.view.current_view == self.view.PAGE_MAIN:
             print(Customer.objects.all())
-            customer = Customer.objects.get(card_number=id)
+            customer  = Customer.objects.filter(card_number=id).first()
+            
             if customer:
-                self.view.request_view(self.view.customer_info, customer)
+                self.view.request_view(self.view.PAGE_CUSTOMER, customer=customer)
             else:
-                 self.view.request_view(self.view.unknown_card)
+                 self.view.request_view(self.view.PAGE_CUSTOMER_UNKNW, id=id)
+        
         elif self.current_view == "view_price":
             customer = Customer.objects.filter(card_number=id).first()
             print(f"Customer: {customer}")

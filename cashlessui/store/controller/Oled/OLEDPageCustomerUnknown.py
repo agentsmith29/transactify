@@ -1,39 +1,38 @@
 from django.dispatch import Signal
+from  cashlessui.models import Customer
 
 from .OLEDPage import OLEDPage
 import os
 
+from .OLEDMainPage import OLEDPageMain
 
-class OLEDPageMain(OLEDPage):
-    name: str = "OLEDPageMain"
+class OLEDPageCustomer_Unknown(OLEDPage):
+    name: str = "OLEDPageCustomer_Unknown"
 
     def __init__(self, oled, sig_abort_view: Signal, sig_request_view: Signal, *args, **kwargs):
-        super().__init__(oled, 
-                         sig_abort_view=sig_abort_view, sig_request_view=sig_request_view,
+        super().__init__(oled,sig_abort_view=sig_abort_view, sig_request_view=sig_request_view,
                          *args, **kwargs)
-        OLEDPageMain.name: str = str(self.__class__.__name__)
 
-    def view(self, *args, **kwargs):
+    def view(self, id, *args, **kwargs):
         image, draw = self._post_init()
 
-        # Header Section
         header_height = 20
-        header_text = f"Don Knabberello"
+        header_text = f"Unknown Card {id}"
         draw.text((20, 0), header_text, font=self.font_large, fill=(255,255,255))  # Leave space for NFC symbol
 
-        ip_address = f"{os.getenv('DJANGO_WEB_HOST')}:{os.getenv('DJANGO_WEB_PORT')}"
-        self.align_right(draw, ip_address, 10, self.font_tiny)
-        # Paste the NFC symbol into the header
-        self.paste_image(image, r"/app/static/icons/png_16/coin.png", (0, 0))
+
+       
+        self.paste_image(image, r"/app/static/icons/png_16/person-fill-x.png", (0, 0))
         # Divider line
         draw.line([(0, header_height), (self.width, header_height)], fill=(255,255,255), width=1)
 
         # ------------- Body ----------------
         # Content Section: Display Name, Surname, and Balance
         content_y_start = header_height + 5
-        draw.text((30, content_y_start), f"Scan a product of your choice", font=self.font_small, fill=(255,255,255))
-       
+        self.paste_image(image, r"/app/static/icons/png_24/person-fill-x.png", (0, content_y_start))
+        draw.text((30, content_y_start+2), f"Card is unknown or not bound to a customer.", font=self.font_regular, fill=(255,255,255))
+
         # Update the OLED display
         self.oled.display(image)
         # ------------- Body ----------------
-
+        self.display_next(image, draw, OLEDPageMain.name, 10)

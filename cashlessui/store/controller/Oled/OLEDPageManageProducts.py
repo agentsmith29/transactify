@@ -4,8 +4,8 @@ import os
 
 from .OLEDMainPage import OLEDPageMain
 
-class OLEDPageManageProducts(OLEDPage):
-    name: str = str(__name__)
+class OLEDPageProducts_Manage(OLEDPage):
+    name: str = "OLEDPageProducts_Manage"
 
     def __init__(self, oled, sig_abort_view: Signal, sig_request_view: Signal, *args, **kwargs):
         super().__init__(oled, sig_abort_view=sig_abort_view, sig_request_view=sig_request_view,

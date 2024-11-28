@@ -17,7 +17,7 @@ class ManageProductsView(View):
     def get(self, request):
         """Handle GET requests to display all products."""
         products = StoreProduct.objects.all()
-        hwcontroller.view.request_view(hwcontroller.view.PAGE_MGM_PRODUCTS)
+        hwcontroller.view.request_view(hwcontroller.view.PAGE_PRODUCTS_MGM)
         return render(request, self.template_name, {'products': products})
 
     def post(self, request):

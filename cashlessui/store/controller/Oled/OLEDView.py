@@ -1,8 +1,12 @@
 from .OLEDPage import OLEDPage
 from .OLEDMainPage import OLEDPageMain
-from .OLEDPagePrice import OLEDPagePrice
-from .OLEDPageManageProducts import OLEDPageManageProducts
-from .OLEDPageUnknownProduct import OLEDPageUnknownProduct
+from .OLEDPagePrice import OLEDPageProduct
+from .OLEDPageManageProducts import OLEDPageProducts_Manage
+from .OLEDPageUnknownProduct import OLEDPageProduct_Unknown
+
+from .OLEDPageCustomer import OLEDPageCustomer
+from .OLEDPageCustomerUnknown import OLEDPageCustomer_Unknown
+
 
 from django.dispatch import Signal
 
@@ -28,10 +32,14 @@ class OLEDView():
         self.sig_request_view.connect(self.request_view)
 
         self.PAGE_MAIN = OLEDPageMain(oled, self.sig_abort_page, self.sig_request_view)
-        self.PAGE_PRICE = OLEDPagePrice(oled, self.sig_abort_page, self.sig_request_view)
-        self.PAGE_MGM_PRODUCTS = OLEDPageManageProducts(oled, self.sig_abort_page, self.sig_request_view)
-        self.PAGE_UNKNOWN_PRODUCT = OLEDPageUnknownProduct(oled, self.sig_abort_page, self.sig_request_view)
-
+        
+        self.PAGE_PRODUCT = OLEDPageProduct(oled, self.sig_abort_page, self.sig_request_view)
+        self.PAGE_PRODUCT_UNKNW = OLEDPageProduct_Unknown(oled, self.sig_abort_page, self.sig_request_view)
+        self.PAGE_PRODUCTS_MGM = OLEDPageProducts_Manage(oled, self.sig_abort_page, self.sig_request_view)
+        
+        
+        self.PAGE_CUSTOMER = OLEDPageCustomer(oled, self.sig_abort_page, self.sig_request_view)
+        self.PAGE_CUSTOMER_UNKNW = OLEDPageCustomer_Unknown(oled, self.sig_abort_page, self.sig_request_view)
 
         self.oled = oled
         
@@ -97,13 +105,18 @@ class OLEDView():
             print(f"View {self.current_view.name} is locked. Exiting.")
             return
         
-        if isinstance(view, str):
-            for attr in dir(self):
-                if isinstance(getattr(self, attr), OLEDPage) and getattr(self, attr).name == view:
-                    view = getattr(self, attr)
-                    break
-                
-        print(f"Requesting view: {view.name}.")
+        view_found = False
+        for attr in dir(self):
+            attr = getattr(self, attr)
+            if isinstance(view, str) and attr.name == view:
+                view = attr
+                break
+            elif not isinstance(view, str) and isinstance(attr, OLEDPage) and attr.name == view.class_name():
+                view = attr
+                break
+       
+
+        print(f"Requesting view: {view}.")
         if self.view_thread is not None and self.view_thread.is_alive():
             try:
                 self.view_thread.join() 

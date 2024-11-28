@@ -7,7 +7,11 @@ class CustomerDeposit(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="deposits",
                                   db_constraint=False 
                                   )
+    # Amout the customer deposited
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    # The customer's balance after the deposit
+    customer_balance = models.DecimalField(max_digits=10, decimal_places=2)
+    # The date the deposit was made
     deposit_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

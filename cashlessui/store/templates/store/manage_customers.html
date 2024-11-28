@@ -50,7 +50,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for customer in customers %}
+                        {% for customer, balance in customers %}
                         <tr>
                             <td>{{ customer.user.username }}</td>
                             <td>{{ customer.user.first_name }}</td>
@@ -58,7 +58,7 @@
                             <td>{{ customer.card_number }}</td>
                             <td>{{ customer.user.email }}</td>
                             <td>{{ customer.issued_at }}</td>
-                            <td>{{ customer.balance }}</td>
+                            <td>{{ balance }}</td>
                             <td>
                                 <!--  open href -->
                                 <button type="button" class="btn btn-warning btn-sm"

@@ -6,6 +6,7 @@ from django.views import View
 from django.contrib.auth.models import User
 from cashlessui.models import Customer
 from ..webmodels.CustomerDeposit import CustomerDeposit
+from ..webmodels.CustomerBalance import CustomerBalance
 from django.contrib.auth.models import User, Group
 from django.shortcuts import render, redirect, get_object_or_404
 
@@ -38,26 +39,37 @@ class ManageCustomers(View):
             user=user,
             card_number=card_number,
             issued_at=datetime.now(),
-            balance=balance 
         )
         customer.user.groups.add(group)
         customer.save()
 
         # Log the initial deposit
+        
+        customer_balance, inst = CustomerBalance.objects.get_or_create(
+            customer=customer
+        )
         deposit = CustomerDeposit.objects.create(
             customer=customer,
+            customer_balance=customer_balance.balance,
             amount=balance,
             deposit_date=datetime.now()
         )
+        customer_balance.balance = balance
+        customer_balance.save()
 
+       
+        
         return customer, deposit
 
     def get(self, request):
         """Handle GET requests to display all customers."""
         customers = self.get_all_customers()
+        balance = []
+        for customer in customers:
+            balance.append(CustomerBalance.objects.get(customer=customer).balance)
         #roles = Group.objects.all()
         # hwcontroller.view_start_card_management()
-        return render(request, 'store/manage_customers.html', {'customers': customers,})
+        return render(request, 'store/manage_customers.html', {'customers': zip(customers, balance)})
 
     def post(self, request):
         """Handle POST requests to add a new customer."""       

@@ -49,6 +49,10 @@ class OLEDPage():
         self.draw = ImageDraw.Draw(self.image) 
         return self.image, self.draw
 
+    @classmethod
+    def class_name(cls):
+        return cls.__name__
+    
     def view(self, *args, **kwargs):
         raise NotImplementedError("View not implemented")
     
@@ -126,6 +130,52 @@ class OLEDPage():
         self.oled.display(copy_image_content)
         time.sleep(5)
         self.oled.display(self.image)
+
+    def display_nfc_overlay(self, stage, display_check=False):
+        print(f"Displaying lock overlay.")
+        # Use the currecnt image and make a copy
+        copy_image_content = self.image.copy()
+        copy_draw_content = ImageDraw.Draw(copy_image_content)
+        # overlay a rechatngel with a lock symbol
+        img = r"/app/static/icons/png_24/NFC_logo.png"
+        img_width,  img_heiht = PIL.Image.open(img).size
+        center_x = self.width // 2
+        center_y = self.height // 2 - 5
+        img_pos_x = int(center_x - img_width  // 2)  # Size of image is 64x64
+        img_pos_y = int(center_y - img_heiht // 2)  # Size of image is 64x64
+        rect_x1 = int(img_pos_x - 30)
+        rect_y1 = int(img_pos_y - 10)
+        rect_x2 = int(img_pos_x + img_width + 30)
+        rect_y2 = int(img_pos_y + img_heiht + 10)
+
+        # create a black rectangle with white border
+        copy_draw_content.rectangle((rect_x1, rect_y1, rect_x2, rect_y2), fill=(0,0,0), outline=(255,255,255), width=1)
+        self.paste_image(copy_image_content ,img, (img_pos_x, img_pos_y))
+
+        copy_draw_content.rectangle((0, rect_y2+1, self.width, self.height), fill=(0,0,0))
+        # display 4 stages of the NFC process as dots
+        for  i, pox in zip(range(1, 5), [-30, -10, 10, 30]):
+            if i <= stage:
+                copy_draw_content.ellipse((center_x + pox, rect_y2 + 6, center_x + pox + 6, rect_y2 + 12), fill=(255,255,255))
+            else:
+                copy_draw_content.ellipse((center_x + pox, rect_y2 + 6, center_x + pox + 6, rect_y2 + 12), fill=(0,0,0), outline=(255,255,255))
+       
+        if display_check:
+            self.paste_image(copy_image_content, r"/app/static/icons/png_24/check-square.png", (img_pos_x, img_pos_y))
+            copy_draw_content.rectangle((0, rect_y2+1, self.width, self.height), fill=(0,0,0))
+            self.align_center(copy_draw_content, "Card read!", rect_y2 +10, self.font_small)
+            self.oled.display(copy_image_content)
+            time.sleep(3)
+            self.oled.display(self.image) 
+        
+        if stage == 4:
+            self.oled.display(self.image) 
+        else:
+            self.oled.display(copy_image_content)
+        #self.align_center(copy_draw_content, "Terminal is locked. Press A to release", rect_y2 + 7, self.font_small)
+        # self.align_center(copy_draw_content, "Press A to release", rect_y2 + 22, self.font_small)
+        
+
 
     # overwrite the == operator
     def __eq__(self, other):

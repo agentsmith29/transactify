@@ -15,7 +15,7 @@ save_dir = os.path.join(base_dir, "static", "icons")
 
 
 # Process PNG files
-def process_png(ref, path_out, sizes = [12, 16, 24, 32, 48, 64, 128, 256, 512]):
+def process_png(ref, path_out, sizes = [12, 16, 24, 32, 48]):
     file_name = str(os.path.basename(ref)).replace('.svg', '.png')
    
     with open(ref, "rb") as file:
@@ -48,6 +48,8 @@ def main():
        "cash-stack.svg",
        "person-fill-x.svg",
        "gear-fill.svg",
+       "NFC_logo.svg",
+       "check-square.svg",
     ]
     png_base_dir = '/app/static/icons/png'
 
