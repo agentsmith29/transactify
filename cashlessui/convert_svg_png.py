@@ -47,6 +47,7 @@ def main():
        "cart4.svg",
        "cash-stack.svg",
        "person-fill-x.svg",
+       "gear-fill.svg",
     ]
     png_base_dir = '/app/static/icons/png'
 
