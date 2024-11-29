@@ -6,10 +6,11 @@ from decimal import Decimal
 from ..webmodels.StoreProduct import StoreProduct
 from ..webmodels.CustomerPurchase import CustomerPurchase
 from ..webmodels.ProductRestock import ProductRestock
-from .ManageStock import ManageStock
+from .ManageStockHelper import ManageStockHelper
 
+from ..apps import hwcontroller
 
-class ViewManageStock(View):
+class ManageStockView(View):
     template_name = 'store/add_stock.html'
 
     def post(self, request):
@@ -18,7 +19,7 @@ class ViewManageStock(View):
         purchase_price = Decimal(request.POST.get('purchase_price'))
 
         try:
-           ManageStock.make_purchase(ean, quantity, purchase_price)
+           ManageStockHelper.make_purchase(ean, quantity, purchase_price)
         except StoreProduct.DoesNotExist:
             return HttpResponse("Error: Product with the given EAN does not exist.", status=404)
 

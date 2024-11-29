@@ -13,6 +13,8 @@ from django.http import HttpRequest
 
 from .Oled.OLEDView import OLEDView
 
+from ..webviews.ManageStockHelper import ManageStockHelper
+
 class HardwareController():
     init_counter = 0
 
@@ -36,10 +38,8 @@ class HardwareController():
         self.view = OLEDView(self.hwif.oled)
         self.view.request_view(self.view.PAGE_MAIN)
 
-
     def on_nfc_reading_status(self, sender, status, **kwargs):
         self.view.current_view.display_nfc_overlay(status)
-
 
     def on_key_pressed(self, sender, col, row, btn, **kwargs):
         if self.view.current_view == "view_start_product_management":
@@ -48,6 +48,8 @@ class HardwareController():
         elif self.view.current_view.locked and btn != "A":
             self.view.current_view.display_lock_overlay()
         elif self.view.current_view.locked and btn == "A":
+            self.view.request_view(self.view.PAGE_MAIN, unlock=True)
+        elif self.view.current_view == self.view.PAGE_PRODUCT and btn == "A":
             self.view.request_view(self.view.PAGE_MAIN, unlock=True)
         else:
             print(f"Key pressed: {col}, {row}, {btn}")
@@ -58,7 +60,7 @@ class HardwareController():
             product = StoreProduct.objects.filter(ean=barcode).first()
             if product:
                 self.view.request_view(self.view.PAGE_PRODUCT, product_name=product.name, price=product.resell_price)
-                # self.current_products.append(product)
+                self.current_products.append(product)
             else:
                 print(f"Product not found: {barcode}")
                 self.view.request_view(self.view.PAGE_PRODUCT_UNKNW, ean=barcode)
@@ -79,43 +81,30 @@ class HardwareController():
     def on_nfc_read(self, sender, id, text, **kwargs):
         print(f"NFC read {id}: {text}")
         if self.view.current_view == self.view.PAGE_MAIN:
-            print(Customer.objects.all())
             customer  = Customer.objects.filter(card_number=id).first()
-            
             if customer:
                 self.view.request_view(self.view.PAGE_CUSTOMER, customer=customer)
             else:
                  self.view.request_view(self.view.PAGE_CUSTOMER_UNKNW, id=id)
-        
-        elif self.current_view == "view_price":
+        elif self.view.current_view == self.view.PAGE_PRODUCT:
             customer = Customer.objects.filter(card_number=id).first()
             print(f"Customer: {customer}")
             self.current_nfc = id
-            if customer is self.current_nfc:
-                print("Customer is the same")
-                self.view_purchase_succesfull()
-                return
-
-            from ..views import make_sale
-
             # Iterate through the current products and create a simulated HTTP POST request
             for p in self.current_products:
-                request = HttpRequest()
-                request.method = 'POST'
-                request.POST = {
-                    'ean': p.ean,
-                    'quantity': 1,
-                    'sale_price': str(p.resell_price),  # Ensure the price is a string for POST
-                    'customer': customer # Use customer ID
-                }
-
-                # Call the make_sale function
-                response = make_sale(request)
-                print("Sold product!")
-
-                # Optionally handle the response if needed
-                print(response.status_code, response.content)
-                self.view_purchase_succesfull()
+                try:# Call the make_sale function
+                    response = ManageStockHelper.make_sale(ean=p.ean, quantity=1, purchase_price=p.resell_price, card_number=id)
+                    # make a post to MakePurchase
+                    if response == -1:
+                        print("Insufficient balance!")
+                        #self.view_purchase_failed()
+                    print("Sold product!")
+                    # Optionally handle the response if needed
+                    #print(response.status_code, response.content)
+                    self.view.request_view(self.view.PAGE_PURCHASE_SUCC, customer=customer, product=p)
+                except Exception as e:
+                    print(f"Error during sale: {e}")
+                    #self.view_purchase_failed()
 
         elif self.current_view == "view_start_card_management":
             self.send_message_to_page(

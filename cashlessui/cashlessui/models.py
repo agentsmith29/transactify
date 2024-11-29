@@ -25,5 +25,27 @@ class Customer(models.Model):
     issued_at = models.DateTimeField(auto_now_add=True)
     #balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
+    def get_balance(self, balance_model: Any) -> float:
+        return balance_model.objects.get(customer=self).balance
+    
+    def set_balance(self, balance_model: Any, new_balance: float) -> None:
+        """
+        Set the balance of the customer. Don't forget to save the balance model after calling this method.
+        """
+        balance = balance_model.objects.get(customer=self)
+        balance.balance = new_balance
+        return balance
+    
+    def increment_balance(self, balance_model: Any, amount: float) -> None:
+        balance = balance_model.objects.get(customer=self)
+        balance.balance += amount
+        return balance
+
+    def decrement_balance(self, balance_model: Any, amount: float) -> None:
+        balance = balance_model.objects.get(customer=self)
+        balance.balance -= amount
+        return balance
+
+
     def __str__(self):
-        return f"Customer: {self.user.username}, Balance: {self.balance}"
+        return f"Customer: {self.user.username}"

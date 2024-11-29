@@ -80,6 +80,11 @@
                     Edit Customer
                 </a>
             </li>
+            <li>
+                <a href="{% url 'make_sale' %}" class="nav-link {% if request.path == '/store/make_sale/' %}active{% else %}text-white{% endif %}">
+                    Make a Sale
+                </a>
+            </li>
         </ul>
         <hr>
         <div class="dropdown">

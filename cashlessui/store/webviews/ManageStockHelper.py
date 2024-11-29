@@ -1,29 +1,30 @@
 from ..webmodels.StoreProduct import StoreProduct
 from ..webmodels.CustomerPurchase import CustomerPurchase
+from ..webmodels.CustomerBalance import CustomerBalance
+
 from cashlessui.models import Customer
 from decimal import Decimal
 from django.db.models import Sum
 
-class ManageStock():
+class ManageStockHelper():
 
-    def make_sale(ean : str, quantity: int, sale_price: Decimal, customer: Customer):
+    def make_sale(ean : str, quantity: int, purchase_price: Decimal, card_number: str):
         
-        # update the balance of the customer by summing all deposits and substracting all buys
-        #customer.balance = customer.deposits.aggregate(
-        #    total=Sum('amount')
-        #)['total'] or 0 - customer.buys.aggregate(
-        #    total=Sum('total_cost')
-        #)['total'] or 0
-
-        if customer.balance < quantity * sale_price:
-            raise ValueError("Insufficient balance")
+        customer = Customer.objects.get(card_number=card_number)
+        balance = customer.get_balance(CustomerBalance)
+        if balance < quantity * purchase_price:
+            return -1
+        else:
+            balance = customer.decrement_balance(CustomerBalance, quantity * purchase_price)
 
         product = StoreProduct.objects.get(ean=ean)
         for s in range(quantity):
-            CustomerPurchase.objects.create(product=product,
-                                            quantity=1,
-                                            sale_price=sale_price,
-                                            sold_to=customer)
+            # Always create a new CustomerPurchase record
+            CustomerPurchase.objects.create(product=product, quantity=1,
+                                            purchase_price=purchase_price,
+                                            customer=customer, customer_balance=balance,
+                                            )
+            
 
         quantity_bought = CustomerPurchase.objects.filter(product=product).aggregate(
                 quantity=Sum('quantity')
@@ -37,6 +38,8 @@ class ManageStock():
 
         # Update the stock of the product with the given EAN
         product.stock_quantity = quantity
+
+        balance.save()
         product.save()
     
     def make_purchase(ean : str, quantity: int, purchase_price: Decimal):

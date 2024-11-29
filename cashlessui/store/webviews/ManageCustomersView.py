@@ -13,7 +13,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from ..apps import hwcontroller
 
 
-class ManageCustomers(View):
+class ManageCustomersView(View):
     """Class-based view to handle customer-related operations."""
 
     def __init__(self):

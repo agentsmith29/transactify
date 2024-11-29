@@ -18,7 +18,7 @@
                         <li class="list-group-item">Name: {{ customer.user.first_name }} {{ customer.user.last_name}}</li>
                         <li class="list-group-item">Username: {{ customer.user.username }}</li>
                         <li class="list-group-item">E-Mail: {{ customer.user.email }}</li>
-                        <li class="list-group-item">Balance: € {{ customer.balance }}</li>
+                        <li class="list-group-item">Balance: € {{ balance }}</li>
                         <li class="list-group-item">Issue Date: {{ customer.issued_at }}</li>
                     </ul>
                 </div>
@@ -85,8 +85,8 @@
                                     <th>Product</th>
                                     <th>Quantity</th>
                                     <th>Price</th>
+                                    <th>Balance after transaction</th>
                                     <th>Date</th>
-                                    <th>Timestamp</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -96,6 +96,7 @@
                                     <td>{{ purchase.product }}</td>
                                     <td>{{ purchase.quantity }}</td>
                                     <td>€ {{ purchase.purchase_price }}</td>
+                                    <td>€ {{ purchase.customer_balance }}</td>
                                     <td>{{ purchase.purchase_date|date:"Y-m-d H:i" }}</td>
                                 </tr>
                                 {% endfor %}

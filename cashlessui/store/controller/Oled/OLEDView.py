@@ -1,11 +1,12 @@
 from .OLEDPage import OLEDPage
 from .OLEDMainPage import OLEDPageMain
-from .OLEDPagePrice import OLEDPageProduct
+from .OLEDPageProduct import OLEDPageProduct
 from .OLEDPageManageProducts import OLEDPageProducts_Manage
 from .OLEDPageUnknownProduct import OLEDPageProduct_Unknown
 
 from .OLEDPageCustomer import OLEDPageCustomer
 from .OLEDPageCustomerUnknown import OLEDPageCustomer_Unknown
+from .OLEDPagePurchaseSuccessfull import OLEDPagePurchaseSuccessfull
 
 
 from django.dispatch import Signal
@@ -40,6 +41,8 @@ class OLEDView():
         
         self.PAGE_CUSTOMER = OLEDPageCustomer(oled, self.sig_abort_page, self.sig_request_view)
         self.PAGE_CUSTOMER_UNKNW = OLEDPageCustomer_Unknown(oled, self.sig_abort_page, self.sig_request_view)
+
+        self.PAGE_PURCHASE_SUCC = OLEDPagePurchaseSuccessfull(oled, self.sig_abort_page, self.sig_request_view)
 
         self.oled = oled
         

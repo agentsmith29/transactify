@@ -9,6 +9,6 @@ class StoreProduct(models.Model):
     resell_price = models.DecimalField(max_digits=10, default = 0, decimal_places=2)
 
     def __str__(self):
-        return f"{self.name} ({self.store.name})"
+        return f"{self.name} ({self.ean})"
 
 

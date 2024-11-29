@@ -61,6 +61,9 @@ class KeyPad():
                 time.sleep(0.1)
                 #await asyncio.sleep(0.1)
         return None
+    
+    def __del__(self):
+        GPIO.cleanup()
 
 
 

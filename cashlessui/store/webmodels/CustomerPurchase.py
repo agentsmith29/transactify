@@ -3,7 +3,16 @@ from .StoreProduct import StoreProduct
 from cashlessui.models import Customer
 
 class CustomerPurchase(models.Model):
-    """Represents a customer purchasing a product."""
+    """Represents a customer purchasing a product.
+    Attributes:
+    - **product** (*StoreProduct*): The product being purchased. Links to *StoreProduct*.
+    - **quantity** (*int*): The quantity of the product purchased.
+    - **purchase_price** (*Decimal*): The price the product was purchased for.
+    - **customer** (*Customer*): The customer who made the purchase. Links to *Customer*.
+    - **customer_balance** (*Decimal*): The customer's balance after the deposit.
+    - purchase_date (*DateTime*): The date the deposit was made.
+    
+    """
     id = models.AutoField(primary_key=True)
     product = models.ForeignKey(StoreProduct, on_delete=models.CASCADE)
     # The quantity of the product purchased

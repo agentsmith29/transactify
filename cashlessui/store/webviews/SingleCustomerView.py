@@ -2,13 +2,21 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views import View
 from cashlessui.models import Customer
+from ..webmodels.CustomerDeposit import CustomerDeposit
+from ..webmodels.CustomerBalance import CustomerBalance
+from ..webmodels.CustomerPurchase import CustomerPurchase
 import json
 
-class ViewSingleCustomer(View):
+
+from ..apps import hwcontroller
+
+
+class SingleCustomerView(View):
     template_name = 'store/customer_detail.html'
 
     def __init__(self):
-        self.controller = CustomerController(nfc_reader=nfc_reader, keypad=keypad, oled=oled)
+        # We can change later how we talk to the hardware controller
+        self.hwctrl = hwcontroller
 
     def get(self, request, card_number=None):
         """
@@ -18,11 +26,15 @@ class ViewSingleCustomer(View):
             card_number = request.GET.get('card_number')
 
         customer = get_object_or_404(Customer, card_number=card_number)
-        deposits = CustomerDeposit.objects.filter(customer=customer).order_by('-timestamp')
+        balance = customer.get_balance(CustomerBalance)
+        deposits = CustomerDeposit.objects.filter(customer=customer).order_by('-deposit_date')
+        purchases = CustomerPurchase.objects.filter(customer=customer).order_by('-purchase_date')
 
         return render(request, self.template_name, {
             'customer': customer,
+            'balance': balance,
             'deposits': deposits,
+            'purchases': purchases,
         })
 
     def post(self, request, card_number=None):
@@ -39,23 +51,20 @@ class ViewSingleCustomer(View):
 
             # Fetch the customer
             customer = get_object_or_404(Customer, card_number=card_number)
-
+            
             # Create a new deposit record
             deposit = CustomerDeposit.objects.create(customer=customer, amount=amount)
 
             # Update the customer's balance
-            customer.balance += Decimal(amount)
+            customer.increment_balance(CustomerBalance, amount)
             customer.save()
 
-            card_number, _ = asyncio.run(self.controller.nfc_write(
-                f"Deposit of EUR {amount} successful. New balance: EUR {customer.balance:.2f}"
-            ))
+            #card_number, _ = asyncio.run(self.controller.nfc_write(
+            #    f"Deposit of EUR {amount} successful. New balance: EUR {customer.balance:.2f}"
+            #))
 
-            cn, text = asyncio.run(self.controller.nfc_read())
-            print(f"Card number: {cn}, Text: {text}")
-
-
-
+            #cn, text = asyncio.run(self.controller.nfc_read())
+            #print(f"Card number: {cn}, Text: {text}")
             return JsonResponse({'message': 'Deposit successful'}, status=200)
 
         except json.JSONDecodeError:
