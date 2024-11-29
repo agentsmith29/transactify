@@ -2,6 +2,8 @@ from django.db import models
 from .StoreProduct import StoreProduct
 from cashlessui.models import Customer
 
+import logging
+
 class CustomerPurchase(models.Model):
     """Represents a customer purchasing a product.
     Attributes:
@@ -17,7 +19,7 @@ class CustomerPurchase(models.Model):
     product = models.ForeignKey(StoreProduct, on_delete=models.CASCADE)
     # The quantity of the product purchased
     quantity = models.PositiveIntegerField()
-    # The price the product was purchased for
+    # The ^total price the product was purchased for
     purchase_price = models.DecimalField(max_digits=10, decimal_places=2)
     # The customer who made the purchase
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE,  db_constraint=False )
@@ -26,7 +28,18 @@ class CustomerPurchase(models.Model):
     # The date the deposit was made
     purchase_date = models.DateTimeField(auto_now_add=True)
 
+    def get_all_purchases(product: StoreProduct):
+        return CustomerPurchase.objects.filter(product=product)
+    
+    def get_all_purchases_aggregated(product: StoreProduct):
+        return CustomerPurchase.objects.filter(product=product).aggregate(models.Sum('quantity'))['quantity__sum']
+    
+    # function that is called, every time a new CustomerPurchase object is created
+    def save(self, *args, **kwargs):
+        logging.getLogger('store').info(f"[PURCHASE] New purchase: {self}")
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.customer.name} purchased {self.quantity} x {self.product.name}"
+        return f"{self.customer.user.first_name} {self.customer.user.last_name}: {self.quantity} x {self.product.name} = {self.purchase_price}"
 
 

@@ -6,6 +6,7 @@ from .webviews.ManageStockView import ManageStockView
 from .webviews.ManageCustomersView import ManageCustomersView
 from .webviews.SingleCustomerView import SingleCustomerView
 from .webviews.MakePurchaseView import MakePurchaseView
+from .webviews.StoreLogListView import StoreLogListView
 
 
 
@@ -25,4 +26,5 @@ urlpatterns = [
     #path('customer/', ViewSingleCustomer.as_view(), name='customer'),
 
     #path('financial-summary/', views.view_financial_summary, name='financial_summary'),
+    path('logs/', StoreLogListView.as_view(), name='store_logs'),
 ]

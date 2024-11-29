@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'your-secret-key'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True  # Set to False in production
+DEBUG = False  # Set to False in production
 
 ALLOWED_HOSTS = ['*']  # Adjust this for production (e.g., ['yourdomain.com'])
 
@@ -117,6 +117,7 @@ USE_L10N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
+#STATIC_URL = f'http://{os.getenv('DJANGO_DB_HOST', 'localhost')}:{os.getenv('DJANGO_DB_PORT', '8080')}/static/' 
 STATIC_URL = '/static/'  # URL prefix for serving static files
 
 # Directories to look for static files during development
@@ -139,6 +140,10 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
+        'store_logs_db': {
+            'level': 'DEBUG',
+            'class': 'store.custom_logging.StoreLogsDBHandler',
+        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
@@ -150,6 +155,7 @@ LOGGING = {
             'level': 'DEBUG',
         },
     },
+    
 }
 
 

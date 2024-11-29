@@ -36,7 +36,7 @@ class MakePurchaseView(View):
         sale_price = Decimal(request.POST.get('sale_price'))
         customer = request.POST.get('customer')
         try:
-             ManageStockHelper.make_sale(ean, quantity, sale_price, customer)
+             ManageStockHelper.customer_purchase(ean, quantity, sale_price, customer)
         except StoreProduct.DoesNotExist:
              return HttpResponse("Error: Product with the given EAN does not exist.")
         

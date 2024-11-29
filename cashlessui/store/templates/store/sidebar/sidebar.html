@@ -85,6 +85,12 @@
                     Make a Sale
                 </a>
             </li>
+            <li>
+                <a href="{% url 'store_logs' %}" class="nav-link {% if request.path == '/store/logs/' %}active{% else %}text-white{% endif %}">
+                   View logs
+                </a>
+            </li>
+
         </ul>
         <hr>
         <div class="dropdown">

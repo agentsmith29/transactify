@@ -7,6 +7,7 @@ from ..webmodels.StoreProduct import StoreProduct
 from ..webmodels.CustomerPurchase import CustomerPurchase
 from ..webmodels.ProductRestock import ProductRestock
 from .ManageStockHelper import ManageStockHelper
+import json
 
 from ..apps import hwcontroller
 
@@ -19,7 +20,9 @@ class ManageStockView(View):
         purchase_price = Decimal(request.POST.get('purchase_price'))
 
         try:
-           ManageStockHelper.make_purchase(ean, quantity, purchase_price)
+           ret_code = ManageStockHelper.restock_product(ean, quantity, purchase_price)
+           if ret_code == -1:
+               return json.dumps({'error': 'Product with the given EAN does not exist.'})
         except StoreProduct.DoesNotExist:
             return HttpResponse("Error: Product with the given EAN does not exist.", status=404)
 
@@ -29,8 +32,7 @@ class ManageStockView(View):
         # Render the template with context
         context = {
             'products': StoreProduct.objects.all(),
-            'sales': CustomerPurchase.objects.all(),
-            # TODO: rename 'purchases' to 'restocks'
-            'purchases': ProductRestock.objects.all()
+            'purchases': CustomerPurchase.objects.all(),
+            'restocks': ProductRestock.objects.all()
         }
         return render(request, self.template_name, context)

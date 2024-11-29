@@ -17,7 +17,6 @@ chmod +x convert_svg_png.py
 # run make migrations
 #./make_user_db_migration.sh
 #./make_store_db_migration.sh
-#./make_migrations.sh
 
 # Step 6: Collect static files
 echo "Collecting static files..."

@@ -6,6 +6,7 @@ from decimal import Decimal
 from django.db.models import Sum, F
 import os
 from django.contrib.auth.mixins import LoginRequiredMixin
+from .ManageStockHelper import ManageStockHelper
 
 # from ..views import hwcontroller
 from ..apps import hwcontroller
@@ -37,14 +38,8 @@ class ManageProductsView(View):
                 StoreProduct.objects.filter(ean=ean).delete()
                 return redirect('manage_products')
         
-            # Create a new product
-            product, inst = StoreProduct.objects.get_or_create(
-                ean=ean
-            )
-            product.name = name
-            product.resell_price = resell_price
-            product.save()
-
+            product, inst = ManageStockHelper.get_or_create_product(ean, name, resell_price)
+            
             # Redirect to avoid resubmission issues
             return redirect('manage_products')
         except Exception as e:

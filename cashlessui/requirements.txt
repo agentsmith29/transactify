@@ -19,3 +19,6 @@ requests
 # For the image processing
 pillow
 cairosvg
+
+# for logging
+rich
