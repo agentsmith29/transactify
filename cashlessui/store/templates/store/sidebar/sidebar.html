@@ -87,6 +87,11 @@
                 </a>
             </li>
             <li>
+                <a href="{% url 'financial_summary' %}" class="nav-link {% if request.path == '/store/financial-summary/' %}active{% else %}text-white{% endif %}">
+                   Financial Summary
+                </a>
+            </li>
+            <li>
                 <a href="{% url 'store_logs' %}" class="nav-link {% if request.path == '/store/logs/' %}active{% else %}text-white{% endif %}">
                    View logs
                 </a>

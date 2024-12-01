@@ -64,7 +64,7 @@ class ManageCustomerHelper():
         return customer, customer_balance, deposit_entry
     
     def customer_add_purchase(customer: Customer, amount: Decimal, quantity: Decimal, product: StoreProduct):
-        logger = logging.getLogger('Customers Purchase')
+        logger = logging.getLogger('store')
          # Make the sale, create a new CustomerPurchase record, to track the sale
        # Get or create the CustomerBalance object
         customer_balance, inst = CustomerBalance.objects.get_or_create(
@@ -81,6 +81,7 @@ class ManageCustomerHelper():
             quantity=quantity, purchase_price=amount,
             customer=customer, customer_balance=customer_balance.balance,
             )
+        purchase_entry.calculate_revenue()
         logger.info(f"[PURCHASE] New balance for customer {customer}: {customer_balance.balance}")
         # Sanity check. All purchases and all deposits must be the same as new_balance
         total_deposit = customer.get_all_deposits_aggregated(CustomerDeposit)

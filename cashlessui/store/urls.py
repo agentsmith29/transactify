@@ -7,6 +7,7 @@ from .webviews.ManageCustomersView import ManageCustomersView
 from .webviews.SingleCustomerView import SingleCustomerView
 from .webviews.MakePurchaseView import MakePurchaseView
 from .webviews.StoreLogListView import StoreLogListView
+from .webviews.ViewFinancialSummary import ViewFinancialSummary
 
 
 
@@ -25,6 +26,7 @@ urlpatterns = [
     #path('nfc_read/', NFCReadView.as_view(), name='nfc_read'),
     #path('customer/', ViewSingleCustomer.as_view(), name='customer'),
 
-    #path('financial-summary/', views.view_financial_summary, name='financial_summary'),
+    path('financial-summary/', ViewFinancialSummary.as_view(), name='financial_summary'),
+    
     path('logs/', StoreLogListView.as_view(), name='store_logs'),
 ]

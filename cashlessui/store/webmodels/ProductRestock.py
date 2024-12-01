@@ -1,6 +1,7 @@
 from django.db import models
 from .StoreProduct import StoreProduct
 
+
 class ProductRestock(models.Model):
     """Represents re
     stocking a product in a store.
@@ -25,6 +26,20 @@ class ProductRestock(models.Model):
     
     def get_all_restocks_aggregated(product: StoreProduct):
         return ProductRestock.objects.filter(product=product).aggregate(models.Sum('quantity'))['quantity__sum']
+
+    def save(self, *args, **kwargs):
+        from .ProductInventory import ProductInventory
+        """Override save to automatically create or update ProductInventory."""
+        super().save(*args, **kwargs)
+        # Check if a corresponding ProductInventory exists
+        inventory, created = ProductInventory.objects.get_or_create(restock=self)
+        if created:
+            # Initialize remaining_quantity with the restock quantity
+            inventory.remaining_quantity = self.quantity
+        else:
+            # Update the remaining_quantity if the restock quantity changes
+            inventory.remaining_quantity += self.quantity
+        inventory.save()
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name} restocked at {self.product.store.name}"

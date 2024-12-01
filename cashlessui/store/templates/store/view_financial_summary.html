@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Financial Summary</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-</head>
+{% extends "./sidebar/sidebar.html" %}
+
+{% block content %}
 <body>
 
 <div class="container mt-5">
@@ -19,57 +15,60 @@
         </div>
     </div>
 
-    <h3>Sales</h3>
+    <h3>Restocks</h3>
     <table class="table table-bordered table-striped mt-3">
         <thead class="thead-dark">
             <tr>
                 <th scope="col">Date</th>
                 <th scope="col">Product</th>
                 <th scope="col">Quantity</th>
-                <th scope="col">Revenue</th>
                 <th scope="col">Expense</th>
-                <th scope="col">Earnings</th>
             </tr>
         </thead>
         <tbody>
             {% for product in products_sold %}
             <tr>
-                <td>{{ product.sale_date }}</td>
-                <td>{{ product.product_info.name }}</td>
+                <td>{{ product.purchase_date }}</td>
+                <td>{{ product.product.name }}</td>
                 <td>{{ product.quantity }}</td>
-                <td>${{ product.revenue }}</td>
-                <td>${{ product.expense }}</td>
-                <td>${{ product.revenue }}</td>
+                <td>€ {{ product.purchase_price }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <h3>Stock Additions</h3>
+    <h3>Customer's purchases</h3>
     <table class="table table-bordered table-striped mt-3">
         <thead class="thead-dark">
             <tr>
                 <th scope="col">Date</th>
                 <th scope="col">Product</th>
-                <th scope="col">Quantity Added</th>
+                <th scope="col">Customer</th>
                 <th scope="col">Unit Price</th>
+                <th scope="col">Expense</th>
+                <th scope="col">Revenue</th>
             </tr>
         </thead>
         <tbody>
             {% for stockitem in products_bought %}
             <tr>
-                <td>{{ stockitem.addition_date }}</td>
-                <td>{{ stockitem.product_info.name }}</td>
-                <td>{{ stockitem.quantity }}</td>
-                <td>{{ stockitem.unit_price }}</td>
+                <td>{{ stockitem.purchase_date }}</td>
+                <td>{{ stockitem.product.name }} ({{ stockitem.quantity }})</td>
+                <td>
+                    <a href="{% url 'customer_detail' stockitem.customer.card_number %}">
+                      <div style="height:100%;width:100%">
+                        {{ stockitem.customer.user.first_name }} {{ stockitem.customer.user.last_name }}
+                      </div>
+                    </a>
+                  </td>
+                <td>€ {{ stockitem.purchase_price }}</td>
+                <td>€ {{ stockitem.expenses }}</td>
+                <td>€ {{ stockitem.revenue }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
-
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.4.4/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
+{% endblock %}

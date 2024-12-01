@@ -61,21 +61,21 @@ class ManageStockHelper():
             logger.error(f"[PURCHASE] Purchase failed due to an error: {e}")
             return -5, None, None, None, None
         
-        # Update the stock of the product with the given EAN
-        product.stock_quantity = ManageStockHelper.get_stock_quantity(product)
-       
-        # 
-        if product.stock_quantity <= 0:
-            logger.warning(f"[PURCHASE] Product {product} is out of stock now.")
-
-        # Save the changes, and log the successful purchase
         try:
+            # Update the stock of the product with the given EAN
+            product.stock_quantity = ManageStockHelper.get_stock_quantity(product)
+            # Save the changes, and log the successful purchase
             product.save()
+            # 
+            if product.stock_quantity <= 0:
+                logger.warning(f"[PURCHASE] Product {product} is out of stock now.")
+
+            
         except Exception as e:
             logger.error(f"[PURCHASE] Purchase failed due to an error: {e}")
             return -5, None, None, None, None
         
-        logger.error(f"[PURCHASE] Purchase successful. New stock quantity: {quantity}")
+        logger.info(f"[PURCHASE] Purchase successful. New stock quantity: {product.stock_quantity}")
         return 0, customer, customer_balance, product, purchase_entry
     
     def get_or_create_product(ean: str, name: str, resell_price: Decimal):

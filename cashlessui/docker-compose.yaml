@@ -37,6 +37,7 @@ services:
       - /dev/serial0:/dev/serial0  # Serial access
       - /dev/ttyUSB0:/dev/ttyUSB0  # USB serial (if required)
       - static_volume:/app/staticfiles
+      # - ./*:/app/*
       # to allow dynamic reloading
       #- ./cashlessui/store/templates:/app/cashlessui/store/templates  # Mount the project directory
       #- ./cashlessui/store/webmodels:/app/cashlessui/store/webmodels  # Mount the project directory
