@@ -9,7 +9,7 @@ class OLEDPage():
     name: str = "OLEDPage"
     
     def __init__(self, oled, sig_abort_view: Signal, sig_request_view: Signal,
-                 locked = False, overwritable = False):
+                 locked = False, overwritable = True):
         self._signal_abort_view = sig_abort_view
         self._signal_request_view = sig_request_view
 

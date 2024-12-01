@@ -7,8 +7,11 @@ from ..webmodels.CustomerBalance import CustomerBalance
 from ..webmodels.CustomerPurchase import CustomerPurchase
 import json
 
+from ..webviews.ManageCustomerHelper import ManageCustomerHelper
 
 from ..apps import hwcontroller
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect, csrf_exempt, ensure_csrf_cookie
 
 
 class SingleCustomerView(View):
@@ -18,6 +21,7 @@ class SingleCustomerView(View):
         # We can change later how we talk to the hardware controller
         self.hwctrl = hwcontroller
 
+    @method_decorator(ensure_csrf_cookie)
     def get(self, request, card_number=None):
         """
         Handle GET requests to display customer details and deposit history.
@@ -26,15 +30,19 @@ class SingleCustomerView(View):
             card_number = request.GET.get('card_number')
 
         customer = get_object_or_404(Customer, card_number=card_number)
-        balance = customer.get_balance(CustomerBalance)
+        balance = CustomerBalance.objects.get(customer=customer)
         deposits = CustomerDeposit.objects.filter(customer=customer).order_by('-deposit_date')
         purchases = CustomerPurchase.objects.filter(customer=customer).order_by('-purchase_date')
+        total_deposits = customer.get_all_deposits_aggregated(CustomerDeposit)
+        total_purchases = customer.get_all_purchases_aggregated(CustomerPurchase)
 
         return render(request, self.template_name, {
             'customer': customer,
             'balance': balance,
             'deposits': deposits,
             'purchases': purchases,
+            'total_deposits': total_deposits,
+            'total_purchases': total_purchases
         })
 
     def post(self, request, card_number=None):
@@ -44,7 +52,7 @@ class SingleCustomerView(View):
         try:
             # Parse JSON data from the request body
             data = json.loads(request.body)
-            amount = data.get('amount')
+            amount = data.get('deposit_amount')
 
             if not amount or float(amount) <= 0:
                 return JsonResponse({'error': 'Invalid amount'}, status=400)
@@ -53,11 +61,12 @@ class SingleCustomerView(View):
             customer = get_object_or_404(Customer, card_number=card_number)
             
             # Create a new deposit record
-            deposit = CustomerDeposit.objects.create(customer=customer, amount=amount)
+            # Log the deposit
+            customer_balance, inst, deposit_entry = ManageCustomerHelper.customer_add_deposit(customer, amount)
 
             # Update the customer's balance
-            customer.increment_balance(CustomerBalance, amount)
-            customer.save()
+            #customer.increment_balance(CustomerBalance, amount)
+            #customer.save()
 
             #card_number, _ = asyncio.run(self.controller.nfc_write(
             #    f"Deposit of EUR {amount} successful. New balance: EUR {customer.balance:.2f}"
@@ -68,6 +77,8 @@ class SingleCustomerView(View):
             return JsonResponse({'message': 'Deposit successful'}, status=200)
 
         except json.JSONDecodeError:
+            print("Invalid JSON data")
             return JsonResponse({'error': 'Invalid JSON data'}, status=400)
         except Exception as e:
+            print(f"An error occurred: {str(e)}")
             return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)

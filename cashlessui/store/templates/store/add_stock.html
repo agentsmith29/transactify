@@ -115,9 +115,9 @@
                         <tr>
                             <td>{{ purchase.product.name }}</td>
                             <td>{{ purchase.quantity }}</td>
-                            <td>{{ purchase.sale_price }}</td>
-                            <td>{{ purchase.sold_to.name }}</td>
-                            <td>{{ purchase.sale_date|date:"Y-m-d H:i" }}</td>
+                            <td>{{ purchase.purchase_price }}</td>
+                            <td>{{ purchase.customer.user.first_name }} {{ purchase.customer.user.last_name }}</td>
+                            <td>{{ purchase.purchase_date|date:"Y-m-d H:i" }}</td>
                         </tr>
                         {% empty %}
                         <tr>

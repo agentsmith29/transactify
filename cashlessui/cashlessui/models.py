@@ -38,21 +38,18 @@ class Customer(models.Model):
         balance.balance = new_balance
         return balance
     
-    def increment_balance(self, balance_model: models.Model, amount: float) -> None:
-        balance = balance_model.objects.get(customer=self)
-        balance.balance += amount
-        return balance
+    # def increment_balance(self, balance_model: models.Model, amount: float) -> None:
+    #     balance = balance_model.objects.get(customer=self)
+    #     balance.balance += amount
+    #     return balance
 
-    def decrement_balance(self, balance_model: models.Model, amount: float) -> None:
-        balance = balance_model.objects.get(customer=self)
-        balance.balance -= amount
-        return balance
+    # def decrement_balance(self, balance_model: models.Model, amount: float) -> None:
+    #     balance = balance_model.objects.get(customer=self)
+    #     balance.balance -= amount
+    #     return balance
     
     def get_all_deposits(self, deposit_model: models.Model) -> list:
         return deposit_model.objects.filter(customer=self).order_by('-deposit_date')
-    
-    def get_all_purchases(self, purchase_model: models.Model) -> list:
-        return purchase_model.objects.filter(customer=self).order_by('-purchase_date')
     
     def get_all_deposits_aggregated(self, deposit_model: models.Model) -> float:
         #dagg = deposit_model.objects.filter(customer=self).aggregate(
@@ -70,6 +67,9 @@ class Customer(models.Model):
             )['total']
         print(f"******* get_all_deposits_aggregated: {dagg}")
         return dagg
+    
+    def get_all_purchases(self, purchase_model: models.Model) -> list:
+        return purchase_model.objects.filter(customer=self).order_by('-purchase_date')
     
     def get_all_purchases_aggregated(self, purchase_model: models.Model) -> float:
         # purchases are purchase_price*quantity

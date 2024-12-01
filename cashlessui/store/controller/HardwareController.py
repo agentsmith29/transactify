@@ -29,7 +29,7 @@ class HardwareController():
 
         self.hwif = HardwareInterface()
         self.current_view = None #self.view_main
-        self.current_products = []
+        self.current_products = None #[]
         
         self.hwif.barcode_reader.signals.barcode_read.connect(self.on_barcode_read)
         self.hwif.nfc_reader.signals.tag_read.connect(self.on_nfc_read)
@@ -50,7 +50,9 @@ class HardwareController():
                 self.view.request_view(self.view.view_main)
         elif self.view.current_view.locked and btn != "A":
             self.view.current_view.display_lock_overlay()
-        elif self.view.current_view.locked and btn == "A":
+        #elif self.view.current_view.locked and btn == "A":
+        #    self.view.request_view(self.view.PAGE_MAIN, unlock=True)
+        elif self.view.current_view.overwritable and btn == "A":
             self.view.request_view(self.view.PAGE_MAIN, unlock=True)
         elif self.view.current_view == self.view.PAGE_PRODUCT and btn == "A":
             self.view.request_view(self.view.PAGE_MAIN, unlock=True)
@@ -63,7 +65,7 @@ class HardwareController():
             product = StoreProduct.objects.filter(ean=barcode).first()
             if product:
                 self.view.request_view(self.view.PAGE_PRODUCT, product=product)
-                self.current_products.append(product)
+                #self.current_products = product
             else:
                 print(f"Product not found: {barcode}")
                 self.view.request_view(self.view.PAGE_PRODUCT_UNKNW, ean=barcode)
@@ -94,33 +96,39 @@ class HardwareController():
             print(f"Customer: {customer}")
             self.current_nfc = id
             # Iterate through the current products and create a simulated HTTP POST request
-            for p in self.current_products:
-                try:# Call the make_sale function
-                    ret_code, customer, product, purchase = ManageStockHelper.customer_purchase(
-                        ean=p.ean, quantity=1, purchase_price=p.resell_price, card_number=id)
-                    # make a post to MakePurchase
-                    if ret_code == -1:
-                        self.view.request_view(self.view.PAGE_CUSTOMER_UNKNW, id=id)
-                    elif ret_code == -2:
-                        print("Insufficient balance")
-                        #self.view.request_view(self.view.PAGE_CUSTOMER_BAL, customer=customer)
-                    elif ret_code == -3:
-                        print("Insufficient stock")
-                        #self.view.request_view(self.view.PAGE_PRODUCT, product=p)
-                    elif ret_code == -4:
-                        print("Balance mismatch")
-                        # self.view.request_view(self.view.PAGE_CUSTOMER_BAL, customer=customer)
-                    elif ret_code == -5:
-                        print("Error during sale. See logs.")
-                    elif ret_code == 0:
-                        print("Sold product!")
-                        #print(response.status_code, response.content)
-                        self.view.request_view(self.view.PAGE_PURCHASE_SUCC, customer=customer, product=p)
-                    else:
-                        print(f"Unknown return code: {ret_code}")
-                except Exception as e:
-                    print(f"Error during sale: {e}")
-                    #self.view_purchase_failed()
+            #for p in self.current_products:
+            try:# Call the make_sale function
+                ret_code, customer, customer_balance, product, purchase_entry = ManageStockHelper.customer_purchase(
+                    ean=self.view.PAGE_PRODUCT.product.ean, 
+                    quantity=1, 
+                    purchase_price=self.view.PAGE_PRODUCT.product.resell_price, 
+                    card_number=id)
+                # make a post to MakePurchase
+                if ret_code == -1:
+                    self.view.request_view(self.view.PAGE_CUSTOMER_UNKNW, id=id)
+                elif ret_code == -2:
+                    print("Insufficient balance")
+                    #self.view.request_view(self.view.PAGE_CUSTOMER_BAL, customer=customer)
+                elif ret_code == -3:
+                    print("Insufficient stock")
+                    self.view.request_view(self.view.PAGE_INSUFF_STOCK, 
+                                           product=self.view.PAGE_PRODUCT.product)
+                elif ret_code == -4:
+                    print("Balance mismatch")
+                    # self.view.request_view(self.view.PAGE_CUSTOMER_BAL, customer=customer)
+                elif ret_code == -5:
+                    print("Error during sale. See logs.")
+                elif ret_code == 0:
+                    print("Sold product!")
+                    #print(response.status_code, response.content)
+                    self.view.request_view(self.view.PAGE_PURCHASE_SUCC, 
+                                           customer=customer, 
+                                           product=self.view.PAGE_PRODUCT.product)
+                else:
+                    print(f"Unknown return code: {ret_code}")
+            except Exception as e:
+                print(f"Error during sale: {e}")
+                #self.view_purchase_failed()
 
         elif self.current_view == "view_start_card_management":
             self.send_message_to_page(

@@ -113,7 +113,7 @@
         }
     }
     }
-    return cookieValue;
+        return cookieValue;
     }
     const CSRF_TOKEN = getCookie("csrftoken");
 
@@ -130,7 +130,9 @@
         console.log('CSRF Token:', csrftoken);
 
         // Make a POST request
+        //fetch("{% url 'customers' %}", {
         fetch("{% url 'customers' %}", {
+            // ${card_number}
             method: 'POST',
             mode: 'same-origin',
             headers: {

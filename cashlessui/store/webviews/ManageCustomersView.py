@@ -122,6 +122,8 @@ from django.utils.decorators import method_decorator
 from ..apps import hwcontroller
 from django.views.decorators.csrf import csrf_protect, csrf_exempt, ensure_csrf_cookie
 
+from .ManageCustomerHelper import ManageCustomerHelper
+
 class ManageCustomersView(View):
     """Class-based view to handle customer-related operations."""
 
@@ -157,6 +159,7 @@ class ManageCustomersView(View):
         customer_balance, inst = CustomerBalance.objects.get_or_create(
             customer=customer
         )
+        customer_balance.total_deposits += 1
         deposit = CustomerDeposit.objects.create(
             customer=customer,
             customer_balance=customer_balance.balance,
@@ -196,7 +199,8 @@ class ManageCustomersView(View):
             first_name = data.get('first_name')
             last_name = data.get('last_name')
             email = data.get('email')
-            balance = data.get('balance')
+            # convert balance to Decimal
+            balance = float(data.get('balance'))
 
             #first_name = request.POST.get('first_name')
             #last_name = request.POST.get('last_name')
@@ -217,7 +221,7 @@ class ManageCustomersView(View):
             print(f"Card number: {card_number}, Content: {content}")
 
             # Create and save the new customer
-            self.create_new_customer(username, first_name, last_name, email, balance, card_number)
+            customer, deposit_entry = ManageCustomerHelper.create_new_customer(username, first_name, last_name, email, balance, card_number)
 
             return JsonResponse({'status': 'success'})
         except Exception as e:

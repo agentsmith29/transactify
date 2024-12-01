@@ -8,6 +8,8 @@ from .OLEDPageCustomer import OLEDPageCustomer
 from .OLEDPageCustomerUnknown import OLEDPageCustomer_Unknown
 from .OLEDPagePurchaseSuccessfull import OLEDPagePurchaseSuccessfull
 
+from .OLEDPageInsufficientStock import OLEDPageInsufficientStock
+
 
 from django.dispatch import Signal
 
@@ -33,6 +35,8 @@ class OLEDView():
         self.sig_request_view.connect(self.request_view)
 
         self.PAGE_MAIN = OLEDPageMain(oled, self.sig_abort_page, self.sig_request_view)
+
+        self.PAGE_INSUFF_STOCK = OLEDPageInsufficientStock(oled, self.sig_abort_page, self.sig_request_view)
         
         self.PAGE_PRODUCT = OLEDPageProduct(oled, self.sig_abort_page, self.sig_request_view)
         self.PAGE_PRODUCT_UNKNW = OLEDPageProduct_Unknown(oled, self.sig_abort_page, self.sig_request_view)
