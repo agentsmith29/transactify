@@ -39,3 +39,14 @@ def dashboard(request):
         return render(request, 'dashboard.html', {"entries": stores})
         #return render(request, 'dashboard.html')
         return redirect('/')
+    
+
+def custom_csrf_failure_view(request, reason=""):
+    """
+    Custom view to handle CSRF failures.
+    """
+    context = {
+        'message': "CSRF verification failed. Please try again.",
+        'reason': reason,
+    }
+    return render(request, "csrf_failure.html", context, status=403)

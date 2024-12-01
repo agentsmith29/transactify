@@ -42,7 +42,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(next_page='/'), name='logout'),
     path('dashboard/', dashboard, name='dashboard'),  # Dashboard post-login
 
-    path("accounts/", include("django.contrib.auth.urls")), 
+    #path("accounts/", include("django.contrib.auth.urls")), 
     path("admin/", admin.site.urls),
     path(os.getenv('DJANGO_DB_NAME', 'store') + "/", include("store.urls")),
     

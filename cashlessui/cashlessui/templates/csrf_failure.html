@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSRF Verification Failed</title>
+    <link href="{% static 'assets/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="alert alert-danger">
+            <h4 class="alert-heading">CSRF Verification Failed</h4>
+            <p>{{ message }}</p>
+            {% if reason %}
+                <hr>
+                <p>Reason: {{ reason }}</p>
+            {% endif %}
+            <a href="/" class="btn btn-primary">Go to Homepage</a>
+        </div>
+    </div>
+</body>
+</html>

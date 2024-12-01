@@ -1,13 +1,13 @@
 {% extends "./sidebar/sidebar.html" %}
 {% load static %}
 {% block content %}
+<meta name="csrf-token" content="{{ csrf_token }}">
 <div class="container mt-5">
     <!-- Add New Customer Section -->
     <div class="row">
         <div class="col-md-12">
             <h1 class="mb-4">Add New Customer</h1>
-            <form id="addCustomerForm" method="post" class="border p-4 shadow-sm bg-light">
-                {% csrf_token %}
+            <form id="addCustomerForm"  class="border p-4 shadow-sm bg-light">
                 <div class="form-group">
                     <label for="first_name">First Name</label>
                     <input type="text" class="form-control" id="first_name" name="first_name" required>
@@ -34,7 +34,7 @@
     <!-- Customer List Section -->
     <div class="row mt-5">
         <div class="col-md-12">
-            <h1 class="mb-4">Customer List</h1>
+            <h1 class="mb-4">Manage Customers</h1>
             <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                 <table class="table table-bordered">
                     <thead>
@@ -94,19 +94,51 @@
     </div>
 </div>
 
+{% csrf_token %}
 <script>
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+</script>
+
+<script>
+    function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === name + "=") {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+        }
+    }
+    }
+    return cookieValue;
+    }
+    const CSRF_TOKEN = getCookie("csrftoken");
+
     document.getElementById('addCustomerForm').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent form submission
+
         const overlay = document.getElementById('nfcOverlay');
         overlay.style.display = 'block'; // Show NFC overlay
+        
+        // Retrieve CSRF token from the hidden input in the form
+        const csrftoken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
-        // Make a POST request to trigger the NFC reader
+        // Debug: Print CSRF token to ensure it's correct
+        console.log('CSRF Token:', csrftoken);
+
+        // Make a POST request
         fetch("{% url 'customers' %}", {
             method: 'POST',
+            mode: 'same-origin',
             headers: {
-                'X-CSRFToken': "{{ csrf_token }}",
-                'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                //'X-CSRFToken': csrftoken, // Pass CSRF token in the header
+                "X-CSRFTOKEN": CSRF_TOKEN,
+                //'X-CSRFTOKEN': csrftoken, // Pass CSRF token in the header
+                'X-Requested-With': 'XMLHttpRequest' // Identify as AJAX request
             },
             body: JSON.stringify({
                 first_name: document.getElementById('first_name').value,
@@ -116,15 +148,24 @@
             })
         }).then(response => {
             if (response.ok) {
-                location.reload(); // Reload the page after success
+                console.log('Request successful');
+                // reaload the page
+                location.reload();
+                return response.json();
             } else {
+                console.error('Request failed:', response.status);
                 alert('Error occurred. Please try again.');
             }
+        }).then(data => {
+            console.log('Response data:', data);
+        }).catch(error => {
+            console.error('Error:', error);
         }).finally(() => {
             overlay.style.display = 'none'; // Hide NFC overlay
         });
     });
 </script>
+
 
 
 <script>

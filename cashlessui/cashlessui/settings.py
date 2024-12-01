@@ -10,7 +10,10 @@ SECRET_KEY = 'your-secret-key'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False  # Set to False in production
 
-ALLOWED_HOSTS = ['*']  # Adjust this for production (e.g., ['yourdomain.com'])
+print(f"Allowed hosts: {os.getenv('DJANGO_WEB_HOST', 'localhost')}:{os.getenv('DJANGO_WEB_PORT', '8080')}")
+ALLOWED_HOSTS = [
+    f"{os.getenv('DJANGO_WEB_HOST', '*')}"
+]  # Adjust this for production (e.g., ['yourdomain.com'])
 
 
 
@@ -41,15 +44,66 @@ CHANNEL_LAYERS = {
 }
 
 
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+# CSRF Trusted Origins
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1",
+    "http://localhost",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    f"http://{os.getenv('DJANGO_WEB_HOST', 'localhost')}",
+    f"http://{os.getenv('DJANGO_WEB_HOST', 'localhost')}:{os.getenv('DJANGO_WEB_PORT', '8000')}",
+    f"https://{os.getenv('DJANGO_WEB_HOST', 'localhost')}",
+    f"https://{os.getenv('DJANGO_WEB_HOST', 'localhost')}:{os.getenv('DJANGO_WEB_PORT', '8000')}",
 ]
+
+CSRF_FAILURE_VIEW = "cashlessui.views.custom_csrf_failure_view"
+
+
+# # Middleware adjustments for proxy
+# MIDDLEWARE = [
+#     'django.middleware.security.SecurityMiddleware',
+#     'django.middleware.csrf.CsrfViewMiddleware',
+#     'django.middleware.common.CommonMiddleware',
+#     'django.contrib.sessions.middleware.SessionMiddleware',
+#     'django.contrib.auth.middleware.AuthenticationMiddleware',
+#     'django.contrib.messages.middleware.MessageMiddleware',
+#     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+# ]
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',  # Handles security headers
+    'django.contrib.sessions.middleware.SessionMiddleware',  # Manages session cookies
+    'django.middleware.common.CommonMiddleware',  # Handles general request/response operations
+    'django.middleware.csrf.CsrfViewMiddleware',  # Protects against CSRF
+    'django.contrib.auth.middleware.AuthenticationMiddleware',  # Links user authentication
+    'django.contrib.messages.middleware.MessageMiddleware',  # Adds messaging framework
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Protects against clickjacking
+]
+
+
+#MIDDLEWARE.insert(
+#    MIDDLEWARE.index('django.middleware.csrf.CsrfViewMiddleware'),
+#    'cashlessui.csfr.DebugCSRFMiddleware',
+#)
+
+# Update Django to recognize proxy headers
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+#HTTP_X_CSRFTOKEN = 'X-CSRFToken'
+
+# Static file serving in production
+STATIC_URL = '/static/'  # Ensure consistent usage
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+STATIC_ROOT = BASE_DIR / "staticfiles"  # Used by collectstatic
+
+# Login and redirect URLs
+LOGIN_REDIRECT_URL = '/dashboard/'  # Redirect after login
+LOGOUT_REDIRECT_URL = '/'  # Redirect after logout
+LOGIN_URL = '/'  # Login page
+
+
+
 
 ROOT_URLCONF = 'cashlessui.urls'
 
@@ -116,21 +170,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-#STATIC_URL = f'http://{os.getenv('DJANGO_DB_HOST', 'localhost')}:{os.getenv('DJANGO_DB_PORT', '8080')}/static/' 
-STATIC_URL = '/static/'  # URL prefix for serving static files
-
-# Directories to look for static files during development
-STATICFILES_DIRS = [
-    BASE_DIR  / "static",  # Adjust to your project structure
-]
-
-# Directory for collected static files (used in production)
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# Media files (uploaded files)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -157,8 +196,3 @@ LOGGING = {
     },
     
 }
-
-
-LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/'
-LOGIN_URL = '/'  # In case of unauthorized access

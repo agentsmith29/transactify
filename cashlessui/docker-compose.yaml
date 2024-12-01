@@ -26,8 +26,8 @@ services:
       DJANGO_DB_NAME: donknabberello
       DJANGO_DB_USER: USER
       DJANGO_DB_PASSWORD: PASSWORD
-      DJANGO_WEB_HOST: 192.168.1.190
       DJANGO_WEB_PORT: 8000
+      DJANGO_WEB_HOST: 192.168.1.190
     privileged: true  # Grants access to devices and kernel features
     volumes:
       - /dev/gpiomem:/dev/gpiomem  # GPIO access
