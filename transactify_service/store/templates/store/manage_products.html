@@ -1,0 +1,180 @@
+{% extends "./sidebar/sidebar.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h1 class="mb-4">Manage Products</h1>
+
+    <!-- Add Product Section -->
+    <div class="mb-5">
+        <h2 class="mb-3">Add New Product</h2>
+        <form method="post" class="border p-4 shadow-sm bg-light">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="product_ean">EAN (Article Number)</label>
+                <input type="text" class="form-control" id="ean" name="product_ean" required>
+            </div>
+            <div class="form-group">
+                <label for="product_name">Product Name</label>
+                <input type="text" class="form-control" id="name" name="product_name" required>
+            </div>
+            <div class="form-group">
+                <label for="resell_price">Resell Price</label>
+                <input type="number" class="form-control" id="resell_price" name="resell_price" step="0.01" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Product</button>
+        </form>
+    </div>
+
+    <!-- Product List Section -->
+    <div>
+        <h2 class="mb-3">Product List</h2>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>EAN</th>
+                        <th>Name</th>
+                        <th>Price (€)</th>
+                        <th>Stock Quantity</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ product.ean }}</td>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.resell_price }}</td>
+                        <td>{{ product.stock_quantity }}</td> 
+                        <td>
+                            <!-- Edit Button -->
+                             <button type="button" class="btn btn-warning btn-sm"
+                            onclick="openEditModal('{{ product.ean }}', '{{ product.name }}', '{{ product.resell_price }}')">
+                            Edit
+                            </button>
+                            <!-- Delete Button -->
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="delete_ean" value="{{ product.ean }}">
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Are you sure you want to delete this product?')">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No products available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div id="editProductModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="editProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProductModalLabel">Edit Product </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeEditModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="" id="modal_ean" name="product_ean" readonly="true">
+                    <div class="form-group">
+                        <label for="modal_name">Name</label>
+                        <input type="text" class="form-control" id="modal_name" name="product_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modal_resellprice">Price (€)</label>
+                        <input type="number" class="form-control" id="modal_resellprice" name="resell_price" step="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeEditModal()">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Toast Notification -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="barcodeToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <span id="toastMessage">New scanned barcode!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const pageName = "manage_products";
+    const socket = new WebSocket(`ws://${window.location.host}/tcon/page/${pageName}/`);
+
+    socket.onopen = function () {
+        console.log("WebSocket connection established for page:", pageName);
+    };
+
+    socket.onmessage = function (event) {
+        try {
+            const data = JSON.parse(event.data);
+            console.log("Message received from server:", data);
+
+            if (data.barcode) {
+                // Update the EAN input field with the barcode value
+                const eanField = document.getElementById('ean');
+                if (eanField) {
+                    eanField.value = data.barcode;
+                } else {
+                    console.error("EAN field not found.");
+                }
+
+                // Display a toast notification
+                const toastMessage = document.getElementById('toastMessage');
+                toastMessage.textContent = `New scanned barcode: ${data.barcode}`;
+                const toast = new bootstrap.Toast(document.getElementById('barcodeToast'));
+                toast.show();
+            }
+        } catch (error) {
+            console.error("Error processing WebSocket message:", error);
+        }
+    };
+
+    socket.onclose = function () {
+        console.log("WebSocket connection closed");
+    };
+
+    socket.onerror = function (error) {
+        console.error("WebSocket error:", error);
+    };
+</script>
+
+
+<script>
+function openEditModal(ean, name, resellPrice) {
+    document.getElementById('modal_ean').value = ean;
+    document.getElementById('modal_name').value = name;
+    document.getElementById('modal_resellprice').value = resellPrice;
+    $('#editProductModal').modal('show');
+}
+
+function closeEditModal() {
+    $('#editProductModal').modal('hide');
+}
+</script>
+
+
+{% endblock %}

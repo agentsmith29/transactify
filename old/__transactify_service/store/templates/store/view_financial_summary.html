@@ -1,0 +1,74 @@
+{% extends "./sidebar/sidebar.html" %}
+
+{% block content %}
+<body>
+
+<div class="container mt-5">
+    <h1 class="mb-4">Financial Summary</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Summary</h5>
+            <p>Total Revenue: ${{ total_revenue }}</p>
+            <p>Total Expenses: ${{ total_expenses }}</p>
+            <p>Total Earnings: ${{ total_earnings }}</p>
+        </div>
+    </div>
+
+    <h3>Restocks</h3>
+    <table class="table table-bordered table-striped mt-3">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Product</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Expense</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products_sold %}
+            <tr>
+                <td>{{ product.purchase_date }}</td>
+                <td>{{ product.product.name }}</td>
+                <td>{{ product.quantity }}</td>
+                <td>€ {{ product.purchase_price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Customer's purchases</h3>
+    <table class="table table-bordered table-striped mt-3">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Product</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Unit Price</th>
+                <th scope="col">Expense</th>
+                <th scope="col">Revenue</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stockitem in products_bought %}
+            <tr>
+                <td>{{ stockitem.purchase_date }}</td>
+                <td>{{ stockitem.product.name }} ({{ stockitem.quantity }})</td>
+                <td>
+                    <a href="{% url 'customer_detail' stockitem.customer.card_number %}">
+                      <div style="height:100%;width:100%">
+                        {{ stockitem.customer.user.first_name }} {{ stockitem.customer.user.last_name }}
+                      </div>
+                    </a>
+                  </td>
+                <td>€ {{ stockitem.purchase_price }}</td>
+                <td>€ {{ stockitem.expenses }}</td>
+                <td>€ {{ stockitem.revenue }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
+{% endblock %}

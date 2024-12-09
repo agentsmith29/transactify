@@ -1,0 +1,89 @@
+<!doctype html>
+{% load static %}
+<html lang="en" data-bs-theme="auto">
+<head>
+    <script src="{% static 'assets/js/color-modes.js' %}"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Sidebars · Bootstrap</title>
+
+    <!-- Local Bootstrap CSS -->
+    <link href="{% static 'assets/dist/css/bootstrap-css.css' %}" rel="stylesheet">
+
+    <!-- Local jQuery -->
+    <script src="{% static 'assets/dist/js/jquery.js' %}"></script>
+
+    <!-- Local Bootstrap JS -->
+    <script src="{% static 'assets/dist/js/bootstrap-js.js' %}"></script>
+
+    <!-- Local DocSearch CSS -->
+    <link href="{% static 'assets/dist/css/docsearch-css.css' %}" rel="stylesheet">
+
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            overflow: hidden; /* Prevents body from scrolling */
+        }
+
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            height: 100vh; /* Makes the sidebar take the full height */
+            overflow-y: auto; /* Allows scrolling within the sidebar */
+        }
+
+        .main-content {
+            flex-grow: 1; /* Expands to fill the remaining space */
+            overflow-y: auto; /* Enables scrolling for the main content */
+            padding: 20px; /* Adds padding to main content */
+        }
+
+        .table-responsive {
+            max-height: calc(5 * 3rem); /* Limit the table height for 5 rows */
+            overflow-y: auto; /* Scrolls only the table content */
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar bg-dark text-bg-dark">
+        <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <svg class="bi pe-none me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
+            <span class="fs-4">DonKnabberello</span>
+        </a>
+        <hr>
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li>
+                <a href="{% url 'store_logs' %}" class="nav-link {% if request.path == '/terminal/logs/' %}active{% else %}text-white{% endif %}">
+                   View logs
+                </a>
+            </li>
+
+        </ul>
+        <hr>
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
+                <strong>{{ user.username }}</strong>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+                <li><a class="dropdown-item" href="#">New project...</a></li>
+                <li><a class="dropdown-item" href="#">Settings</a></li>
+                <li><a class="dropdown-item" href="#">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#">Sign out</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="main-content">
+        {% block content %}
+        <!-- Dynamic content from child templates will appear here -->
+        {% endblock %}
+    </div>
+
+    <script src="{% static 'assets/dist/js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

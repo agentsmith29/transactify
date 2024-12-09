@@ -1,0 +1,52 @@
+{% extends "./sidebar/sidebar.html" %}
+{% load static %}
+{% block content %}
+<body>
+
+<div class="container mt-5">
+    <h1 class="mb-4">Make a Sale</h1>
+
+
+
+    <form method="post" class="border p-4 shadow-sm bg-light">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="ean">EAN (Article Number)</label>
+            <select class="form-control" id="ean" name="ean" required onchange="updatePrice()">
+                <option value="" data-resell-price="0">-- Select Product --</option>
+                {% for product in products %}
+                <option value="{{ product.ean }}"
+                        data-resell-price="{{ product.resell_price }}">
+                    {{ product.name }} (EAN: {{ product.ean }}) P: {{ product.resell_price }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="quantity">Quantity</label>
+            <input type="number" class="form-control" id="quantity" name="quantity" required value="1" min="1">
+        </div>
+        <div class="form-group">
+            <label for="sale_price">Price (€)</label>
+            <input type="text" class="form-control" id="sale_price" name="sale_price" required>
+        </div>
+        <div class="form-group">
+            <label for="customer">Customer</label>
+            <input type="text" class="form-control" id="customer" name="customer" required>
+        </div>
+        <button type="submit" class="btn btn-success">Make Sale</button>
+    </form>
+</div>
+
+<!-- JavaScript to dynamically update the price -->
+<script>
+    function updatePrice() {
+        const eanSelect = document.getElementById('ean');
+        const selectedOption = eanSelect.options[eanSelect.selectedIndex];
+        const resellPrice = selectedOption.getAttribute('data-resell-price');
+        document.getElementById('sell_price').value = resellPrice || 0;
+    }
+</script>
+</body>
+</html>
+{% endblock %}

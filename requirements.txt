@@ -1,0 +1,33 @@
+Django>=5.0.0
+# GPIOs
+luma.oled
+evdev
+# Django
+django-bootstrap5   # Frontend
+asyncio
+channels
+websockets
+daphne      # ASGI server
+
+# Postgress database
+psycopg     
+psycopg2
+
+# For doenloading the static files
+requests
+
+# For the image processing
+pillow
+cairosvg
+
+# for logging
+rich
+
+# for using the restful API
+djangorestframework
+markdown       
+django-filter
+djangorestframework-simplejwt
+
+# others
+pyyaml
