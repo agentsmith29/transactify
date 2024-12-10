@@ -37,23 +37,19 @@ class CustomerPurchaseAPIView(APIView):
 
         try:
             quantity = int(quantity)
-            sale_price = Decimal(sale_price)
         except Exception as e:
             return Response(
-                {"error": "Invalid data for quantity or sale_price."},
+                {"error": f"Invalid data for quantity. Must be an integer but was {type(quantity)}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
+        #try:
             # Assuming ManageStockHelper handles the logic for the purchase
-            ret_code, customer, customer_balance, product, purchase_entry = ManageStockHelper.customer_purchase(ean, quantity, card_number)
-        except Exception as e:
-            return Response(
-                {"error": "Product with the given EAN does not exist."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        response, customer, customer_balance, product, purchase_entry = ManageStockHelper.customer_purchase(ean, quantity, card_number)
+        #except Exception as e:
+        #    return Response(
+        #        {"error": "Product with the given EAN does not exist."},
+        #        status=status.HTTP_404_NOT_FOUND,
+        #    )
 
-        return Response(
-            {"message": "Purchase successfully processed."},
-            status=status.HTTP_200_OK,
-        )
+        return response

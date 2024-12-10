@@ -41,19 +41,21 @@ class Customer:
             response.raise_for_status()  # Raise an exception for HTTP errors
 
             product_data = response.json()
-            # Create an instance of StoreProduct with the fetched data
+            user = product_data.get("user", {})
+            balance = product_data.get("balance", {})
+
             return cls(
                 store=store,
-                username=product_data.get('username'),
-                first_name=product_data.get('first_name'),
-                last_name=product_data.get('last_name'),
-                email=product_data.get('email'),
-                card_number=product_data.get('card_number'),
-                issued_at=product_data.get('issued_at'),
-                balance=product_data.get('balance'),
-                total_deposits=product_data.get('total_deposits'),
-                total_purchases=product_data.get('total_purchases'),
-                last_changed=product_data.get('last_changed')
+                username=user.get("username"),
+                first_name=user.get("first_name"),
+                last_name=user.get("last_name"),
+                email=user.get("email"),
+                card_number=product_data.get("card_number"),
+                issued_at=product_data.get("issued_at"),
+                balance=balance.get("balance"),
+                total_deposits=balance.get("total_deposits"),
+                total_purchases=balance.get("total_purchases"),
+                last_changed=balance.get("last_changed"),
             )
         except requests.exceptions.RequestException as e:
             print(f"Failed to fetch customer from {store}: {e}")

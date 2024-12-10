@@ -173,26 +173,29 @@ class HardwareController():
                 status: Response = self.current_product.customer_purchase(customer, quantity=1)
                 print(f"Got Response: {status}")
                 # make a post to MakePurchase
-                if status.status_code == 500:
+                if status.status_code == 510:
                     self.view.request_view(self.view.PAGE_CUSTOMER_UNKNW, id=id)
-                elif status.status_code == -2:
+                elif status.status_code == 511:
                     print("Insufficient balance")
                     #self.view.request_view(self.view.PAGE_CUSTOMER_BAL, customer=customer)
-                elif status.status_code == -3:
+                elif status.status_code == 512:
                     print("Insufficient stock")
                     self.view.request_view(self.view.PAGE_INSUFF_STOCK, 
                                            product=self.view.PAGE_PRODUCT.product)
-                elif status.status_code == -4:
-                    print("Balance mismatch")
-                    # self.view.request_view(self.view.PAGE_CUSTOMER_BAL, customer=customer)
-                elif status.status_code == -5:
+                #elif status.status_code == 513:
+                #    print("Balance mismatch")
+                #    # self.view.request_view(self.view.PAGE_CUSTOMER_BAL, customer=customer)
+                elif status.status_code == 513:
                     print("Error during sale. See logs.")
-                elif status.status_code == 200:
+                elif status.status_code == 210:
                     print("Sold product!")
                     #print(response.status_code, response.content)
                     self.view.request_view(self.view.PAGE_PURCHASE_SUCC, 
                                            customer=customer, 
-                                           product=self.view.PAGE_PRODUCT.product)
+                                           product=self.current_product,
+                                           next_view=self.view.PAGE_MAIN,
+                                           store_name=self.selected_store.name,
+                                           display_back=True)
                 else:
                     print(f"Unknown return code: {status.status_code}")
             except Exception as e:

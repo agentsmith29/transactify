@@ -13,7 +13,8 @@ from ..webmodels.ProductRestock import ProductRestock
 
 from store.helpers.ManageCustomerHelper import ManageCustomerHelper
 
-
+from rest_framework.response import Response
+from rest_framework import status
 
 
 
@@ -39,7 +40,10 @@ class ManageStockHelper():
             customer = Customer.objects.get(card_number=card_number)
         except Customer.DoesNotExist:
             logger.error(f"[PURCHASE] Purchase failed due to customer not found with card number: {card_number}")
-            return -1, None, None, None, None
+            return Response(
+                {"error": f"The customer with the given card number {card_number} does not exist."},
+                status=510,
+            ), None, None, None, None
         
         balance = customer.get_balance(CustomerBalance)
         product = StoreProduct.objects.get(ean=ean)
@@ -47,13 +51,19 @@ class ManageStockHelper():
         # Check if the customer has enough balance to make the purchase
         if balance < quantity * product.resell_price:
             logger.error(f"[PURCHASE] Purchase failed due to insufficient balance (is: {balance}, req: {quantity} x {product.resell_price} = {quantity * purchase_price}) for customer {customer}")
-            return -2, None, None, None, None
+            return Response(
+                {"error": f"Balance of the customer {card_number} is insufficient ({balance} < {quantity * product.resell_price}) for the purchase."},
+                status=511,
+            ), None, None, None, None
         
         left_in_stock = ManageStockHelper.get_stock_quantity(product)
         # Check if the product is in stock
         if left_in_stock <= 0:
             logger.error(f"[PURCHASE] Purchase failed due to insufficient stock for product {product}")
-            return -3, None, None, None, None
+            return Response(
+                {"error": f"The product with EAN {ean} is out of stock."},
+                status=512,
+            ), None, None, None, None
         
         try:
             customer, customer_balance, purchase_entry = ManageCustomerHelper.customer_add_purchase(
@@ -64,7 +74,10 @@ class ManageStockHelper():
                 )
         except Exception as e:
             logger.error(f"[PURCHASE] Purchase failed due to an error: {e}")
-            return -5, None, None, None, None
+            return  Response(
+                {"error": f"Purchase failed due to an error: {e}"},
+                    status=513,
+            ), None, None, None, None
         
         try:
             # Update the stock of the product with the given EAN
@@ -78,10 +91,16 @@ class ManageStockHelper():
             
         except Exception as e:
             logger.error(f"[PURCHASE] Purchase failed due to an error: {e}")
-            return -5, None, None, None, None
+            return Response(
+                {"error": f"Purchase failed due to an error: {e}"},
+                    status=513,
+            ), None, None, None, None
         
         logger.info(f"[PURCHASE] Purchase successful. New stock quantity: {product.stock_quantity}")
-        return 0, customer, customer_balance, product, purchase_entry
+        return Response(
+                {"error": f"Purchase successful. New stock quantity: {product.stock_quantity}"},
+                    status=210,
+            ), customer, customer_balance, product, purchase_entry
     
     def get_or_create_product(ean: str, name: str, resell_price: Decimal):
         # Create a new StoreProduct record

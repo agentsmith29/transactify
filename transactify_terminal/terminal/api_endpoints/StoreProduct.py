@@ -77,13 +77,16 @@ class StoreProduct:
             "quantity": quantity,
             "card_number": customer.card_number,
         }
-
+        headers = {
+            "Content-Type": "application/json"
+        }
+        print(f"Making purchase: {payload}")
         try:
             api_url = f"http://{self.store.address}/api/purchase/"
-            response = requests.post(api_url, json=payload)
+            response = requests.post(api_url, json=payload, headers=headers)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
-            return 0
         except Exception as e:
             print(f"Failed to make purchase: {e}")
             traceback.print_exc()
-            return response
+        
+        return response

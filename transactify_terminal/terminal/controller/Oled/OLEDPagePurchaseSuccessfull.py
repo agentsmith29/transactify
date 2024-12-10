@@ -3,6 +3,10 @@ from .OLEDPage import OLEDPage
 import os
 
 from .OLEDMainPage import OLEDPageMain
+
+from terminal.api_endpoints.Customer import Customer
+from terminal.api_endpoints.StoreProduct import StoreProduct
+
 #from ...webmodels.CustomerBalance import CustomerBalance
 
 class OLEDPagePurchaseSuccessfull(OLEDPage):
@@ -12,13 +16,13 @@ class OLEDPagePurchaseSuccessfull(OLEDPage):
         super().__init__(oled,sig_abort_view=sig_abort_view, sig_request_view=sig_request_view,
                          *args, **kwargs)
 
-    def view(self, customer, product, *args, **kwargs):
+    def view(self, customer: Customer, product: StoreProduct, next_view = None, *args, **kwargs):
         balance = 0#CustomerBalance.objects.get(customer=customer)
 
         image, draw = self._post_init()
 
         header_height = 20
-        header_text = f"Thank you, {customer.user.first_name} {customer.user.last_name}"
+        header_text = f"Thank you, {customer.first_name} {customer.last_name}"
         draw.text((20, 0), header_text, font=self.font_large, fill=(255,255,255))  # Leave space for NFC symbol
 
 
@@ -30,15 +34,16 @@ class OLEDPagePurchaseSuccessfull(OLEDPage):
         # Content Section: Display Name, Surname, and Balance
         content_y_start = header_height + 5
         self.paste_image(image, r"/app/static/icons/png_16/cash-stack.png", (0, content_y_start))
-        draw.text((30, content_y_start+2), f"Balance: EUR: {balance.balance}", font=self.font_regular, fill=(255,255,255))
+        draw.text((30, content_y_start+2), f"Balance: EUR: {customer.balance}", font=self.font_regular, fill=(255,255,255))
         #self.paste_image(image, r"/app/static/icons/png_16/cart4.png", (0, content_y_start+18))
         draw.text((30, content_y_start+20), f"Thank you for your purchase", font=self.font_regular, fill=(255,255,255))
+        draw.text((30, content_y_start+30), f"at {product.store.name}", font=self.font_regular, fill=(255,255,255))
 
         # Update the OLED display
         self.oled.display(image)
         # ------------- Body ----------------
-        self.display_next(image, draw, OLEDPageMain.name, 20)
-        
+        #self.display_next(image, draw, OLEDPageMain.name, 20)
+        self.display_next(image, draw, next_view, 5, *args, **kwargs)
     
         
     
