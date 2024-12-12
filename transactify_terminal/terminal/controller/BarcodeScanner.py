@@ -54,6 +54,7 @@ class BarcodeScanner:
                             #HardwareController.send_message_to_manage_clients(line)
                             buffer = ""  # Clear the buffer
                             line = ""
+                            barcode = ""
                             
 
             except serial.SerialException as e:

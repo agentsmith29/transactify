@@ -13,6 +13,7 @@ class OLEDPageMain(OLEDPage):
                          *args, **kwargs)
         OLEDPageMain.name: str = str(self.__class__.__name__)
 
+    
     def view(self, store_name, display_back, *args, **kwargs):
         image, draw = self._post_init()
 

@@ -11,7 +11,8 @@ from store.webmodels.Customer import Customer
 from ..webmodels.CustomerDeposit import CustomerDeposit
 from ..webmodels.CustomerBalance import CustomerBalance
 from ..webmodels.CustomerPurchase import CustomerPurchase
-from store.helpers.ManageCustomerHelper import ManageCustomerHelper
+from store.helpers.ManageStockHelper import StoreHelper
+
 
 
 
@@ -64,7 +65,7 @@ class SingleCustomerView(View):
             
             # Create a new deposit record
             # Log the deposit
-            customer_balance, inst, deposit_entry = ManageCustomerHelper.customer_add_deposit(customer, amount)
+            response, customer_deposit = StoreHelper.customer_add_deposit(customer, amount)
 
             # Update the customer's balance
             #customer.increment_balance(CustomerBalance, amount)

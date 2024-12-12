@@ -10,8 +10,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 
 from store.webmodels.Customer import Customer
+from store.helpers.ManageStockHelper import StoreHelper
 
-from store.helpers.ManageStockHelper import ManageStockHelper
 
 from ..webmodels.CustomerDeposit import CustomerDeposit
 from ..webmodels.CustomerBalance import CustomerBalance
@@ -42,7 +42,7 @@ class MakePurchaseView(View):
         sale_price = Decimal(request.POST.get('sale_price'))
         customer = request.POST.get('customer')
         try:
-             ManageStockHelper.customer_purchase(ean, quantity, sale_price, customer)
+             StoreHelper.customer_purchase(ean, quantity, sale_price, customer)
         except StoreProduct.DoesNotExist:
              return HttpResponse("Error: Product with the given EAN does not exist.")
         

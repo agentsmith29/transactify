@@ -115,16 +115,21 @@ class HardwareController():
     def on_barcode_read(self, sender, barcode, **kwargs):
         print(f"Barcode read: {barcode}")
         if self.view.current_view == self.view.PAGE_MAIN or self.current_view == self.view.PAGE_PRODUCT:
-            self.current_product = StoreProduct.get_from_api(self.store_bases, barcode)
-            self.selected_store = self.current_product.store
-            print(f"json: {self.current_products}")
-            if self.current_product:
-                self.view.request_view(self.view.PAGE_PRODUCT, product=self.current_product)
-                #self.current_products = product
-            else:
-                print(f"Product not found: {barcode}")
-                self.view.request_view(self.view.PAGE_PRODUCT_UNKNW, ean=barcode)
-                #self.view.request_view(self.view.view_unknown_product, barcode)
+            try:
+                self.current_product = StoreProduct.get_from_api(self.store_bases, barcode)
+                self.selected_store = self.current_product.store
+                print(f"json: {self.current_products}")
+                if self.current_product:
+                    self.view.request_view(self.view.PAGE_PRODUCT, product=self.current_product)
+                    #self.current_products = product
+                else:
+                    print(f"Product not found: {barcode}")
+                    self.view.request_view(self.view.PAGE_PRODUCT_UNKNW, ean=barcode)
+                    #self.view.request_view(self.view.view_unknown_product, barcode)
+            except Exception as e:
+                print(f"Error fetching product: {e}")
+                self.current_product = None
+                self.selected_store = None
         elif self.view.current_view == self.view.PAGE_STORE_SELECTION:
             self.current_product = StoreProduct.get_from_api(self.store_bases, barcode)
             self.selected_store = self.current_product.store
@@ -173,21 +178,10 @@ class HardwareController():
                 status: Response = self.current_product.customer_purchase(customer, quantity=1)
                 print(f"Got Response: {status}")
                 # make a post to MakePurchase
-                if status.status_code == 510:
-                    self.view.request_view(self.view.PAGE_CUSTOMER_UNKNW, id=id)
-                elif status.status_code == 511:
-                    print("Insufficient balance")
-                    #self.view.request_view(self.view.PAGE_CUSTOMER_BAL, customer=customer)
-                elif status.status_code == 512:
-                    print("Insufficient stock")
-                    self.view.request_view(self.view.PAGE_INSUFF_STOCK, 
-                                           product=self.view.PAGE_PRODUCT.product)
-                #elif status.status_code == 513:
-                #    print("Balance mismatch")
-                #    # self.view.request_view(self.view.PAGE_CUSTOMER_BAL, customer=customer)
-                elif status.status_code == 513:
-                    print("Error during sale. See logs.")
-                elif status.status_code == 210:
+                if status.status_code == 210:
+                    # extract message and code
+                    message = status.json().get("message")
+                    code = int(status.json().get("code"))
                     print("Sold product!")
                     #print(response.status_code, response.content)
                     self.view.request_view(self.view.PAGE_PURCHASE_SUCC, 
@@ -197,7 +191,22 @@ class HardwareController():
                                            store_name=self.selected_store.name,
                                            display_back=True)
                 else:
-                    print(f"Unknown return code: {status.status_code}")
+                    error = status.json().get("error")
+                    code = int(status.json().get("code"))
+                    if code == 10:
+                        self.view.request_view(self.view.PAGE_CUSTOMER_UNKNW, id=id)
+                    elif code == 200:
+                        print("Insufficient stock")
+                        self.view.request_view(self.view.PAGE_INSUFF_STOCK, 
+                                            product=self.view.PAGE_PRODUCT.product)
+                    else:
+                        print(f"Unknown return code: {status.status_code}")
+                        self.view.request_view(self.view.PAGE_ERROR, 
+                                               error_title="error", error_message=error,
+                                            next_view=self.view.PAGE_MAIN,
+                                            store_name=self.selected_store.name,
+                                            display_back=True)
+                    
             except Exception as e:
                 print(f"Error during sale: {e}")
                 #self.view_purchase_failed()

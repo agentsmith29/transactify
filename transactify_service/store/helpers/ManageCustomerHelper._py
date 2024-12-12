@@ -93,7 +93,6 @@ class ManageCustomerHelper():
 
         return customer, customer_balance, purchase_entry        
 
-
     def create_new_customer(username, first_name, last_name, email, balance, card_number):
         """Creates and saves a new customer."""
         # Create the associated User object

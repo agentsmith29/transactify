@@ -6,7 +6,7 @@ from django.views import View
 from django.db.models import Sum, F
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from store.helpers.ManageStockHelper import ManageStockHelper
+from store.helpers.ManageStockHelper import StoreHelper
 
 from ..webmodels.StoreProduct import StoreProduct
 
@@ -44,7 +44,7 @@ class ManageProductsView(View):
                 StoreProduct.objects.filter(ean=ean).delete()
                 return redirect('manage_products')
         
-            product, inst = ManageStockHelper.get_or_create_product(ean, name, resell_price)
+            response, product = StoreHelper._get_or_create_product(ean, name, resell_price)
             
             # Redirect to avoid resubmission issues
             return redirect('manage_products')

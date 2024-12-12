@@ -6,7 +6,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Sum
 
-from store.helpers.ManageStockHelper import ManageStockHelper
+from store.helpers.ManageStockHelper import StoreHelper
+
 
 from ..webmodels.StoreProduct import StoreProduct
 from ..webmodels.CustomerPurchase import CustomerPurchase
@@ -26,9 +27,9 @@ class ManageStockView(View):
         purchase_price = Decimal(request.POST.get('purchase_price'))
 
         try:
-           ret_code = ManageStockHelper.restock_product(ean, quantity, purchase_price)
-           if ret_code == -1:
-               return json.dumps({'error': 'Product with the given EAN does not exist.'})
+           response, product = StoreHelper.restock_product(ean, quantity, purchase_price)
+           if response.status_code != 200:
+               return response
         except StoreProduct.DoesNotExist:
             return HttpResponse("Error: Product with the given EAN does not exist.", status=404)
 

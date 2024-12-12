@@ -12,11 +12,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.utils.decorators import method_decorator
 
+from store.helpers.ManageStockHelper import StoreHelper
+
 
 from ..webmodels.CustomerDeposit import CustomerDeposit
 from ..webmodels.CustomerBalance import CustomerBalance
 
-from store.helpers.ManageCustomerHelper import ManageCustomerHelper
 
 from django.views.decorators.csrf import csrf_protect, csrf_exempt, ensure_csrf_cookie
 
@@ -88,7 +89,7 @@ class ManageCustomersView(View):
             print(f"Card number: {card_number}, Content: {content}")
 
             # Create and save the new customer
-            customer, customer_balance, deposit_entry = ManageCustomerHelper.create_new_customer(username, first_name, last_name, email, balance, card_number)
+            response, customer = StoreHelper.create_new_customer(username, first_name, last_name, email, balance, card_number)
 
             return JsonResponse({'status': 'success'})
         except Exception as e:

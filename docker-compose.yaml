@@ -47,8 +47,9 @@ services:
       DJANGO_DB_PASSWORD: PASSWORD
      
       #TARGET_SERVICES: http://192.168.1.190:8000/donknabberello #, http://service2:8000
-    #depends_on:
-    #  - django 
+    depends_on:
+      - doncaramello
+      - donknabberello 
   
   donknabberello:
     build:
@@ -70,6 +71,7 @@ services:
       TERMINAL_SERVICES: http://terminal1:8000/terminal1
     volumes:
       - static_volume:/app/staticfiles
+    
 
   doncaramello:
     build:
@@ -110,7 +112,8 @@ services:
       - "8000:8000"
     depends_on:
       - donknabberello
-      #- doncaramello
+      - doncaramello
+      - terminal1
 
 
 

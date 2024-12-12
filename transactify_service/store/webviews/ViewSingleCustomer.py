@@ -7,7 +7,7 @@ from django.views import View
 from store.webmodels.Customer import Customer
 from ..webmodels.CustomerDeposit import CustomerDeposit
 
-
+from decimal import Decimal
 class ViewSingleCustomer(View):
     template_name = 'store/customer_detail.html'
 

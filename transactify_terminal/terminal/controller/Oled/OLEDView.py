@@ -11,6 +11,8 @@ from .OLEDPagePurchaseSuccessfull import OLEDPagePurchaseSuccessfull
 
 from .OLEDPageInsufficientStock import OLEDPageInsufficientStock
 
+from .OLEDPageError import OLEDPageError
+
 
 from django.dispatch import Signal
 
@@ -51,20 +53,14 @@ class OLEDView():
 
         self.PAGE_PURCHASE_SUCC = OLEDPagePurchaseSuccessfull(oled, self.sig_abort_page, self.sig_request_view)
 
+        self.PAGE_ERROR = OLEDPageError(oled, self.sig_abort_page, self.sig_request_view)
+
         self.oled = oled
         
-        # Some view flag handeling
         # Stores the current view. Needed, to allow the controller to respond differently to events
         self.current_view: OLEDPage = None 
-        
-        #try:
-        #    self.loop = asyncio.get_running_loop()
-        #except RuntimeError:
-        #    self.loop = asyncio.new_event_loop()
-        #    asyncio.set_event_loop(self.loop)
-        #self.executor = ThreadPoolExecutor()
-        #self.return_to_view_timer = None
-        #self.return_to_view_event_loop = asyncio.new_event_loop()
+    
+
         self.view_thread = None
         self.break_loop = False
 
@@ -136,210 +132,4 @@ class OLEDView():
         self.view_thread.start()
         #()   
 
-
-    # =========================================================================================================================================
-    # Old functions
-    # TODO: Delete
-    # =========================================================================================================================================
-
-    def customer_info(self, customer):
-        self.current_view = "customer_info"
-        # Ensure the image mode matches the display's mode
-        image = Image.new(self.oled.mode, (self.width, self.height))  # Use oled.mode for compatibility
-        draw = ImageDraw.Draw(image)  
-        # Header Section
-        header_height = 20
-        header_text = f"Hello, {customer.user.first_name} {customer.user.last_name}"
-        draw.text((20, 0), header_text, font=self.font_large, fill=(255,255,255))  # Leave space for NFC symbol
-
-
-       
-        self.paste_image(image, r"/app/static/icons/png_16/person-bounding-box.png", (0, 0))
-        # Divider line
-        draw.line([(0, header_height), (self.width, header_height)], fill=(255,255,255), width=1)
-
-        # ------------- Body ----------------
-        # Content Section: Display Name, Surname, and Balance
-        content_y_start = header_height + 5
-        self.paste_image(image, r"/app/static/icons/png_16/cash-stack.png", (0, content_y_start))
-        draw.text((30, content_y_start+2), f"Balance: EUR:", font=self.font_regular, fill=(255,255,255))
-        self.paste_image(image, r"/app/static/icons/png_16/cart4.png", (0, content_y_start+18))
-        draw.text((30, content_y_start+20), f"Last purchase: ", font=self.font_regular, fill=(255,255,255))
-
-        # Update the OLED display
-        self.oled.display(image)
-        # ------------- Body ----------------
-        self.display_next(image, draw, self.view_main, 20)
-
-    def unknown_card(self):
-        self.current_view = "customer_unknown"
-        # Ensure the image mode matches the display's mode
-        image = Image.new(self.oled.mode, (self.width, self.height))  # Use oled.mode for compatibility
-        draw = ImageDraw.Draw(image)  
-        # Header Section
-        header_height = 20
-        header_text = f"Unknown Card"
-        draw.text((20, 0), header_text, font=self.font_large, fill=(255,255,255))  # Leave space for NFC symbol
-
-
-       
-        self.paste_image(image, r"/app/static/icons/png_16/person-fill-x.png", (0, 0))
-        # Divider line
-        draw.line([(0, header_height), (self.width, header_height)], fill=(255,255,255), width=1)
-
-        # ------------- Body ----------------
-        # Content Section: Display Name, Surname, and Balance
-        self.paste_image(image, r"/app/static/icons/png_24/person-fill-x.png", (0, content_y_start))
-        content_y_start = header_height + 5
-        draw.text((30, content_y_start+2), f"Card is unknown or not bind to a customer.", font=self.font_regular, fill=(255,255,255))
-
-        # Update the OLED display
-        self.oled.display(image)
-        # ------------- Body ----------------
-        self.display_next(image, draw, self.view_main, 20)
-
-
-    def view_purchase_succesfull(self):
-        self.current_view = "view_purchase_succesfull"
-        # Ensure the image mode matches the display's mode
-        width = self.hwif.oled.width
-        height = self.hwif.oled.height
-        image = Image.new(self.hwif.oled.mode, (width, height))
-        draw = ImageDraw.Draw(image)
-        font_extra_large = ImageFont.load_default(size=20)
-        font_large = ImageFont.load_default(size=12)
-        font_small = ImageFont.load_default(size=10)
-
-        try:
-            cmd_symbol = PIL.Image.open(r"/app/static/icons/png_16/cart-check-fill.png")
-            cmd_symbol = cmd_symbol.convert('RGB')
-            cmd_symbol = ImageOps.invert(cmd_symbol)
-            image.paste(cmd_symbol, (0, 0))  # Paste at (2, 2) in the top-left corner
-        except Exception as e:
-            print(f"Error loading NFC symbol: {e}")
         
-
-        # Header Section
-        header_height = 20
-        header_text = f"Success"
-        draw.text((20, 1), header_text, font=font_large, fill=(255,255,255))
-
-        # thank you for your purchase
-        # Divider line
-        draw.line([(0, header_height), (width, header_height)], fill=(255,255,255), width=1)
-        draw.text((30, 40), f"Thank you for your purchase!", font=font_large,fill=(255,255,255))
-
-        self.hwif.oled.display(image)
-
-
-
-    def view_start_card_management(self):
-        self.current_view = "view_start_card_management"
-        # Ensure the image mode matches the display's mode
-        width = self.hwif.oled.width
-        height = self.hwif.oled.height
-        image = Image.new(self.hwif.oled.mode, (width, height))  # Use oled.mode for compatibility
-        draw = ImageDraw.Draw(image)
-
-        font_large = ImageFont.load_default(size=12)
-        font_small = ImageFont.load_default(size=10)
-
-        # Load and resize the NFC symbol image
-        try:
-            cmd_symbol = PIL.Image.open(r"/app/static/icons/card-heading.png")
-            cmd_symbol = cmd_symbol.convert('RGB')
-            cmd_symbol = ImageOps.invert(cmd_symbol)
-        except Exception as e:
-            print(f"Error loading NFC symbol: {e}")
-            return
-
-        # Header Section
-        header_height = 20
-        header_text = f"Card Management"
-        draw.text((20, 1), header_text, font=font_large, fill=(255,255,255))  # Leave space for NFC symbol
-
-        # Paste the NFC symbol into the header
-        image.paste(cmd_symbol, (0, 0))  # Paste at (2, 2) in the top-left corner
-
-        # Divider line
-        draw.line([(0, header_height), (width, header_height)], fill=(255,255,255), width=1)
-
-        # Content Section: Display Name, Surname, and Balance
-        content_y_start = header_height + 5
-        draw.text((30, content_y_start), f"A new card is in preperation. Please wait.", font=font_small,fill=(255,255,255))
-        # inster spinner here
-
-        # Update the OLED display
-        self.hwif.oled.display(image)
-
-        # start a asynchrounous timer
-        asynytimer = asyncio.new_event_loop()
-        def display_main():
-            time.sleep(5)
-            self.view_main()
-        asynytimer.run_in_executor(None, display_main)
-
-    def view_present_card(self, name, surname, balance):
-        """
-        Display information for issuing a new customer card on a 256x64 OLED.
-
-        Args:
-            oled: The initialized OLED display object from luma.oled.device.
-            name: Customer's first name.
-            surname: Customer's last name.
-            balance: Customer's account balance.
-            nfc_symbol_path: Path to the NFC symbol image.
-        """
-        #oled = hwcontroller.hwif.oled
-        # Ensure the image mode matches the display's mode
-        width = self.hwif.oled.width
-        height = self.hwif.oled.height
-        image = Image.new(self.hwif.oled.mode, (width, height))  # Use oled.mode for compatibility
-        draw = ImageDraw.Draw(image)
-
-        # Load fonts (adjust paths and sizes as necessary)
-        #try:
-        #font_large = ImageFont.truetype("arial.ttf", 18)  # Large font for titles
-        #font_small = ImageFont.truetype("arial.ttf", 14)  # Smaller font for details
-        #except IOError:
-        font_large = ImageFont.load_default(size=12)
-        font_small = ImageFont.load_default(size=10)
-
-        # Load and resize the NFC symbol image
-        try:
-            cmd_symbol = PIL.Image.open(r"/app/static/icons/card-heading.png")
-            cmd_symbol = cmd_symbol.convert('RGB')
-            cmd_symbol = ImageOps.invert(cmd_symbol)
-
-            nfc_symbol = PIL.Image.open(r"/app/static/icons/rss_24_24.png")
-            nfc_symbol = nfc_symbol.convert('RGB')
-            nfc_symbol = ImageOps.invert(nfc_symbol)
-            #nfc_symbol = nfc_symbol.resize((20, 20))  # Resize the symbol to fit the header
-        except Exception as e:
-            print(f"Error loading NFC symbol: {e}")
-            return
-
-        # Header Section
-        header_height = 20
-        header_text = f"Issue new Card"
-        draw.text((20, 1), header_text, font=font_large, fill=(255,255,255))  # Leave space for NFC symbol
-
-        # Paste the NFC symbol into the header
-        image.paste(cmd_symbol, (0, 0))  # Paste at (2, 2) in the top-left corner
-
-        # Divider line
-        draw.line([(0, header_height), (width, header_height)], fill=(255,255,255), width=1)
-
-        # Content Section: Display Name, Surname, and Balance
-        content_y_start = header_height + 5
-        draw.text((30, content_y_start), f"Issue new card for: {name} {surname}", font=font_small,fill=(255,255,255))
-        draw.text((30, content_y_start + 12), f"Initial balance: EUR {float(balance):.2f}", font=font_small, fill=(255,255,255))
-        draw.text((30, content_y_start + 22), f"Please place your card now.", font=font_small, fill=(255,255,255))
-        image.paste(nfc_symbol, (2, content_y_start+5))  # Paste at (2, 2) in the top-left corner
-
-        # Draw NFC readiness indication
-        nfc_ready_text = "Tap card on NFC reader..."
-        draw.text((160, content_y_start + 40), nfc_ready_text, font=font_small, fill=(255,255,255))
-
-        # Update the OLED display
-        self.hwif.oled.display(image)

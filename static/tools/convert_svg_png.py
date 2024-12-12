@@ -50,6 +50,7 @@ def main():
        "gear-fill.svg",
        "NFC_logo.svg",
        "check-square.svg",
+       'x-circle-fill.svg',
     ]
     png_base_dir = '/app/static/icons/png'
 

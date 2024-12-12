@@ -174,7 +174,53 @@ class OLEDPage():
             self.oled.display(copy_image_content)
         #self.align_center(copy_draw_content, "Terminal is locked. Press A to release", rect_y2 + 7, self.font_small)
         # self.align_center(copy_draw_content, "Press A to release", rect_y2 + 22, self.font_small)
-        
+    
+    def wrap_text(self, draw, text, font, offset, width):
+        """
+        Automatically wraps text to fit within the specified width.
+
+        Args:
+            draw (ImageDraw.Draw): The drawing context.
+            text (str): The text to wrap.
+            font (ImageFont.ImageFont): The font to use.
+            offset (int): The y-axis starting position for the text.
+            width (int): The maximum width in pixels for each line.
+
+        Returns:
+            list: A list of tuples, where each tuple contains the line text and its position.
+        """
+        lines = []  # Store the lines and their y positions
+        words = text.split(' ')
+        current_line = ""
+        width = width - offset
+
+        for word in words:
+            # Check the width of the current line with the new word added
+            test_line = f"{current_line} {word}" if current_line else word
+            text_width, _ = draw.textsize(test_line, font=font)
+
+            if text_width <= width:
+                # Add the word to the current line
+                current_line = test_line
+            else:
+                # Save the current line and start a new one
+                lines.append(current_line)
+                current_line = word
+
+        # Append the last line
+        if current_line:
+            lines.append(current_line)
+
+        # Calculate the y positions for each line and prepare the output
+        wrapped_lines = []
+        line_height = draw.textsize("A", font=font)[1]
+
+        for i, line in enumerate(lines):
+            y_position = offset + i * line_height
+            wrapped_lines.append((line, y_position))
+
+        return wrapped_lines
+
 
 
     # overwrite the == operator

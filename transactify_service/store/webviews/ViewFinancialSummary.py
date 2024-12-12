@@ -10,7 +10,8 @@ from ..webmodels.CustomerDeposit import CustomerDeposit
 from ..webmodels.CustomerBalance import CustomerBalance
 from ..webmodels.CustomerPurchase import CustomerPurchase
 from ..webmodels.ProductRestock import ProductRestock
-from store.helpers.ManageCustomerHelper import ManageCustomerHelper
+from store.helpers.ManageStockHelper import StoreHelper
+
 
 #from ..apps import hwcontroller
 from django.utils.decorators import method_decorator
