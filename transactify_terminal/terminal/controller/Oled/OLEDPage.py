@@ -4,14 +4,35 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 import PIL.Image
 import time
 
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from OLEDViewController import OLEDViewController # to avoid circular import, only for type hinting
+
+from ..ConfParser import Store
+from ...api_endpoints.StoreProduct import StoreProduct
 
 class OLEDPage():
     name: str = "OLEDPage"
     
-    def __init__(self, oled, sig_abort_view: Signal, sig_request_view: Signal,
+    def __init__(self, oled, 
+                 stores: list[Store],
+                 sig_abort_view: Signal, sig_request_view: Signal,
+                 sig_on_barcode_read: Signal, sig_on_nfc_read: Signal, sig_on_btn_pressed: Signal,
+                 view_controller,
                  locked = False, overwritable = True):
+        
         self._signal_abort_view = sig_abort_view
         self._signal_request_view = sig_request_view
+
+        self._signal_on_barcode_read = sig_on_barcode_read
+        self._signal_on_nfc_read = sig_on_nfc_read
+        self._signal_on_btn_pressed = sig_on_btn_pressed
+
+        self.stores: list[Store] = stores
+        
+        self.view_controller: OLEDViewController = view_controller
+
 
         self.oled = oled
 
@@ -38,7 +59,14 @@ class OLEDPage():
 
         # asyncronous event handling
         self._signal_abort_view.connect(self._abort_view)
+
+        self._signal_on_barcode_read.connect(self._sig_on_barcode_read)
+        self._signal_on_nfc_read.connect(self._sig_on_nfc_read)
+        self._signal_on_btn_pressed.connect(self._sig_on_btn_pressed)
         self.break_loop = False
+        self.is_active = False
+
+        self.btn_back = "D"
 
     def _abort_view(self, sender, **kwargs):
         print(f"Aborting view {self.name}")
@@ -56,6 +84,9 @@ class OLEDPage():
     def view(self, *args, **kwargs):
         raise NotImplementedError("View not implemented")
     
+    # =================================================================================================================
+    # Display Helper functions
+    # =================================================================================================================
     def paste_image(self, image, path, pos):
         try:
             symb = PIL.Image.open(path)
@@ -175,7 +206,7 @@ class OLEDPage():
         #self.align_center(copy_draw_content, "Terminal is locked. Press A to release", rect_y2 + 7, self.font_small)
         # self.align_center(copy_draw_content, "Press A to release", rect_y2 + 22, self.font_small)
     
-    def wrap_text(self, draw, text, font, offset, width):
+    def wrap_text(self, draw: ImageDraw.Draw, text, font: ImageFont.FreeTypeFont, offset, width):
         """
         Automatically wraps text to fit within the specified width.
 
@@ -192,12 +223,13 @@ class OLEDPage():
         lines = []  # Store the lines and their y positions
         words = text.split(' ')
         current_line = ""
-        width = width - offset
-
+        width = width - 10  
         for word in words:
             # Check the width of the current line with the new word added
             test_line = f"{current_line} {word}" if current_line else word
-            text_width, _ = draw.textsize(test_line, font=font)
+            # get the length of the text in pixels
+            #text_width, _ = draw.textsize(test_line, font=font)
+            (text_width, height), (offset_x, offset_y) = font.font.getsize(test_line)
 
             if text_width <= width:
                 # Add the word to the current line
@@ -213,13 +245,15 @@ class OLEDPage():
 
         # Calculate the y positions for each line and prepare the output
         wrapped_lines = []
-        line_height = draw.textsize("A", font=font)[1]
+        (text_width, line_height), (offset_x, offset_y) = font.font.getsize('A')
+        #line_height = font.getsize("A")[1]  # Change No. #2: Replaced deprecated textsize with getsize.
 
         for i, line in enumerate(lines):
-            y_position = offset + i * line_height
+            y_position = i * line_height + 1
             wrapped_lines.append((line, y_position))
 
         return wrapped_lines
+
 
 
 
@@ -228,3 +262,48 @@ class OLEDPage():
         if other.__class__ != self.__class__:
             return False
         return self.name == other.name
+
+
+    # =================================================================================================================
+    # Event handling
+    # =================================================================================================================
+    def _sig_on_barcode_read(self, sender, barcode, **kwargs):
+        if self.is_active:
+            self.on_barcode_read(sender, barcode, **kwargs)
+        
+    def _sig_on_nfc_read(self, sender, id, text, **kwargs):
+        if self.is_active:
+            self.on_nfc_read(sender, id, text, **kwargs)
+
+    def _sig_on_btn_pressed(self, sender, btn, **kwargs):
+        if self.is_active:
+            self.on_btn_pressed(sender, btn, **kwargs)
+
+    @abstractmethod
+    def on_barcode_read(self, sender, barcode, **kwargs):
+        pass
+
+    @abstractmethod
+    def on_nfc_read(self, sender, id, text, **kwargs):
+        pass
+
+    @abstractmethod
+    def on_btn_pressed(self, sender, kypd_btn, **kwargs):
+        pass
+
+    # =================================================================================================================
+    # Other Helpers
+    # =================================================================================================================
+    def _on_barcode_read_request_products_view(self, view_controller: OLEDViewController,
+                                                stores: list[Store], barcode: str):
+        current_product = StoreProduct.get_from_api(stores, barcode)
+        print(f"json: {current_product}")
+        if current_product:
+            view_controller.request_view(view_controller.PAGE_PRODUCT, 
+                                              product=current_product)
+        else:
+            print(f"Product not found: {barcode}")
+            view_controller.request_view(
+                view_controller.PAGE_PRODUCT_UNKNW, 
+                ean=barcode, 
+                next_view=view_controller.PAGE_STORE_SELECTION)   

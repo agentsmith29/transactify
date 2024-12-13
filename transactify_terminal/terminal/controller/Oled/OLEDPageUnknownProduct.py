@@ -2,15 +2,14 @@ from django.dispatch import Signal
 from .OLEDPage import OLEDPage
 import os
 
-from .OLEDMainPage import OLEDPageMain
+from .OLEDPageStoreMain import OLEDPageStoreMain
 
 class OLEDPageProduct_Unknown(OLEDPage):
     name: str = "OLEDPageProduct_Unknown"
 
-    def __init__(self, oled, sig_abort_view: Signal, sig_request_view: Signal, *args, **kwargs):
-        super().__init__(oled,
-                         sig_abort_view=sig_abort_view, sig_request_view=sig_request_view,
-                         *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        OLEDPageProduct_Unknown.name: str = str(self.__class__.__name__)
 
     def view(self, ean, next_view = None, *args, **kwargs):
         image, draw = self._post_init()
@@ -28,10 +27,13 @@ class OLEDPageProduct_Unknown(OLEDPage):
 
         content_y_start = header_height + 5
         ip_address = f"{os.getenv('DJANGO_WEB_HOST')}:{os.getenv('DJANGO_WEB_PORT')}"
-        draw.text((10, content_y_start),      f"The scanned poduct ({ean}) was not found ", font=self.font_small,fill=(255,255,255))
-        draw.text((10, content_y_start + 14), f"in the database. Please add it using the web-", font=self.font_small,fill=(255,255,255))
-        draw.text((10, content_y_start + 28), f"interface under {ip_address}", font=self.font_small,fill=(255,255,255))
-       
+
+        warped_text = self.wrap_text(draw, f"The scanned poduct ({ean}) was not found in the database."
+                                     f"Please add it using the web-interface under {ip_address}", 
+                                     self.font_small, 10, 255)
+        for line, y in warped_text:
+            draw.text((10, content_y_start + y), line, font=self.font_small, fill=(255,255,255))
+
         # Update the OLED display
         self.oled.display(image)
         if next_view:

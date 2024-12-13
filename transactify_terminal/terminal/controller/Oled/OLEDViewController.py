@@ -1,6 +1,6 @@
 from .OLEDStoreSelection import OLEDStoreSelection
 from .OLEDPage import OLEDPage
-from .OLEDMainPage import OLEDPageMain
+from .OLEDPageStoreMain import OLEDPageStoreMain
 from .OLEDPageProduct import OLEDPageProduct
 from .OLEDPageManageProducts import OLEDPageProducts_Manage
 from .OLEDPageUnknownProduct import OLEDPageProduct_Unknown
@@ -26,36 +26,50 @@ import time
 import os
 import threading
 
-#from ...webmodels.StoreProduct import StoreProduct
-#from cashlessui.models import Customer
 
-class OLEDView():
+from ..ConfParser import Store
+from ...api_endpoints.StoreProduct import StoreProduct
+
+class OLEDViewController():
 
     
-    def __init__(self, oled):
+    def __init__(self, oled,
+                 sig_on_barcode_read: Signal,
+                 sig_on_nfc_read: Signal,
+                 sig_on_btn_pressed: Signal,
+                 stores: list[Store]):
+        
         self.sig_abort_page = Signal()
         self.sig_request_view = Signal()
         self.sig_request_view.connect(self.request_view)
-
-        self.PAGE_STORE_SELECTION = OLEDStoreSelection(oled, self.sig_abort_page, self.sig_request_view)
-
-        self.PAGE_MAIN = OLEDPageMain(oled, self.sig_abort_page, self.sig_request_view)
-
-        self.PAGE_INSUFF_STOCK = OLEDPageInsufficientStock(oled, self.sig_abort_page, self.sig_request_view)
-        
-        self.PAGE_PRODUCT = OLEDPageProduct(oled, self.sig_abort_page, self.sig_request_view)
-        self.PAGE_PRODUCT_UNKNW = OLEDPageProduct_Unknown(oled, self.sig_abort_page, self.sig_request_view)
-        self.PAGE_PRODUCTS_MGM = OLEDPageProducts_Manage(oled, self.sig_abort_page, self.sig_request_view)
-        
-        
-        self.PAGE_CUSTOMER = OLEDPageCustomer(oled, self.sig_abort_page, self.sig_request_view)
-        self.PAGE_CUSTOMER_UNKNW = OLEDPageCustomer_Unknown(oled, self.sig_abort_page, self.sig_request_view)
-
-        self.PAGE_PURCHASE_SUCC = OLEDPagePurchaseSuccessfull(oled, self.sig_abort_page, self.sig_request_view)
-
-        self.PAGE_ERROR = OLEDPageError(oled, self.sig_abort_page, self.sig_request_view)
-
         self.oled = oled
+
+        kwargs = {
+            "oled": oled,
+            'stores': stores,
+            'view_controller': self,
+            "sig_abort_view": self.sig_abort_page,
+            "sig_request_view": self.sig_request_view,
+            "sig_on_barcode_read": sig_on_barcode_read,
+            "sig_on_nfc_read": sig_on_nfc_read,
+            "sig_on_btn_pressed": sig_on_btn_pressed
+        }
+        self.PAGE_STORE_SELECTION = OLEDStoreSelection(**kwargs)
+
+        self.PAGE_MAIN = OLEDPageStoreMain(**kwargs)
+        
+        self.PAGE_INSUFF_STOCK = OLEDPageInsufficientStock(**kwargs)
+        self.PAGE_PRODUCT = OLEDPageProduct(**kwargs)
+        self.PAGE_PRODUCT_UNKNW = OLEDPageProduct_Unknown(**kwargs)
+        self.PAGE_PRODUCTS_MGM = OLEDPageProducts_Manage(**kwargs)
+        
+        
+        self.PAGE_CUSTOMER = OLEDPageCustomer(**kwargs)
+        self.PAGE_CUSTOMER_UNKNW = OLEDPageCustomer_Unknown(**kwargs)
+        self.PAGE_PURCHASE_SUCC = OLEDPagePurchaseSuccessfull(**kwargs)
+        self.PAGE_ERROR = OLEDPageError(**kwargs)
+
+        
         
         # Stores the current view. Needed, to allow the controller to respond differently to events
         self.current_view: OLEDPage = None 
@@ -106,6 +120,9 @@ class OLEDView():
     
     def request_view(self, view: OLEDPage | str, unlock=False, *args, **kwargs): 
         # if given a string for the view, get the view object.
+        if self.current_view is not None:
+            self.current_view.is_active = False
+
         if self.current_view is not None and self.current_view.locked and not unlock:
             print(f"View {self.current_view.name} is locked. Exiting.")
             return
@@ -128,8 +145,9 @@ class OLEDView():
             except Exception as e:
                 print(f"Error joining thread: {e}")
         self.current_view = view
-        self.view_thread = threading.Thread(target=view.view, args=args, kwargs=kwargs, daemon=True)
+        self.current_view.is_active = True
+        self.view_thread = threading.Thread(target=self.current_view.view, args=args, kwargs=kwargs, daemon=True)
         self.view_thread.start()
         #()   
 
-        
+

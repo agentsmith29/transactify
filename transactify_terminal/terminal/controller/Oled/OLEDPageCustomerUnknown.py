@@ -4,15 +4,15 @@ from django.dispatch import Signal
 from .OLEDPage import OLEDPage
 import os
 
-from .OLEDMainPage import OLEDPageMain
+from .OLEDPageStoreMain import OLEDPageStoreMain
 
 class OLEDPageCustomer_Unknown(OLEDPage):
     name: str = "OLEDPageCustomer_Unknown"
 
-    def __init__(self, oled, sig_abort_view: Signal, sig_request_view: Signal, *args, **kwargs):
-        super().__init__(oled,sig_abort_view=sig_abort_view, sig_request_view=sig_request_view,
-                         *args, **kwargs)
-
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        OLEDPageCustomer_Unknown.name: str = str(self.__class__.__name__)
+       
     def view(self, id, *args, **kwargs):
         image, draw = self._post_init()
 
@@ -35,4 +35,14 @@ class OLEDPageCustomer_Unknown(OLEDPage):
         # Update the OLED display
         self.oled.display(image)
         # ------------- Body ----------------
-        self.display_next(image, draw, OLEDPageMain.name, 10)
+        self.display_next(image, draw, OLEDPageStoreMain.name, 10)
+
+    def on_barcode_read(self, sender, barcode, **kwargs):
+        pass
+
+    def on_nfc_read(self, sender, id, text, **kwargs):
+        pass
+
+    def on_btn_pressed(self, sender, kypd_btn, **kwargs):
+        if kypd_btn == self.btn_back:
+            self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)

@@ -70,10 +70,11 @@ class KeyPad():
                 for j, row in enumerate(self.rows):
                     if GPIO.input(row) == GPIO.LOW:  # Check if any row is low
                         self.logger.debug(f"[KeyPad] Button pressed: {self.keypad[j][i]} COL {col}. ROW {row}")
+                        #print(f"[KeyPad] Button pressed: {self.keypad[j][i]} COL {col}. ROW {row}")
                         self.signals.key_pressed.send(sender=self, col=col, row=row, btn=self.keypad[j][i])  # Emit the read signal
-                        time.sleep(0.3)
+                        time.sleep(0.5)
                 GPIO.output(col, GPIO.HIGH)  # Set the column back to high
-                time.sleep(0.1)
+                time.sleep(0.01)
         return None
     
     def __del__(self):

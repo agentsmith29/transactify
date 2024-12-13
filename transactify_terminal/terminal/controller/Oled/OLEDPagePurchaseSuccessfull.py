@@ -2,7 +2,7 @@ from django.dispatch import Signal
 from .OLEDPage import OLEDPage
 import os
 
-from .OLEDMainPage import OLEDPageMain
+from .OLEDPageStoreMain import OLEDPageStoreMain
 
 from terminal.api_endpoints.Customer import Customer
 from terminal.api_endpoints.StoreProduct import StoreProduct
@@ -12,9 +12,9 @@ from terminal.api_endpoints.StoreProduct import StoreProduct
 class OLEDPagePurchaseSuccessfull(OLEDPage):
     name: str = "OLEDPagePurchaseSuccessfull"
 
-    def __init__(self, oled, sig_abort_view: Signal, sig_request_view: Signal, *args, **kwargs):
-        super().__init__(oled,sig_abort_view=sig_abort_view, sig_request_view=sig_request_view,
-                         *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        OLEDPagePurchaseSuccessfull.name: str = str(self.__class__.__name__)
 
     def view(self, customer: Customer, product: StoreProduct, next_view = None, *args, **kwargs):
         balance = 0#CustomerBalance.objects.get(customer=customer)
@@ -45,5 +45,13 @@ class OLEDPagePurchaseSuccessfull(OLEDPage):
         #self.display_next(image, draw, OLEDPageMain.name, 20)
         self.display_next(image, draw, next_view, 5, *args, **kwargs)
     
-        
+    def on_barcode_read(self, sender, barcode, **kwargs):
+        pass
+
+    def on_nfc_read(self, sender, id, text, **kwargs):
+        pass
+
+    def on_btn_pressed(self, sender, kypd_btn, **kwargs):
+        if kypd_btn == self.btn_back:
+            self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)        
     

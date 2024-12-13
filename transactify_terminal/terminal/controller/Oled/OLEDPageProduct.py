@@ -5,18 +5,24 @@ from .OLEDPage import OLEDPage
 import os
 import requests
 
-from .OLEDMainPage import OLEDPageMain
+from .OLEDPageStoreMain import OLEDPageStoreMain
 from ...api_endpoints.StoreProduct import StoreProduct
+from ..ConfParser import Store
 
 class OLEDPageProduct(OLEDPage):
     name: str = "OLEDPageProduct"
 
-    def __init__(self, oled, sig_abort_view: Signal, sig_request_view: Signal, *args, **kwargs):
-        super().__init__(oled,sig_abort_view=sig_abort_view, sig_request_view=sig_request_view,
-                         *args, **kwargs)
-        self.product = None
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        OLEDPageProduct.name: str = str(self.__class__.__name__)
+        self.store: Store = None
+        self.product: StoreProduct = None
 
     def view(self, product: StoreProduct, *args, **kwargs):
+        self.product: StoreProduct = product
+        self.store: Store = self.product.store
+        
+
         image, draw = self._post_init()
 
         # Header Section
@@ -45,3 +51,16 @@ class OLEDPageProduct(OLEDPage):
         #self.display_next(image, draw, OLEDPageMain.name, 5)
         
     
+    def on_barcode_read(self, sender, barcode, **kwargs):
+        self._on_barcode_read_request_products_view(view_controller=self.view_controller, 
+                                               stores=self.stores,
+                                               barcode=barcode) 
+
+    def on_nfc_read(self, sender, id, text, **kwargs):
+        pass
+
+    def on_btn_pressed(self, sender, kypd_btn, **kwargs):
+        if kypd_btn == self.btn_back:
+            self.view_controller.request_view(self.view_controller.PAGE_MAIN,
+                                              store=self.product.store) 
+            

@@ -7,10 +7,8 @@ import os
 class OLEDPageError(OLEDPage):
     name: str = "OLEDPageGenericError"
 
-    def __init__(self, oled, sig_abort_view: Signal, sig_request_view: Signal, *args, **kwargs):
-        super().__init__(oled, 
-                         sig_abort_view=sig_abort_view, sig_request_view=sig_request_view,
-                         *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         OLEDPageError.name: str = str(self.__class__.__name__)
 
     
@@ -42,3 +40,12 @@ class OLEDPageError(OLEDPage):
         # ------------- Body ----------------
         #self.display_next(image, draw, OLEDPageMain.name, 10)
 
+    def on_barcode_read(self, sender, barcode, **kwargs):
+        pass
+
+    def on_nfc_read(self, sender, id, text, **kwargs):
+        pass
+
+    def on_btn_pressed(self, sender, kypd_btn, **kwargs):
+        if kypd_btn == self.btn_back:
+            self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)
