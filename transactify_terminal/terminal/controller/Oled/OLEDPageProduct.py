@@ -8,6 +8,15 @@ import requests
 from .OLEDPageStoreMain import OLEDPageStoreMain
 from ...api_endpoints.StoreProduct import StoreProduct
 from ..ConfParser import Store
+from ...api_endpoints.Customer import Customer
+from rest_framework import status
+
+from requests import Response
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from OLEDViewController import OLEDViewController # to avoid circular import, only for type hinting
+from ...api_endpoints.APIFetchException import APIFetchException
 
 class OLEDPageProduct(OLEDPage):
     name: str = "OLEDPageProduct"
@@ -57,10 +66,76 @@ class OLEDPageProduct(OLEDPage):
                                                barcode=barcode) 
 
     def on_nfc_read(self, sender, id, text, **kwargs):
-        pass
+        self._make_purchase(view_controller=self.view_controller, product=self.product, card_number=id)
 
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):
         if kypd_btn == self.btn_back:
             self.view_controller.request_view(self.view_controller.PAGE_MAIN,
                                               store=self.product.store) 
+    
+    def _fetch_customer(self, view_controller: 'OLEDViewController', product, card_number: str):
+        view_controller: OLEDViewController
+        try:
+            return Customer.get_from_api(product.store, card_number)
+        except requests.exceptions.RequestException as e:
+            print(f"Error: {e}")
+            if int(e.response.json().get('code')) == 10:
+                view_controller.request_view(view_controller.PAGE_CUSTOMER_UNKNW, id=card_number,
+                                             # Next view handler
+                                             next_view=view_controller.PAGE_MAIN,
+                                             store=product.store)
+            else:
+                view_controller.request_view(view_controller.PAGE_ERROR, 
+                                        error_title=f"Error {e.response.json().get('code')}", 
+                                        error_message=e.response.json().get("message"),
+                                        # Next view handler
+                                        next_view=view_controller.PAGE_MAIN,
+                                        store=product.store)
+            return None
+        
+        except Exception as e:
+            print(f"Error: {e}")
+            view_controller.request_view(view_controller.PAGE_ERROR, 
+                                        error_title="Uncought Error", error_message=f"Error processing purchase: {e}",
+                                        next_view=view_controller.PAGE_MAIN,
+                                        store=product.store)
+            return None
             
+
+    def _make_purchase(self, view_controller: 'OLEDViewController', product: StoreProduct, card_number: str):
+        view_controller: OLEDViewController
+        # Request the webpage from the current store
+        customer = self._fetch_customer(view_controller, product, card_number)
+        if not customer:
+            return
+            
+        try:
+            # Call the make_sale function
+            response_make_purchase: Response = product.customer_purchase(customer, quantity=1)
+            print(f"Got Response: {status}")
+            # make a post to MakePurchase
+            if response_make_purchase.status_code == status.HTTP_200_OK:
+                # extract message and code
+                message = response_make_purchase.json().get("message")
+                code = int(response_make_purchase.json().get("code"))
+                print("Sold product!")
+                customer = self._fetch_customer(view_controller, product, card_number)
+                if not customer:
+                    return  # Should not happen!
+                #print(response.status_code, response.content)
+                view_controller.request_view(view_controller.PAGE_PURCHASE_SUCC, 
+                                        customer=customer, 
+                                        product=product,
+                                        # Next view handler
+                                        next_view=view_controller.PAGE_MAIN,
+                                        store=product.store)
+        except requests.exceptions.RequestException as e:
+            view_controller.request_view(view_controller.PAGE_ERROR, 
+                                        error_title=f"Error {e.response.json().get('code')}", 
+                                        error_message=e.response.json().get("message"),
+                                        # Next view handler
+                                        next_view=view_controller.PAGE_MAIN,
+                                        store=product.store)
+
+
+

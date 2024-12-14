@@ -1,12 +1,14 @@
 from rest_framework.response import Response
 from rest_framework import status
+from transactify_service.APIResponse import APIResponse
 
 class HTTPResponses():
      
     # === Customer related responses (0-100) ===
-    HTTP_STATUS_CUSTOMER_NOT_FOUND = lambda card_number: Response(
-                {"error": f"Customer with card number {card_number} does not exist.", "code": 10},
-                status=510)
+    HTTP_STATUS_CUSTOMER_NOT_FOUND = lambda card_number: APIResponse.error(
+                message = f"Customer with card number {card_number} does not exist.", 
+                code=10,
+                http_status=status.HTTP_404_NOT_FOUND)
     
     HTTP_STATUS_CUSTOMER_CREATE_FAILED = lambda username, error_msg: Response(
                 {"error": f"Failed to create customer {username}: {error_msg}", "code": 11},

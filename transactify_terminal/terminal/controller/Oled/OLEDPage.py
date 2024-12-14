@@ -95,6 +95,10 @@ class OLEDPage():
             image.paste(symb, pos)  # Paste at (2, 2) in the top-left corner
         except Exception as e:
             print(f"Error loading symbol: {e}")
+            symb = PIL.Image.open('/app/static/icons/png_16/coin.png')
+            symb = symb.convert('RGB')
+            symb = ImageOps.invert(symb)
+            image.paste(symb, pos)  # Paste at (2, 2) in the top-left corner
 
     def align_right(self, draw, text, pos_y, font):
         (w, h), (offset_x, offset_y) = font.font.getsize(text)
@@ -113,7 +117,7 @@ class OLEDPage():
     def display_next(self, image, draw, next_view, wait_time=20, *args, **kwargs):
             print(f"* Refreshing after {wait_time} seconds.")
             # use asyncio sleep
-            for wt in range(wait_time,0,-1):
+            for wt in range(wait_time, -1, -1):
                 #print(f"Break loop? {self.break_loop}")
                 if self.break_loop:
                     print("Loop breaked.")
@@ -206,7 +210,7 @@ class OLEDPage():
         #self.align_center(copy_draw_content, "Terminal is locked. Press A to release", rect_y2 + 7, self.font_small)
         # self.align_center(copy_draw_content, "Press A to release", rect_y2 + 22, self.font_small)
     
-    def wrap_text(self, draw: ImageDraw.Draw, text, font: ImageFont.FreeTypeFont, offset, width):
+    def wrap_text(self, text, font: ImageFont.FreeTypeFont, offset, width):
         """
         Automatically wraps text to fit within the specified width.
 
@@ -254,7 +258,10 @@ class OLEDPage():
 
         return wrapped_lines
 
-
+    def draw_text_warp(self, x, y, text, font, width=256, fill=(255,255,255)):
+        warped_text = self.wrap_text(text, font, x, width)
+        for line, add_y in warped_text:
+            self.draw.text((x, y + add_y), line, font=font, fill=fill)
 
 
     # overwrite the == operator
@@ -267,6 +274,7 @@ class OLEDPage():
     # =================================================================================================================
     # Event handling
     # =================================================================================================================
+    # Actual event handeling
     def _sig_on_barcode_read(self, sender, barcode, **kwargs):
         if self.is_active:
             self.on_barcode_read(sender, barcode, **kwargs)
@@ -279,6 +287,7 @@ class OLEDPage():
         if self.is_active:
             self.on_btn_pressed(sender, btn, **kwargs)
 
+    # Need to be implemented by the subclass
     @abstractmethod
     def on_barcode_read(self, sender, barcode, **kwargs):
         pass
@@ -294,7 +303,7 @@ class OLEDPage():
     # =================================================================================================================
     # Other Helpers
     # =================================================================================================================
-    def _on_barcode_read_request_products_view(self, view_controller: OLEDViewController,
+    def _on_barcode_read_request_products_view(self, view_controller: 'OLEDViewController',
                                                 stores: list[Store], barcode: str):
         current_product = StoreProduct.get_from_api(stores, barcode)
         print(f"json: {current_product}")

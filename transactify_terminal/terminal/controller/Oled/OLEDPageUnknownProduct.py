@@ -28,11 +28,9 @@ class OLEDPageProduct_Unknown(OLEDPage):
         content_y_start = header_height + 5
         ip_address = f"{os.getenv('DJANGO_WEB_HOST')}:{os.getenv('DJANGO_WEB_PORT')}"
 
-        warped_text = self.wrap_text(draw, f"The scanned poduct ({ean}) was not found in the database."
-                                     f"Please add it using the web-interface under {ip_address}", 
-                                     self.font_small, 10, 255)
-        for line, y in warped_text:
-            draw.text((10, content_y_start + y), line, font=self.font_small, fill=(255,255,255))
+        self.draw_text_warp(10,  content_y_start+2, 
+                             f"The scanned poduct ({ean}) was not found in the database. Please add it using the web-interface under {ip_address}",
+                             self.font_small, fill=(255,255,255))
 
         # Update the OLED display
         self.oled.display(image)

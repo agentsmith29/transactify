@@ -45,8 +45,7 @@ class OLEDViewController():
         self.oled = oled
 
         kwargs = {
-            "oled": oled,
-            'stores': stores,
+            "oled": oled, 'stores': stores,
             'view_controller': self,
             "sig_abort_view": self.sig_abort_page,
             "sig_request_view": self.sig_request_view,
@@ -54,6 +53,7 @@ class OLEDViewController():
             "sig_on_nfc_read": sig_on_nfc_read,
             "sig_on_btn_pressed": sig_on_btn_pressed
         }
+
         self.PAGE_STORE_SELECTION = OLEDStoreSelection(**kwargs)
 
         self.PAGE_MAIN = OLEDPageStoreMain(**kwargs)
@@ -148,6 +148,5 @@ class OLEDViewController():
         self.current_view.is_active = True
         self.view_thread = threading.Thread(target=self.current_view.view, args=args, kwargs=kwargs, daemon=True)
         self.view_thread.start()
-        #()   
 
 

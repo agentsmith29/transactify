@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -119,6 +120,16 @@ DATABASES = {
     #     'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
     # },
 }
+# Use in-memory SQLite for testing
+if 'test' in sys.argv:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'test_db',
+        'USER': 'USER',
+        'PASSWORD': 'PASSWORD',
+        'HOST':'192.168.1.190',
+        'PORT': 5432,
+    }
 # Important, to make the correct database routing work
 #DATABASE_ROUTERS = ['transactify_service.db_router.MultiDatabaseRouter']
 
@@ -163,6 +174,32 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'store_logs_db': {
+            'level': 'DEBUG',
+            'class': 'store.StoreLogsDBHandler.StoreLogsDBHandler',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+    
+}
+
+REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'transactify_service.APIResponse.custom_exception_handler',
+}
 
 LOGGING = {
     'version': 1,

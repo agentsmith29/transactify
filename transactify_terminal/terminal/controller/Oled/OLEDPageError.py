@@ -13,7 +13,7 @@ class OLEDPageError(OLEDPage):
 
     
     def view(self, error_title, error_message,
-             icon=r'/app/static/icons/png_16/x-circle-fill', 
+             icon=r'/app/static/icons/png_16/x-circle-fill.png', 
              display_back = False,
              next_view = None, *args, **kwargs):
         image, draw = self._post_init()
@@ -30,15 +30,16 @@ class OLEDPageError(OLEDPage):
         content_y_start = header_height + 5
         self.paste_image(image, icon, (0, content_y_start))
         # Wrap the text and draw it
-        lines = self.wrap_text(draw, error_message, self.font_regular, offset=10, width=256)
-
-        for line, y in lines:
-            draw.text((10, y), line, font=self.font_regular, fill="black")
+        warped_text = self.wrap_text(error_message, 
+                                     self.font_small, 10, 255)
+        for line, y in warped_text:
+            draw.text((20, content_y_start + y), line, font=self.font_small, fill=(255,255,255))
 
         # Update the OLED display
         self.oled.display(image)
         # ------------- Body ----------------
-        #self.display_next(image, draw, OLEDPageMain.name, 10)
+        if next_view:
+            self.display_next(image, draw, next_view, 5, *args, **kwargs)
 
     def on_barcode_read(self, sender, barcode, **kwargs):
         pass

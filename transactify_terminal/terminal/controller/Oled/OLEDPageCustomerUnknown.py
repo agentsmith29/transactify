@@ -13,7 +13,7 @@ class OLEDPageCustomer_Unknown(OLEDPage):
         super().__init__(*args, **kwargs)
         OLEDPageCustomer_Unknown.name: str = str(self.__class__.__name__)
        
-    def view(self, id, *args, **kwargs):
+    def view(self, id, next_view=None, *args, **kwargs):
         image, draw = self._post_init()
 
         header_height = 20
@@ -30,13 +30,16 @@ class OLEDPageCustomer_Unknown(OLEDPage):
         # Content Section: Display Name, Surname, and Balance
         content_y_start = header_height + 5
         self.paste_image(image, r"/app/static/icons/png_24/person-fill-x.png", (0, content_y_start))
-        draw.text((30, content_y_start+2), f"Card is unknown or not bound to a customer.", font=self.font_regular, fill=(255,255,255))
+        
+        
+        self.draw_text_warp(30, content_y_start+2, f"Card is unknown or not bound to a customer.", self.font_regular, fill=(255,255,255))
 
         # Update the OLED display
         self.oled.display(image)
         # ------------- Body ----------------
-        self.display_next(image, draw, OLEDPageStoreMain.name, 10)
-
+        if next_view:
+            self.display_next(image, draw, next_view, 5, *args, **kwargs)
+    
     def on_barcode_read(self, sender, barcode, **kwargs):
         pass
 

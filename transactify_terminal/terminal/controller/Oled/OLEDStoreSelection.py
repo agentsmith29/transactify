@@ -48,9 +48,9 @@ class OLEDStoreSelection(OLEDPage):
                 self.view_controller.request_view(self.view_controller.PAGE_MAIN,
                                                   store=self.selected_store, display_back=True)
     
+    # def on_nfc_read(self, sender, id, text, **kwargs):
+    #     pass
 
-    def on_nfc_read(self, nfc):
-        pass
 
     def on_barcode_read(self, sender, barcode, **kwargs):
         self._on_barcode_read_request_products_view(view_controller=self.view_controller, 

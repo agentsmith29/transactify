@@ -33,7 +33,7 @@ class HardwareController():
         
         self.hwif.barcode_reader.signals.barcode_read.connect(self.on_barcode_read)
         #self.hwif.nfc_reader.signals.tag_read.connect(self.on_nfc_read)
-        #self.hwif.nfc_reader.signals.tag_reading_status.connect(self.on_nfc_reading_status)
+        self.hwif.nfc_reader.signals.tag_reading_status.connect(self.on_nfc_reading_status)
 
         #self.hwif.keypad.signals.key_pressed.connect(self.on_key_pressed)
         self.store_bases = parse_services_config_from_yaml('./terminal.conf')

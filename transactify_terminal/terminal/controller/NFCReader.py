@@ -8,6 +8,8 @@ import logging
 class NFCReaderSignals:
     tag_read = Signal()
     tag_reading_status  = Signal()
+    tag_connected = Signal()
+    tag_disconnected = Signal()
 
 
 class NFCReader:
@@ -50,6 +52,7 @@ class NFCReader:
     def read(self, reader: MFRC522, trailer_block, key, block_addrs):
         
         (status, TagType) = reader.Request(self._reader.PICC_REQIDL)
+        # print(f"Status: {status}, TagType: {TagType}")
         if status != reader.MI_OK:
             return None, None
         else:

@@ -22,6 +22,6 @@ class CustomerDeposit(models.Model):
     deposit_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.customer.name} deposited {self.amount}"
+        return f"{self.customer.user.first_name} {self.customer.user.last_name} deposited {self.amount}"
 
 

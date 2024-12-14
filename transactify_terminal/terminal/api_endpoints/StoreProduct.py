@@ -1,7 +1,6 @@
 import requests
 from django.http import JsonResponse
 
-import requests
 import traceback
 
 from ..controller.ConfParser import Store
@@ -9,6 +8,9 @@ from decimal import Decimal
 from ..api_endpoints.Customer import Customer
 
 from requests.models import Response
+from ..api_endpoints.APIFetchException import APIFetchException
+from rest_framework import status
+from rest_framework.request import Request
 
 class StoreProduct:
     def __init__(self, store: Store, ean: str, name: str, stock_quantity: int, discount: Decimal, resell_price: Decimal, final_price: Decimal):
@@ -93,19 +95,14 @@ class StoreProduct:
         headers = {
             "Content-Type": "application/json"
         }
+
         print(f"Making purchase: {payload}")
         try:
             api_url = f"http://{self.store.address}/api/purchase/"
             response = requests.post(api_url, json=payload, headers=headers)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
-        except requests.exceptions.RequestException as e:
-            print(f"Failed to make purchase: {e}")
-            traceback.print_exc()
-            return Response(status=response.status_code if response else 500, 
-                            text=f"API request failed: {e}")  # Change No. #4: Ensure a proper response is returned even on failure.
         except Exception as e:
             print(f"Unexpected error during purchase: {e}")
-            traceback.print_exc()
-            return Response(status=500, text=f"Unexpected error: {e}")
-
+            tb = traceback.format_exc()
+            raise APIFetchException("Failed to make purchase", e, response, tb)
         return response

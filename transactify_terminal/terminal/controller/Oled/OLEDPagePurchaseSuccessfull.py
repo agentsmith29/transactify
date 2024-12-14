@@ -36,9 +36,8 @@ class OLEDPagePurchaseSuccessfull(OLEDPage):
         self.paste_image(image, r"/app/static/icons/png_16/cash-stack.png", (0, content_y_start))
         draw.text((30, content_y_start+2), f"Balance: EUR: {customer.balance}", font=self.font_regular, fill=(255,255,255))
         #self.paste_image(image, r"/app/static/icons/png_16/cart4.png", (0, content_y_start+18))
-        draw.text((30, content_y_start+20), f"Thank you for your purchase", font=self.font_regular, fill=(255,255,255))
-        draw.text((30, content_y_start+30), f"at {product.store.name}", font=self.font_regular, fill=(255,255,255))
-
+        self.draw_text_warp(0, content_y_start+20, f"Thank you for shopping at {product.store.name}", self.font_regular, fill=(255,255,255))
+       
         # Update the OLED display
         self.oled.display(image)
         # ------------- Body ----------------
