@@ -44,6 +44,7 @@ def main():
        "coin.svg",
        "bootstrap-reboot.svg",
        "person-bounding-box.svg",
+       "cart3.svg",
        "cart4.svg",
        "cash-stack.svg",
        "person-fill-x.svg",
@@ -51,6 +52,7 @@ def main():
        "NFC_logo.svg",
        "check-square.svg",
        'x-circle-fill.svg',
+       'info-circle.svg',
     ]
     png_base_dir = '/app/static/icons/png'
 

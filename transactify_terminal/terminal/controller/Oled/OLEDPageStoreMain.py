@@ -48,7 +48,14 @@ class OLEDPageStoreMain(OLEDPage):
                                                barcode=barcode) 
 
     def on_nfc_read(self, sender, id, text, **kwargs):
-        pass
+        customer_entry = self._fetch_customer(view_controller=self.view_controller, 
+                                                store=self.store, 
+                                                card_number=id)
+        self.view_controller.request_view(self.view_controller.PAGE_CUSTOMER, 
+                                              store=self.store, 
+                                              customer=customer_entry,
+                                              # Next view handler
+                                              next_view=self.view_controller.PAGE_STORE_SELECTION)
 
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):
         if kypd_btn == self.btn_back:

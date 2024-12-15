@@ -4,6 +4,9 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 import PIL.Image
 import time
 
+import requests
+
+
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -11,6 +14,7 @@ if TYPE_CHECKING:
 
 from ..ConfParser import Store
 from ...api_endpoints.StoreProduct import StoreProduct
+from ...api_endpoints.Customer import Customer
 
 class OLEDPage():
     name: str = "OLEDPage"
@@ -138,6 +142,9 @@ class OLEDPage():
                 next_view = next_view.name
             self._signal_request_view.send(sender=self.name, view=next_view, *args, **kwargs)
 
+    # =================================================================================================================
+    # Display Overlays
+    # =================================================================================================================
     def display_lock_overlay(self):
         print(f"Displaying lock overlay.")
         # Use the currecnt image and make a copy
@@ -210,6 +217,47 @@ class OLEDPage():
         #self.align_center(copy_draw_content, "Terminal is locked. Press A to release", rect_y2 + 7, self.font_small)
         # self.align_center(copy_draw_content, "Press A to release", rect_y2 + 22, self.font_small)
     
+    def display_message_overlay(self, message, time_to_display=5):
+        # Use the currecnt image and make a copy
+        copy_image_content = self.image.copy()
+        copy_draw_content = ImageDraw.Draw(copy_image_content)
+        # overlay a rechatngel with a lock symbol
+        img = r"/app/static/icons/png_16/info-circle.png"
+        img_width,  img_heiht = PIL.Image.open(img).size
+        
+        msg_heiht, msg_width = 25, 154
+        center_x = self.width // 2
+        center_y = self.height // 2 - 5
+        msg_pos_x = int(center_x - msg_width  // 2)  # Size of image is 64x64
+        msg_pos_y = int(center_y - msg_heiht // 2)  # Size of image is 64x64
+        rect_x1 = int(msg_pos_x - 30)
+        rect_y1 = int(msg_pos_y - 10)
+        rect_x2 = int(msg_pos_x + msg_width + 30)
+        rect_y2 = int(msg_pos_y + msg_heiht + 10)
+
+        # the rectangle is the bound by rect_x1, rect_y1, rect_x2, rect_y2
+        # calculate the position vertcal center
+        img_pos_x = int(rect_x1 + (msg_heiht / 2) - (img_heiht / 2))
+        img_pos_y = msg_pos_y + 2
+        
+
+        # create a black rectangle with white border
+        copy_draw_content.rectangle((rect_x1, rect_y1, rect_x2, rect_y2), fill=(0,0,0), outline=(255,255,255), width=1)
+        # paste the text
+        self.paste_image(copy_image_content ,img, (img_pos_x, img_pos_y))
+        
+        warped_text = self.wrap_text(message, self.font_small, msg_pos_x, msg_width - 4 - img_width)
+        for line, add_y in warped_text:
+            copy_draw_content.text((img_pos_y + img_width + 10, msg_pos_y + add_y), line, font=self.font_small, fill=(255,255,255))
+        
+        #self.draw_text_warp(img_pos_x, img_pos_y, message, self.font_small, msg_width)
+        self.oled.display(copy_image_content)
+        time.sleep(time_to_display)
+        self.oled.display(self.image)
+    
+    # =================================================================================================================
+    # Text wrapping
+    # =================================================================================================================
     def wrap_text(self, text, font: ImageFont.FreeTypeFont, offset, width):
         """
         Automatically wraps text to fit within the specified width.
@@ -316,3 +364,32 @@ class OLEDPage():
                 view_controller.PAGE_PRODUCT_UNKNW, 
                 ean=barcode, 
                 next_view=view_controller.PAGE_STORE_SELECTION)   
+    
+    def _fetch_customer(self, view_controller: 'OLEDViewController', store: StoreProduct, card_number: str):
+        view_controller: OLEDViewController
+        try:
+            return Customer.get_from_api(store, card_number)
+        except requests.exceptions.RequestException as e:
+            print(f"Error: {e}")
+            if int(e.response.json().get('code')) == 10:
+                view_controller.request_view(view_controller.PAGE_CUSTOMER_UNKNW, id=card_number,
+                                             # Next view handler
+                                             next_view=view_controller.PAGE_MAIN,
+                                             store=store)
+            else:
+                view_controller.request_view(view_controller.PAGE_ERROR, 
+                                        error_title=f"Error {e.response.json().get('code')}", 
+                                        error_message=e.response.json().get("message"),
+                                        # Next view handler
+                                        next_view=view_controller.PAGE_MAIN,
+                                        store=store)
+            return None
+        
+        except Exception as e:
+            print(f"Error: {e}")
+            view_controller.request_view(view_controller.PAGE_ERROR, 
+                                        error_title="Uncought Error", error_message=f"Error processing purchase: {e}",
+                                        next_view=view_controller.PAGE_MAIN,
+                                        store=store)
+            return None
+            

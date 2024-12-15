@@ -198,7 +198,12 @@ LOGGING = {
 }
 
 REST_FRAMEWORK = {
+    # Custom exception handler to always return a JSON response
     'EXCEPTION_HANDLER': 'transactify_service.APIResponse.custom_exception_handler',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'api.authentication.APIKeyAuthentication',
+        'rest_framework.authentication.SessionAuthentication',  # Optional: Keep session auth for logged-in users
+    ],
 }
 
 LOGGING = {

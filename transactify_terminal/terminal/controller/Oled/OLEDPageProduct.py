@@ -73,39 +73,11 @@ class OLEDPageProduct(OLEDPage):
             self.view_controller.request_view(self.view_controller.PAGE_MAIN,
                                               store=self.product.store) 
     
-    def _fetch_customer(self, view_controller: 'OLEDViewController', product, card_number: str):
-        view_controller: OLEDViewController
-        try:
-            return Customer.get_from_api(product.store, card_number)
-        except requests.exceptions.RequestException as e:
-            print(f"Error: {e}")
-            if int(e.response.json().get('code')) == 10:
-                view_controller.request_view(view_controller.PAGE_CUSTOMER_UNKNW, id=card_number,
-                                             # Next view handler
-                                             next_view=view_controller.PAGE_MAIN,
-                                             store=product.store)
-            else:
-                view_controller.request_view(view_controller.PAGE_ERROR, 
-                                        error_title=f"Error {e.response.json().get('code')}", 
-                                        error_message=e.response.json().get("message"),
-                                        # Next view handler
-                                        next_view=view_controller.PAGE_MAIN,
-                                        store=product.store)
-            return None
-        
-        except Exception as e:
-            print(f"Error: {e}")
-            view_controller.request_view(view_controller.PAGE_ERROR, 
-                                        error_title="Uncought Error", error_message=f"Error processing purchase: {e}",
-                                        next_view=view_controller.PAGE_MAIN,
-                                        store=product.store)
-            return None
-            
 
     def _make_purchase(self, view_controller: 'OLEDViewController', product: StoreProduct, card_number: str):
         view_controller: OLEDViewController
         # Request the webpage from the current store
-        customer = self._fetch_customer(view_controller, product, card_number)
+        customer = self._fetch_customer(view_controller, product.store, card_number)
         if not customer:
             return
             

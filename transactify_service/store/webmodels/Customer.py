@@ -6,6 +6,9 @@ from django.db.models.functions import Coalesce
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 
+from django.contrib.auth.models import User
+from store.webmodels.APIKey import APIKey
+import uuid 
 
 class Customer(models.Model):
     #class Meta:
@@ -18,11 +21,7 @@ class Customer(models.Model):
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="customer")
     card_number = models.CharField(primary_key=True)
-    # first_name = models.CharField(max_length=30)
-    # last_name = models.CharField(max_length=30)
-    # email = models.EmailField(max_length=254)
     issued_at = models.DateTimeField(auto_now_add=True)
-    # balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def get_balance(self, balance_model: Any) -> float:
         return balance_model.objects.get(customer=self).balance
@@ -34,17 +33,19 @@ class Customer(models.Model):
         balance = balance_model.objects.get(customer=self)
         balance.balance = new_balance
         return balance
-    
-    # def increment_balance(self, balance_model: models.Model, amount: float) -> None:
-    #     balance = balance_model.objects.get(customer=self)
-    #     balance.balance += amount
-    #     return balance
 
-    # def decrement_balance(self, balance_model: models.Model, amount: float) -> None:
-    #     balance = balance_model.objects.get(customer=self)
-    #     balance.balance -= amount
-    #     return balance
-    
+
+    def generate_api_key_for_user(user):
+        """
+        Generate an API key for a given user.
+        """
+        api_key, created = APIKey.objects.get_or_create(user=user)
+        if not created:
+            api_key.key = uuid.uuid4()  # Regenerate key if it already exists
+            api_key.save()
+        return api_key.key
+
+
     def get_all_deposits(self, deposit_model: models.Model) -> list:
         return deposit_model.objects.filter(customer=self).order_by('-deposit_date')
     

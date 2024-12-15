@@ -7,7 +7,12 @@ from store.webmodels.Customer import Customer
 from store.helpers.ManageStockHelper import StoreHelper
 import json
 
+from rest_framework.views import APIView
+from api.authentication import APIKeyAuthentication
+
 class CustomerPurchaseAPIView(APIView):
+    authentication_classes = [APIKeyAuthentication]
+
     def post(self, request, *args, **kwargs):
         """
         Handle a customer purchase request.

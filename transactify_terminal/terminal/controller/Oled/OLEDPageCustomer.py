@@ -7,19 +7,27 @@ import os
 
 from .OLEDPageStoreMain import OLEDPageStoreMain
 
+from terminal.api_endpoints.Customer import Customer
+from ..ConfParser import Store
+
 class OLEDPageCustomer(OLEDPage):
     name: str = "OLEDPageCustomer"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         OLEDPageCustomer.name: str = str(self.__class__.__name__)
+        self.store = None
+        self.customer = None
 
-    def view(self, customer, *args, **kwargs):
+    def view(self, store: Store, customer: Customer, next_view, *args, **kwargs):
+        self.store: Store = store
+        self.customer: Customer = customer
+
         #balance = CustomerBalance.objects.get(customer=customer)
         image, draw = self._post_init()
 
         header_height = 20
-        header_text = f"Hello, {customer.user.first_name} {customer.user.last_name}"
+        header_text = f"Hello, {customer.first_name} {customer.last_name}"
         draw.text((20, 0), header_text, font=self.font_large, fill=(255,255,255))  # Leave space for NFC symbol
 
 
@@ -29,16 +37,21 @@ class OLEDPageCustomer(OLEDPage):
 
         # ------------- Body ----------------
         # Content Section: Display Name, Surname, and Balance
-        content_y_start = header_height + 5
-        self.paste_image(image, r"/app/static/icons/png_16/cash-stack.png", (0, content_y_start))
-        draw.text((30, content_y_start+2), f"Balance: EUR: {customer.get_balance(None)}", font=self.font_regular, fill=(255,255,255))
-        self.paste_image(image, r"/app/static/icons/png_16/cart4.png", (0, content_y_start+18))
-        draw.text((30, content_y_start+20), f"Last purchase:", font=self.font_regular, fill=(255,255,255))
+        content_y_start = header_height + 3
+        self.paste_image(image, r"/app/static/icons/png_12/cart3.png", (0, content_y_start+1))
+        draw.text((30, content_y_start+2), f"Selected store: {store.name}", font=self.font_regular, fill=(255,255,255))
+
+        self.paste_image(image, r"/app/static/icons/png_12/cash-stack.png", (0, content_y_start+15))
+        draw.text((30, content_y_start+14), f"Balance: EUR: {customer.balance}", font=self.font_regular, fill=(255,255,255))
+        
+        self.paste_image(image, r"/app/static/icons/png_12/cart4.png", (0, content_y_start+27))
+        draw.text((30, content_y_start+28), f"Last purchase: {customer.last_changed}", font=self.font_regular, fill=(255,255,255))
 
         # Update the OLED display
         self.oled.display(image)
         # ------------- Body ----------------
-        self.display_next(image, draw, OLEDPageStoreMain.name, 20)
+        if next_view:
+            self.display_next(image, draw, next_view, 5, *args, **kwargs)
     
     def on_barcode_read(self, sender, barcode, **kwargs):
         pass
@@ -48,6 +61,7 @@ class OLEDPageCustomer(OLEDPage):
 
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):
         if kypd_btn == self.btn_back:
+            self.break_loop = True
             self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)
 
     

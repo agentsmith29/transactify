@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 
 from transactify_service.HttpResponses import HTTPResponses
+from api.authentication import APIKeyAuthentication
 
 class CustomerViewSet(viewsets.ModelViewSet):
     """
@@ -19,6 +20,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    authentication_classes = [APIKeyAuthentication] 
 
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def highlight(self, request, *args, **kwargs):
