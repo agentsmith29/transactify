@@ -91,7 +91,7 @@ class OLEDPageProduct(OLEDPage):
                 message = response_make_purchase.json().get("message")
                 code = int(response_make_purchase.json().get("code"))
                 print("Sold product!")
-                customer = self._fetch_customer(view_controller, product, card_number)
+                customer = self._fetch_customer(view_controller, product.store, card_number)
                 if not customer:
                     return  # Should not happen!
                 #print(response.status_code, response.content)
