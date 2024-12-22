@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/SacherECLControl"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"./pyproject.toml" = "./SacherECLControl/pyproject.toml"
+
+
+[project]
+name = "Transactify"
+version = "0.0.1"
+authors = [
+  { name="agentsmith29", email="" },
+]
+description = "A terminal form managing purchases in Django"
+readme = "README.md"
+requires-python = "==3.12"
+dependencies = [
+    "PySide6",
+    "rich",
+    "pyyaml",
+    "PyADScopeControl>=1.1.7",
+    "PySide6WidgetCollection>=1.0.3", # important, otherwise AboutDialog is not available
+    "mpPy6",
+    "confPy6>=1.3.1",
+    "Django>=5.0.0",
+    # GPIOs
+    "luma.oled",
+    "evdev",
+    # Django
+    "django-bootstrap5",   # Frontend
+    "asyncio",
+    "channels",
+    "websockets",
+    "daphne",      # ASGI server
+    # Postgres database
+    "psycopg",
+    "psycopg2",
+    # For downloading the static files
+    "requests",
+    # For the image processing
+    "pillow",
+    "cairosvg",
+    # for logging
+    "rich",
+    # for using the restful API
+    "djangorestframework",
+    "markdown",
+    "django-filter",
+    "djangorestframework-simplejwt",
+    # others
+    "pyyaml"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: Linux",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/agentsmith29/PyADScopeControl"
