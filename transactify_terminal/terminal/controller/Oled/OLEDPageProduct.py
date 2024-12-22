@@ -56,7 +56,7 @@ class OLEDPageProduct(OLEDPage):
         
         draw.text((30, content_y_start + 25), f"Place NFC to buy from {product.store.name}", font=self.font_regular, fill=(255,255,255))
         # Update the OLED display
-        self.oled.display(image)
+        self.send_to_display(image)
         #self.display_next(image, draw, OLEDPageMain.name, 5)
         
     

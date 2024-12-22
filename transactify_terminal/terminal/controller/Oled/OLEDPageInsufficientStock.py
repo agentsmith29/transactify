@@ -35,7 +35,7 @@ class OLEDPageInsufficientStock(OLEDPage):
         draw.text((30, content_y_start+20), f"Was insufficient. Please report it to the stock owner.", font=self.font_regular, fill=(255,255,255))
 
         # Update the OLED display
-        self.oled.display(image)
+        self.send_to_display(image)
         # ------------- Body ----------------
         self.display_next(image, draw, OLEDPageStoreMain.name, 10)
         

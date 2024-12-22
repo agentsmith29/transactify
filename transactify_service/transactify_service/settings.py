@@ -227,3 +227,12 @@ LOGGING = {
     },
     
 }
+
+# Login and redirect URLs
+#LOGIN_REDIRECT_URL = STORE_NAME + '/dashboard/'  # Redirect after login
+#LOGOUT_REDIRECT_URL = STORE_NAME +'/'  # Redirect after logout
+#LOGIN_URL = '/'  # Login page
+
+LOGIN_REDIRECT_URL = f"/{STORE_NAME}/dashboard/"    # Redirect to the dashboard after login
+LOGOUT_REDIRECT_URL = f"/{STORE_NAME}/"             # Redirect to the store's root after logout
+LOGIN_URL = f"/{STORE_NAME}/login/"                 # URL of the login page

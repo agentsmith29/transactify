@@ -15,6 +15,9 @@ from .webviews.ViewFinancialSummary import ViewFinancialSummary
 from django.contrib.auth.models import User
 from rest_framework import routers, serializers, viewsets
 
+from django.contrib.auth.views import LoginView, LogoutView
+from .views import dashboard
+
 
 urlpatterns = [
     path('customers/', ManageCustomersView.as_view(), name='customers'),
@@ -22,16 +25,7 @@ urlpatterns = [
     path('manage-stock/', ManageStockView.as_view(), name='manage_stock'),
 
     path('customer/<str:card_number>/', SingleCustomerView.as_view(), name='customer_detail'),
-    #path('customer/<str:card_number>/update_balance/', UpdateCustomerBalance.as_view(), name='customer_update_balance'),
-
     path('make-sale/', MakePurchaseView.as_view(),  name='make_sale'),
-    #path('view-stock/', views.view_stock, name='view_stock'),
-    
-    #path('present_card/', PresentCardView.as_view(), name='present_card'),
-    #path('nfc_read/', NFCReadView.as_view(), name='nfc_read'),
-    #path('customer/', ViewSingleCustomer.as_view(), name='customer'),
-
     path('financial-summary/', ViewFinancialSummary.as_view(), name='financial_summary'),
-    
     path('logs/', StoreLogListView.as_view(), name='store_logs'),
 ]

@@ -24,7 +24,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 import os
 from django.views.generic.base import TemplateView  # new
-from .views import dashboard
+
 from django.contrib.auth.views import LoginView, LogoutView
 
 #class AccessUser:

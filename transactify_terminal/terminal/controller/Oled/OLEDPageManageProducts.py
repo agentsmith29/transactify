@@ -31,7 +31,7 @@ class OLEDPageProducts_Manage(OLEDPage):
         draw.text((30, content_y_start + 2), f"Terminal is locked and no iteractions are possible", font=self.font_regular,fill=(255,255,255))
         draw.text((30, content_y_start + 14), f"Press A to continue or place NFC to buy", font=self.font_regular, fill=(255,255,255))
         # Update the OLED display
-        self.oled.display(image)
+        self.send_to_display(image)
 
     def on_barcode_read(self, sender, barcode, **kwargs):
         pass

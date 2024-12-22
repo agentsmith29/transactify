@@ -9,7 +9,7 @@ MANAGE_PY="python manage.py"
 
 
 chmod +x make_terminal_db_migration.sh
-# ./make_terminal_db_migration.sh
+#./make_terminal_db_migration.sh
 
 
 python /app/static/tools/convert_svg_png.py

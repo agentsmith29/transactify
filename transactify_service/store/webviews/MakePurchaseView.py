@@ -19,11 +19,12 @@ from ..webmodels.StoreProduct import StoreProduct
 from ..webmodels.CustomerPurchase import CustomerPurchase
 
 from decimal import Decimal
-
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 
 #from ..apps import hwcontroller
-
+@method_decorator(login_required, name='dispatch')
 class MakePurchaseView(View):
     template_name = 'store/make_sale.html'
     def __init__(self):

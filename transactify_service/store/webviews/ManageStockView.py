@@ -13,11 +13,12 @@ from ..webmodels.StoreProduct import StoreProduct
 from ..webmodels.CustomerPurchase import CustomerPurchase
 from ..webmodels.ProductRestock import ProductRestock
 
-
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 
 #from ..apps import hwcontroller
-
+@method_decorator(login_required, name='dispatch')
 class ManageStockView(View):
     template_name = 'store/add_stock.html'
 

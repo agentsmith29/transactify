@@ -40,14 +40,14 @@ MANAGE_PY="python manage.py"
 echo "Starting Django setup script..."
 # Step 4: Run migrations for the USER database
 echo "Applying migrations for the default database..."
-$MANAGE_PY migrate store --database=default || {
+$MANAGE_PY migrate terminal || {
     echo "ERROR: Failed to apply store migrations for the default database."
     exit 1
 } 
 
 # Step 3: Run migrations for the default database
 echo "Applying migrations for the default database..."
-$MANAGE_PY migrate --database=default || {
+$MANAGE_PY migrate || {
     echo "ERROR: Failed to apply migrations for the default database."
     exit 1
 }

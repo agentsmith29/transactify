@@ -39,6 +39,7 @@ services:
       - apparmor:unconfined  # Unrestricted access to hardware
     environment:
       SERVICE_NAME: "terminal1"
+      SERVICE_HOST: 192.168.1.190
       PORT: 8000
       # 
       DJANGO_DB_HOST: db

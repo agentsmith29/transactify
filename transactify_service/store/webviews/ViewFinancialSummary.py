@@ -16,7 +16,12 @@ from store.helpers.ManageStockHelper import StoreHelper
 #from ..apps import hwcontroller
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect, csrf_exempt, ensure_csrf_cookie
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
+
+#from ..apps import hwcontroller
+@method_decorator(login_required, name='dispatch')
 class ViewFinancialSummary(View):
 
     def get(self, request):     

@@ -33,7 +33,7 @@ class OLEDPageProduct_Unknown(OLEDPage):
                              self.font_small, fill=(255,255,255))
 
         # Update the OLED display
-        self.oled.display(image)
+        self.send_to_display(image)
         if next_view:
             self.display_next(image, draw, next_view, 5, *args, **kwargs)
        

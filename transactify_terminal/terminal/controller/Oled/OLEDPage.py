@@ -3,9 +3,13 @@ from django.dispatch import Signal
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 import PIL.Image
 import time
-
+import base64
+from io import BytesIO
+from PIL import Image
 import requests
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
@@ -88,6 +92,34 @@ class OLEDPage():
     def view(self, *args, **kwargs):
         raise NotImplementedError("View not implemented")
     
+    def convert_image_to_base64(self, image):
+        """
+        Convert a PIL Image to Base64.
+        """
+        try:
+            buffer = BytesIO()
+            image.save(buffer, format="PNG")  # Save the image to a buffer
+            buffer.seek(0)
+            base64_data = base64.b64encode(buffer.getvalue()).decode("utf-8")  # Encode and decode to a string
+            return base64_data
+        except Exception as e:
+            print(f"Error converting image to Base64: {e}")
+            return None
+    
+    def send_to_display(self, image):
+        image_bytes = image.tobytes()
+        # Encode the bytes to a Base64 string
+        image_base64 = base64.b64encode(image_bytes)
+        # Broadcast the image to WebSocket clients
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "oled_display",  # Group name
+            {
+                "type": "display_image",
+                "image_data": self.convert_image_to_base64(image),  # Convert image to bytes
+            },
+        )
+        self.oled.display(image)
     # =================================================================================================================
     # Display Helper functions
     # =================================================================================================================

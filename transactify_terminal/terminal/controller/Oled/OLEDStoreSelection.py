@@ -39,7 +39,7 @@ class OLEDStoreSelection(OLEDPage):
             draw.text((30, content_y_start + 10 + i*10), f"{store.terminal_button}: {store.name}", font=self.font_small, fill=(255,255,255))
        
         # Update the OLED display
-        self.oled.display(image)
+        self.send_to_display(image)
         # ------------- Body ----------------
 
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):
@@ -49,7 +49,7 @@ class OLEDStoreSelection(OLEDPage):
                 self.selected_store = store
                 self.view_controller.request_view(self.view_controller.PAGE_MAIN,
                                                   store=self.selected_store, display_back=True)
-        self.display_message_overlay("Scan NFC to select store")
+        #self.display_message_overlay("Scan NFC to select store")
     
     def _fetch_customer(self, view_controller: 'OLEDViewController', store: StoreProduct, card_number: str):
         try:

@@ -2,6 +2,12 @@ from django.views.generic import ListView
 
 from ..webmodels.StoreLogs import StoreLog
 
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
+
+#from ..apps import hwcontroller
+@method_decorator(login_required, name='dispatch')
 class StoreLogListView(ListView):
     model = StoreLog
     template_name = 'store/view_logs.html'

@@ -8,6 +8,12 @@ from store.webmodels.Customer import Customer
 from ..webmodels.CustomerDeposit import CustomerDeposit
 
 from decimal import Decimal
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
+
+#from ..apps import hwcontroller
+@method_decorator(login_required, name='dispatch')
 class ViewSingleCustomer(View):
     template_name = 'store/customer_detail.html'
 

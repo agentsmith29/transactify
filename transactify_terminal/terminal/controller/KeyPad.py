@@ -69,7 +69,7 @@ class KeyPad():
                 GPIO.output(col, GPIO.LOW)  # Drive one column low
                 for j, row in enumerate(self.rows):
                     if GPIO.input(row) == GPIO.LOW:  # Check if any row is low
-                        self.logger.debug(f"[KeyPad] Button pressed: {self.keypad[j][i]} COL {col}. ROW {row}")
+                        print(f"[KeyPad] Button pressed: {self.keypad[j][i]} COL {col}. ROW {row}")
                         #print(f"[KeyPad] Button pressed: {self.keypad[j][i]} COL {col}. ROW {row}")
                         self.signals.key_pressed.send(sender=self, col=col, row=row, btn=self.keypad[j][i])  # Emit the read signal
                         time.sleep(0.5)

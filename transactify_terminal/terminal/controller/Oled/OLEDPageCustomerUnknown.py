@@ -35,7 +35,7 @@ class OLEDPageCustomer_Unknown(OLEDPage):
         self.draw_text_warp(30, content_y_start+2, f"Card is unknown or not bound to a customer.", self.font_regular, fill=(255,255,255))
 
         # Update the OLED display
-        self.oled.display(image)
+        self.send_to_display(image)
         # ------------- Body ----------------
         if next_view:
             self.display_next(image, draw, next_view, 5, *args, **kwargs)

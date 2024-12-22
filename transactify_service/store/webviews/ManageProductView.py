@@ -13,9 +13,12 @@ from ..webmodels.StoreProduct import StoreProduct
 
 
 
-# from ..views import hwcontroller
-#from ..apps import hwcontroller
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
+
+#from ..apps import hwcontroller
+@method_decorator(login_required, name='dispatch')
 class ManageProductsView(View):
     template_name = 'store/manage_products.html'
     #socket_host = f"ws://${window.location.host}/tcon/page/${pageName}/"

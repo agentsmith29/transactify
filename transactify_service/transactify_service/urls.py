@@ -20,8 +20,20 @@ from django.urls import path
 from django.urls import include, path
 from django.conf import settings
 
+from .views import dashboard
+from django.contrib.auth.views import LoginView, LogoutView
+from .views import dashboard
+  
+from django.contrib.auth import views as auth_views
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path(settings.STORE_NAME + "/", include("store.urls")),
-    path(settings.STORE_NAME + "/api/", include("api.urls")),
+    
+
+    path(f'{settings.STORE_NAME}/login/', LoginView.as_view(template_name='login.html'), name='login'),
+    path(f'{settings.STORE_NAME}/logout/', LogoutView.as_view(), name='logout'),
+    path(f'{settings.STORE_NAME}/dashboard/', dashboard, name='dashboard'),
+    path(f'{settings.STORE_NAME}/admin/', admin.site.urls),
+
+    path(f'{settings.STORE_NAME}/', include("store.urls")),
+    path(f'{settings.STORE_NAME}/api/', include("api.urls")),
 ]

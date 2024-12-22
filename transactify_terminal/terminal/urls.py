@@ -8,6 +8,7 @@ from .views import API_ReadNFCBlocking
 
 urlpatterns = [
     path('logs/', StoreLogListView.as_view(), name='store_logs'),
+    path('view-oled', views.oled_display, name='view_oled'),
 
     # APIs
     #path('notify/barcode/', notify_barcode_read, name='notify_barcode'),

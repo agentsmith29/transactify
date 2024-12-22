@@ -25,8 +25,9 @@ SECRET_KEY = 'django-insecure-%$_5dhp*byaq92$0iz*751&e27y_=ray(kys90(%ppy8e6!nna
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 SERVICE_NAME = os.getenv('SERVICE_NAME', 'terminal')
+SERVICE_HOST = os.getenv('SERVICE_HOST', 'localhost')
 
-ALLOWED_HOSTS = [SERVICE_NAME]
+ALLOWED_HOSTS = [SERVICE_NAME, SERVICE_HOST]
 print(ALLOWED_HOSTS)
 
 

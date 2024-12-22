@@ -36,7 +36,7 @@ class OLEDPageError(OLEDPage):
             draw.text((20, content_y_start + y), line, font=self.font_small, fill=(255,255,255))
 
         # Update the OLED display
-        self.oled.display(image)
+        self.send_to_display(image)
         # ------------- Body ----------------
         if next_view:
             self.display_next(image, draw, next_view, 5, *args, **kwargs)

@@ -1,0 +1,53 @@
+{% extends "./sidebar/sidebar.html" %}
+
+{% block content %}
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Pixelated Image</title>
+        <style>
+            #oled-image {
+                width: auto; /* Allow flexibility in width */
+                height: auto; /* Maintain aspect ratio */
+                image-rendering: pixelated; /* Scale using nearest-neighbor interpolation */
+                image-rendering: crisp-edges; /* For compatibility with other browsers */
+            }
+        </style>
+    </head>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">OLED VIEW</h1>
+        <img id="oled-image" alt="OLED Display" style="width: 512px; height: 128px;"
+        src="">
+    </div>
+
+
+
+    <script>
+        const displayElement = document.getElementById('display');
+
+        // Connect to WebSocket
+        const socket = new WebSocket('ws://' + window.location.host + '/tcon/oled/');
+        socket.onopen = function () {
+            console.log("WebSocket connection established");
+        };
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            console.log(data);
+            if (data.image_data) {
+                const img = document.getElementById("oled-image");
+                img.src = `data:image/png;base64,${data.image_data}`;
+            }
+            /*#if (data.image_data) {
+                // Update the image source with received data
+                const blob = new Blob([data.image_data], { type: 'image/png' });
+                const url = URL.createObjectURL(blob);
+                displayElement.src = url;
+            }*/
+        };
+
+        socket.onclose = function() {
+            console.log("WebSocket connection closed");
+        };
+    </script>
+{% endblock %}

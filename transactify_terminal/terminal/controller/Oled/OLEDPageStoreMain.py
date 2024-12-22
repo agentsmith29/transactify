@@ -39,7 +39,7 @@ class OLEDPageStoreMain(OLEDPage):
         #if display_back:
         #    draw.text((30, content_y_start + 10), f"Press 'D' to go back", font=self.font_small, fill=(255,255,255))
         # Update the OLED display
-        self.oled.display(image)
+        self.send_to_display(image)
         # ------------- Body ----------------
 
     def on_barcode_read(self, sender, barcode, **kwargs):

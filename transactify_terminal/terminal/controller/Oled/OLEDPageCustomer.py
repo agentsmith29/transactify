@@ -48,7 +48,7 @@ class OLEDPageCustomer(OLEDPage):
         draw.text((30, content_y_start+28), f"Last purchase: {customer.last_changed}", font=self.font_regular, fill=(255,255,255))
 
         # Update the OLED display
-        self.oled.display(image)
+        self.send_to_display(image)
         # ------------- Body ----------------
         if next_view:
             self.display_next(image, draw, next_view, 5, *args, **kwargs)

@@ -39,7 +39,7 @@ class OLEDPagePurchaseSuccessfull(OLEDPage):
         self.draw_text_warp(0, content_y_start+20, f"Thank you for shopping at {product.store.name}", self.font_regular, fill=(255,255,255))
        
         # Update the OLED display
-        self.oled.display(image)
+        self.send_to_display(image)
         # ------------- Body ----------------
         #self.display_next(image, draw, OLEDPageMain.name, 20)
         self.display_next(image, draw, next_view, 5, *args, **kwargs)

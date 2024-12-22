@@ -130,7 +130,7 @@ class HardwareController():
     #         print(f"Barcode read, but no view to handle it: {self.current_view}")
     #         self.selected_store = None
 
-        self.send_message_to_page(
+        self.send_barcode_to_page(
             "page_manage_products",
             {
                 "type": "page_message",
@@ -245,7 +245,7 @@ class HardwareController():
         #await loop.run_in_executor(None, self.reader.write, text)
         self.hwif.nfc_reader.write(text)
 
-    def send_message_to_page(self, page, payload):
+    def send_barcode_to_page(self, page, payload):
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             page, 

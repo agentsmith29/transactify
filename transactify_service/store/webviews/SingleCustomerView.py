@@ -15,7 +15,12 @@ from store.helpers.ManageStockHelper import StoreHelper
 
 
 
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
+
+#from ..apps import hwcontroller
+@method_decorator(login_required, name='dispatch')
 class SingleCustomerView(View):
     template_name = 'store/customer_detail.html'
 

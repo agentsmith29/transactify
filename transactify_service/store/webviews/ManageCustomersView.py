@@ -22,7 +22,12 @@ from ..webmodels.CustomerBalance import CustomerBalance
 from django.views.decorators.csrf import csrf_protect, csrf_exempt, ensure_csrf_cookie
 
 
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
+
+#from ..apps import hwcontroller
+@method_decorator(login_required, name='dispatch')
 class ManageCustomersView(View):
     """Class-based view to handle customer-related operations."""
 

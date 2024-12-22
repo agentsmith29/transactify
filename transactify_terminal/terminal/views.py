@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 import json
@@ -17,3 +18,10 @@ class API_ReadNFCBlocking(View):
     def post(self, request):
         pass
     
+
+#@login_required
+def oled_display(request):
+    """
+    View to render the OLED display HTML page.
+    """
+    return render(request, 'hwcontroller/view_oled.html')
