@@ -30,6 +30,10 @@ import threading
 from ..ConfParser import Store
 from ...api_endpoints.StoreProduct import StoreProduct
 
+class OLEDViewControllerSignals():
+    view_changed = Signal()
+
+
 class OLEDViewController():
 
     
@@ -43,6 +47,8 @@ class OLEDViewController():
         self.sig_request_view = Signal()
         self.sig_request_view.connect(self.request_view)
         self.oled = oled
+
+        self.signals = OLEDViewControllerSignals()
 
         kwargs = {
             "oled": oled, 'stores': stores,
@@ -148,5 +154,6 @@ class OLEDViewController():
         self.current_view.is_active = True
         self.view_thread = threading.Thread(target=self.current_view.view, args=args, kwargs=kwargs, daemon=True)
         self.view_thread.start()
+        self.signals.view_changed.send(sender=self, view=view)
 
 

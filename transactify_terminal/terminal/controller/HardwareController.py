@@ -6,6 +6,7 @@ from django.apps import AppConfig
 from django.http import JsonResponse
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.dispatch import Signal
 
 from .HardwareInterface import HardwareInterface
 from .Oled.OLEDViewController import OLEDViewController
@@ -16,6 +17,8 @@ from ..api_endpoints.StoreProduct import StoreProduct
 from ..api_endpoints.Customer import Customer
 
 from requests.models import Response
+
+
 
 class HardwareController():
     init_counter = 0
@@ -34,6 +37,7 @@ class HardwareController():
         self.hwif.barcode_reader.signals.barcode_read.connect(self.on_barcode_read)
         #self.hwif.nfc_reader.signals.tag_read.connect(self.on_nfc_read)
         self.hwif.nfc_reader.signals.tag_reading_status.connect(self.on_nfc_reading_status)
+        
 
         #self.hwif.keypad.signals.key_pressed.connect(self.on_key_pressed)
         self.store_bases = parse_services_config_from_yaml('./terminal.conf')
@@ -44,6 +48,8 @@ class HardwareController():
                                                   self.hwif.keypad.signals.key_pressed,
                                                   #
                                                   stores=self.store_bases)
+        
+        self.view_controller.signals.view_changed.connect(self.on_view_changed)
 
        
         
@@ -71,7 +77,13 @@ class HardwareController():
     # =================================================================================================================
     # Event handlers
     # =================================================================================================================
-    # def on_key_pressed(self, sender, col, row, btn, **kwargs):
+    def on_view_changed(self, sender, view, **kwargs):
+        pass
+        # self.oled_current_image = view.oled_image
+       
+
+    def on_key_pressed(self, sender, col, row, btn, **kwargs):
+        pass
     #     if self.view.current_view == self.view.PAGE_STORE_SELECTION:
     #         # Go to the main view if a store is selected
     #         for store in self.store_bases:

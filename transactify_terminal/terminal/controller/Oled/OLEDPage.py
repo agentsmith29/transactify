@@ -76,6 +76,9 @@ class OLEDPage():
 
         self.btn_back = "D"
 
+        self.oled_image = None
+        self.oled_image_base64 = None
+
     def _abort_view(self, sender, **kwargs):
         print(f"Aborting view {self.name}")
         self.break_loop = True
@@ -107,19 +110,18 @@ class OLEDPage():
             return None
     
     def send_to_display(self, image):
-        image_bytes = image.tobytes()
-        # Encode the bytes to a Base64 string
-        image_base64 = base64.b64encode(image_bytes)
+        self.oled_image = image
+        self.oled_image_base64 = self.convert_image_to_base64(image)
         # Broadcast the image to WebSocket clients
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             "oled_display",  # Group name
             {
                 "type": "display_image",
-                "image_data": self.convert_image_to_base64(image),  # Convert image to bytes
+                "image_data": self.oled_image_base64,  # Convert image to bytes
             },
         )
-        self.oled.display(image)
+        self.oled.display(self.oled_image)
     # =================================================================================================================
     # Display Helper functions
     # =================================================================================================================

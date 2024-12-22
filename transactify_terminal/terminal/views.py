@@ -24,4 +24,4 @@ def oled_display(request):
     """
     View to render the OLED display HTML page.
     """
-    return render(request, 'hwcontroller/view_oled.html')
+    return render(request, 'hwcontroller/view_oled.html', {'current_image': hwcontroller.view_controller.current_view.oled_image_base64})
