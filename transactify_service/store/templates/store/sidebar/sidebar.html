@@ -1,5 +1,6 @@
 <!doctype html>
 {% load static %}
+{% load custom_filters %}
 <html lang="en" data-bs-theme="auto">
 <head>
     <script src="{% static 'assets/js/color-modes.js' %}"></script>
@@ -45,6 +46,85 @@
             max-height: calc(5 * 3rem); /* Limit the table height for 5 rows */
             overflow-y: auto; /* Scrolls only the table content */
         }
+        .icon-white {
+            filter: invert(100%);
+        }
+        .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+
+      .b-example-divider {
+        width: 100%;
+        height: 3rem;
+        background-color: rgba(0, 0, 0, .1);
+        border: solid rgba(0, 0, 0, .15);
+        border-width: 1px 0;
+        box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+      }
+
+      .b-example-vr {
+        flex-shrink: 0;
+        width: 1.5rem;
+        height: 100vh;
+      }
+
+      .bi {
+        vertical-align: -.125em;
+        fill: currentColor;
+      }
+
+      .nav-scroller {
+        position: relative;
+        z-index: 2;
+        height: 2.75rem;
+        overflow-y: hidden;
+      }
+
+      .nav-scroller .nav {
+        display: flex;
+        flex-wrap: nowrap;
+        padding-bottom: 1rem;
+        margin-top: -1px;
+        overflow-x: auto;
+        text-align: center;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .btn-bd-primary {
+        --bd-violet-bg: #712cf9;
+        --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
+
+        --bs-btn-font-weight: 600;
+        --bs-btn-color: var(--bs-white);
+        --bs-btn-bg: var(--bd-violet-bg);
+        --bs-btn-border-color: var(--bd-violet-bg);
+        --bs-btn-hover-color: var(--bs-white);
+        --bs-btn-hover-bg: #6528e0;
+        --bs-btn-hover-border-color: #6528e0;
+        --bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
+        --bs-btn-active-color: var(--bs-btn-hover-color);
+        --bs-btn-active-bg: #5a23c8;
+        --bs-btn-active-border-color: #5a23c8;
+      }
+
+      .bd-mode-toggle {
+        z-index: 1500;
+      }
+
+      .bd-mode-toggle .dropdown-menu .active .bi {
+        display: block !important;
+      }
     </style>
 </head>
 <body>
@@ -56,44 +136,54 @@
         <hr>
         <ul class="nav nav-pills flex-column mb-auto">
             <li class="nav-item">
-                <a href="{% url 'manage_products' %}" class="nav-link {% if request.path == '/store/manage-products/' %}active{% else %}text-white{% endif %}" aria-current="page">
+                {% load static %}
+                <a href="{% url 'dashboard' %}" class="nav-link {% if request.path|regex_match:'^/.*/' %}active{% else %}text-white{% endif %}" aria-current="page">
+                    <img src="{% static 'icons/svg/house.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
+                    Dashboard
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="{% url 'manage_products' %}" class="nav-link {% if request.path|regex_match:'^/.*/manage-products/$' %}active{% else %}text-white{% endif %}" aria-current="page">
+                    <img src="{% static 'icons/svg/database.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
                     Manage Products
                 </a>
             </li>
             <li>
-                <a href="{% url 'manage_stock' %}" class="nav-link {% if request.path == '/store/manage-stock/' %}active{% else %}text-white{% endif %}">
+                <a href="{% url 'manage_stock' %}" class="nav-link {% if request.path|regex_match:'^/.*/manage-stock/$' %}active{% else %}text-white{% endif %}">
+                    <img src="{% static 'icons/svg/database-add.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
                     Update Stock
                 </a>
             </li>
             <li>
-                <a href="#" class="nav-link text-white">Orders</a>
-            </li>
-            <li>
-                <a href="#" class="nav-link text-white">Products</a>
-            </li>
-            <li>
-                <a href="{% url 'customers' %}" class="nav-link {% if request.path == '/store/customers/' %}active{% else %}text-white{% endif %}">
+                <a href="{% url 'customers' %}" class="nav-link {% if request.path|regex_match:'^/.*/customers/$' %}active{% else %}text-white{% endif %}">
+                    <img src="{% static 'icons/svg/person-add.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
                     Manage Customers
                 </a>
             </li>
             <li>
-                <a href="{% url 'customers' %}" class="nav-link {% if request.path == '/store/present_card/' %}active{% else %}text-white{% endif %}">
+                <a href="{% url 'customers' %}" class="nav-link {% if request.path|regex_match:'^/.*/present_card/$' %}active{% else %}text-white{% endif %}">
+                    <img src="{% static 'icons/svg/person-gear.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
                     Edit Customer
                 </a>
             </li>
             <li>
-                <a href="{% url 'make_sale' %}" class="nav-link {% if request.path == '/store/make_sale/' %}active{% else %}text-white{% endif %}">
+                <a href="{% url 'make_sale' %}" class="nav-link {% if request.path|regex_match:'^/.*/make-sale/$' %}active{% else %}text-white{% endif %}">
+                    <img src="{% static 'icons/svg/house.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
                     Make a Sale
                 </a>
             </li>
             <li>
-                <a href="{% url 'financial_summary' %}" class="nav-link {% if request.path == '/store/financial-summary/' %}active{% else %}text-white{% endif %}">
-                   Financial Summary
+                <a href="{% url 'financial_summary' %}" class="nav-link 
+                {% if request.path|regex_match:'^/.*/financial-summary/$' %}active{% else %}text-white{% endif %}">
+                <img src="{% static 'icons/svg/graph-up.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
+                Financial Summary
                 </a>
             </li>
             <li>
-                <a href="{% url 'store_logs' %}" class="nav-link {% if request.path == '/store/logs/' %}active{% else %}text-white{% endif %}">
-                   View logs
+                <a href="{% url 'store_logs' %}" class="nav-link {% if request.path|regex_match:'^/.*/logs/$' %}active{% else %}text-white{% endif %}">
+                    <img src="{% static 'icons/svg/terminal.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
+                    View logs
                 </a>
             </li>
 

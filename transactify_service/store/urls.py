@@ -20,6 +20,9 @@ from .views import dashboard
 
 
 urlpatterns = [
+    path('', dashboard, name='dashboard'),
+    #path(f'{settings.STORE_NAME}/dashboard/', dashboard, name='dashboard'),
+    
     path('customers/', ManageCustomersView.as_view(), name='customers'),
     path('manage-products/', ManageProductsView.as_view(), name='manage_products'),
     path('manage-stock/', ManageStockView.as_view(), name='manage_stock'),
