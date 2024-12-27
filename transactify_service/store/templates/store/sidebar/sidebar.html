@@ -268,7 +268,7 @@
     <div class="toast toast-centered" id="infoToast" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header">
             <img id="toastIcon" src="">
-            <strong class="me-auto" id="toastTitle">Error</strong>
+            <strong class="me-auto" id="toastTitle"></strong>
             <small id="toastTimestamp"></small>
             <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
@@ -299,7 +299,7 @@
 <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script> -->
 <script>
     window.toastManager = new ToastManager('{% static "/icons/svg/" %}');
-    document.addEventListener("DOMContentLoaded", displaySuccessAfterReload);
+    document.addEventListener("DOMContentLoaded", displayToastAfterReload);
 </script>
 </body>
 {% block scripts %}

@@ -53,6 +53,12 @@ class HTTPResponses():
         http_status=status.HTTP_200_OK
     )
 
+    HTTP_STATUS_PRODUCT_UPDATE_SUCCESS = lambda ean: APIResponse.success(
+        message=f"Product with EAN {ean} updated successfully.",
+        code=104,
+        http_status=status.HTTP_200_OK
+    )
+
     # === Purchase related responses (200-300) ===
     HTTP_STATUS_INSUFFICIENT_BALANCE = lambda card_number, required, available: APIResponse.error(
         message=f"Insufficient balance for card number. Required: {required}, Available: {available}",

@@ -9,6 +9,7 @@ class ManageProducts {
     initSocket() {
         this.socket.onopen = () => {
             console.log("WebSocket connection established for page:", this.pageName);
+            //window.toastManager.info("WebSocket connection established", `Connected to websocket ws://${window.location.host}/tcon/page/${this.pageName}/`, "");
         };
 
         this.socket.onmessage = (event) => {
@@ -23,11 +24,7 @@ class ManageProducts {
                     } else {
                         console.error("EAN field not found.");
                     }
-
-                    const toastMessage = document.getElementById('toastMessage');
-                    toastMessage.textContent = `New scanned barcode: ${data.barcode}`;
-                    const toast = new bootstrap.Toast(document.getElementById('barcodeToast'));
-                    toast.show();
+                    window.toastManager.info("Barcode recieved", `New scanned barcode: ${data.barcode}`, "", false);
                 }
             } catch (error) {
                 console.error("Error processing WebSocket message:", error);
@@ -36,6 +33,7 @@ class ManageProducts {
 
         this.socket.onclose = () => {
             console.log("WebSocket connection closed");
+            window.toastManager.warning("WebSocket connection closed", "WebSocket connection was closed or resetted.", "", false);
         };
 
         this.socket.onerror = (error) => {
@@ -65,18 +63,22 @@ class ManageProducts {
         .then(console.log("Form data sent to " + this.page_url))
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
+            if (data.success && data.code == 103 ) {
                 //location.reload();
-                window.toastManager.successAndReload('Product added successfully', data.message, "");
-            } else {
+                window.toastManager.success('Product added successfully', data.message, "", true);
+            } 
+            else if (data.success && data.code == 104) {
+                window.toastManager.info('Product updated successfully', data.message, "", true);
+            }
+            else {
                 //window.toastManager.error(title, message, submessage)
-                window.toastManager.error("Product add failed", data.message, "Please try again.");
+                window.toastManager.error("Product add failed", data.message, "Please try again.", false);
             }
         })
         .catch(error => {
             console.error('Error adding product:', error);
             // Toast message with error
-            window.toastManager.error("Failed to add product", error, "Please try again.");
+            window.toastManager.error("Failed to add product", error, "Please try again.", false);
         });
     }
 
@@ -95,15 +97,15 @@ class ManageProducts {
         .then(data => {
             if (data.success) {
                 //location.reload();
-                window.toastManager.successAndReload(`Product ${ean} deleted successfully`, data.message, "");
+                window.toastManager.success(`Product ${ean} deleted successfully`, data.message, "", true);
                 
             } else {
-                window.toastManager.error("Failed to deleted product", data.message, "Please try again.");
+                window.toastManager.error("Failed to deleted product", data.message, "Please try again.", false);
             }
         })
         .catch(error => {
             console.error('Error deleting product:', error);
-            window.toastManager.error("Failed to deleted product", error, "Please try again.");
+            window.toastManager.error("Failed to deleted product", error, "Please try again.", false);
         });
     }
 
@@ -128,16 +130,33 @@ class ManageProducts {
         .then(data => {
             if (data.success) {
                 //location.reload();
-                window.toastManager.successAndReload(`Product updated successfully`, data.message, ""); 
+                window.toastManager.success(`Product updated successfully`, data.message, "", true); 
             } else {
-                window.toastManager.error("Failed to deleted product", data.message, "Please try again.");
+                window.toastManager.error("Failed to deleted product", data.message, "Please try again.", false);
             }
         })
         .catch(error => {
             console.error('Error updating product:', error);
-            window.toastManager.error("Failed to update product", error, "Please try again.");
+            window.toastManager.error("Failed to update product", error, "Please try again.", false);
         });
     }
 
+
+    openEditModal(ean, name, resellPrice) {
+        document.getElementById('modal_ean').value = ean;
+        document.getElementById('modal_name').value = name;
+        document.getElementById('modal_resellprice').value = resellPrice;
+        //$('#editProductModal').modal('show');
+        const editProductModal = document.getElementById('editProductModal');
+        // show modal
+        editProductModal.modal = "show";
+        
+
+    }
+    
+    closeEditModal() {
+        const editProductModal = document.getElementById('editProductModal');
+        editProductModal.hidden = true;
+    }
 
 }

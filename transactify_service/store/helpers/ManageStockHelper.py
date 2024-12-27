@@ -286,10 +286,10 @@ class StoreHelper:
 
         if created:
             logger.info(f"New product created: {product}")
+            return HTTPResponses.HTTP_STATUS_PRODUCT_CREATE_SUCCESS(ean), product  # Change No. #7: Ensure the response contains relevant EAN.
         else:
             logger.info(f"Existing product updated: {product}")
-
-        return HTTPResponses.HTTP_STATUS_PRODUCT_CREATE_SUCCESS(ean), product  # Change No. #7: Ensure the response contains relevant EAN.
+            return HTTPResponses.HTTP_STATUS_PRODUCT_UPDATE_SUCCESS(ean), product  # Change No. #7: Ensure the response contains relevant EAN.
 
     @staticmethod
     @transaction.atomic
