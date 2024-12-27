@@ -23,6 +23,10 @@ cairosvg
 # for logging
 rich
 
+# for testing
+pytest 
+pytest-asyncio
+
 # for using the restful API
 djangorestframework
 markdown       

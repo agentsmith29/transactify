@@ -13,23 +13,28 @@ class BarcodeScanner:
     """
     A class to encapsulate barcode/keypad reading from a specific HID device.
     """
-    def __init__(self):
+    def __init__(self,  device_path: str = '/dev/ttyACM0',
+                 baudrate: int = 115200,
+                 bytesize: int = serial.EIGHTBITS,
+                 parity: int = serial.PARITY_NONE,
+                 stopbits: int = serial.STOPBITS_ONE,
+                 timeout: int = 1):
         self.signals = BarcodeScannerSignals()
-       
-        scanner_thread  = threading.Thread(target=self.read_barcodes, daemon=True)
+        kwargs = {'device_path':device_path,
+                  'baudrate':baudrate, 'bytesize':bytesize, 'parity':parity, 'stopbits':stopbits, 'timeout':timeout}
+        scanner_thread  = threading.Thread(target=self.read_barcodes, kwargs=kwargs,
+                                           daemon=True)
         scanner_thread.start()
+
+        
+
 
     
     # Define the threaded function to read barcodes and broadcast them
-    def read_barcodes(self):
+    def read_barcodes(self, device_path, baudrate, bytesize, parity, stopbits, timeout):
         # Open the serial connection
         try:
-            ser = serial.Serial('/dev/ttyACM0', 
-                                baudrate=115200, 
-                                bytesize=serial.EIGHTBITS,
-                                parity=serial.PARITY_NONE,
-                                stopbits=serial.STOPBITS_ONE,
-                                timeout=1)  # Adjust the port and baud rate
+            ser: serial.Serial = serial.Serial(device_path, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, timeout=timeout)  # Adjust the port and baud rate
             print("Serial connection established")
         except serial.SerialException as e:
             print(f"Error connecting to serial port: {e}")
@@ -119,3 +124,7 @@ class BarcodeScanner:
             print("\nStopping barcode reader...")
         except Exception as e:
             print(f"Error: {e}")
+
+    def send_directly(barcode):
+        self.signals.barcode_read.send(sender=self, barcode=barcode)
+        print(f"Sent barcode directly: {barcode}")

@@ -9,10 +9,9 @@ from django.views.decorators.csrf import csrf_protect, csrf_exempt, ensure_csrf_
 from store.webmodels.Customer import Customer
 
 from ..webmodels.CustomerDeposit import CustomerDeposit
-from ..webmodels.CustomerBalance import CustomerBalance
 from ..webmodels.CustomerPurchase import CustomerPurchase
 from store.helpers.ManageStockHelper import StoreHelper
-
+from store.StoreLogsDBHandler import StoreLogsDBHandler
 
 
 from django.contrib.auth.decorators import login_required
@@ -25,9 +24,9 @@ class SingleCustomerView(View):
     template_name = 'store/customer_detail.html'
 
     def __init__(self):
-        # We can change later how we talk to the hardware controller
-        # self.hwctrl = hwcontroller
-        pass
+        super().__init__()
+        self.logger = StoreLogsDBHandler.setup_custom_logging('ManageProductsView')
+
 
     @method_decorator(ensure_csrf_cookie)
     def get(self, request, card_number=None):
@@ -70,7 +69,7 @@ class SingleCustomerView(View):
             
             # Create a new deposit record
             # Log the deposit
-            response, customer_deposit = StoreHelper.customer_add_deposit(customer, amount)
+            response, customer_deposit = StoreHelper.customer_add_deposit(customer, amount, self.logger )
 
             # Update the customer's balance
             #customer.increment_balance(CustomerBalance, amount)

@@ -11,17 +11,26 @@ from store.webmodels.APIKey import APIKey
 import uuid 
 
 class Customer(models.Model):
-    #class Meta:
-    #    #db_table = "customer"  # This will ensure the table name is "customer"
-    #    app_label = "customer"  # This will ensure the table is routed to the correct database
-        
     """
-    Represents a customer shared across all stores.
-    Linked to the default Django User model.
+        Represents a customer shared across all stores.
+        Linked to the default Django User model.
+        - **customer** (*Customer*): The customer who made the deposit. Links to *Customer*.
+        - **balance** (*Decimal*): The balance of the customer after the deposit.
+        - **total_deposits** (*int*): The total amount of deposits made by the customer.
+        - **total_purchases** (*int*): The total amount of purchases made by the customer.
+        - **last_changed** (*DateTime*): The date and time the balance was last changed.
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="customer")
     card_number = models.CharField(primary_key=True)
     issued_at = models.DateTimeField(auto_now_add=True)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_deposits = models.PositiveIntegerField(default=0)
+    total_purchases = models.PositiveIntegerField(default=0)
+    last_changed = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.customer.user.first_name} {self.customer.user.last_name} has {self.balance}"
+    
 
     def get_balance(self, balance_model: Any) -> float:
         return balance_model.objects.get(customer=self).balance
@@ -50,9 +59,6 @@ class Customer(models.Model):
         return deposit_model.objects.filter(customer=self).order_by('-deposit_date')
     
     def get_all_deposits_aggregated(self, deposit_model: models.Model) -> float:
-        #dagg = deposit_model.objects.filter(customer=self).aggregate(
-        #    models.Sum('amount'), Value(0)
-        #    )['amount__sum']
         dagg = deposit_model.objects.filter(customer=self).aggregate(
             total=Coalesce(
                 models.Sum(
@@ -63,7 +69,6 @@ class Customer(models.Model):
                     Value(0, output_field=models.DecimalField())
                 )
             )['total']
-        print(f"******* get_all_deposits_aggregated: {dagg}")
         return dagg
     
     def get_all_purchases(self, purchase_model: models.Model) -> list:
@@ -71,7 +76,7 @@ class Customer(models.Model):
     
     def get_all_purchases_aggregated(self, purchase_model: models.Model) -> float:
         # purchases are purchase_price*quantity
-        dagg = purchase_model.objects.filter(customer=self).aggregate(
+        pagg = purchase_model.objects.filter(customer=self).aggregate(
             total=Coalesce(
                 models.Sum(
                     models.ExpressionWrapper(
@@ -81,8 +86,7 @@ class Customer(models.Model):
                     Value(0, output_field=models.DecimalField())
                 )
             )['total']
-        print(f"******* get_all_purchases_aggregated: {dagg}")
-        return dagg
+        return pagg
     
     def __str__(self):
         return f"Customer: {self.user.username}"

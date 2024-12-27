@@ -1,0 +1,86 @@
+version: '3.9'
+
+services:
+  
+
+  dbtests:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: USER
+      POSTGRES_PASSWORD: PASSWORD
+    ports:
+      - 5432:5432
+  
+  terminaltest:
+    build:
+      context: .
+      dockerfile: ./transactify_terminal/Dockerfile
+    privileged: true  # Grants access to devices and kernel features
+    cap_add:
+      - SYS_RAWIO  # Allows raw GPIO access
+    security_opt:
+      - apparmor:unconfined  # Unrestricted access to hardware
+    environment:
+      SERVICE_NAME: "terminal1"
+      SERVICE_HOST: ${PROJECT_HOST} # use  from .env
+      PORT: ${PROJECT_PORT}
+      # 
+      DJANGO_DB_HOST: dbtests
+      DJANGO_DB_PORT: 5432
+      DJANGO_DB_USER: USER
+      DJANGO_DB_PASSWORD: PASSWORD
+     
+      #TARGET_SERVICES: http://192.168.1.190:8000/donknabberello #, http://service2:8000
+    depends_on:
+      - storetest 
+      - dbtests
+    entrypoint: ["/app/entrypoint.tests.sh"]
+  
+  storetest:
+    build:
+      context: .
+      dockerfile: ./transactify_service/Dockerfile
+    tty: true
+    depends_on:
+      - dbtests
+    environment:
+      SERVICE_NAME: "storetest"
+      # Database Setting
+      DJANGO_DB_HOST: dbtests
+      DJANGO_DB_PORT: 5432
+      DJANGO_DB_USER: USER
+      DJANGO_DB_PASSWORD: PASSWORD
+      # Django Setting
+      DJANGO_WEB_PORT: ${PROJECT_PORT}
+      DJANGO_WEB_HOST: ${PROJECT_HOST}
+      #
+      TERMINAL_SERVICES: http://terminaltest:${PROJECT_PORT}/terminaltest
+    volumes:
+      - static_volume:/app/staticfiles
+    entrypoint: ["/app/entrypoint.tests.sh"]
+    
+  nginx:
+    image: nginx:latest
+    volumes:
+      #- static_volume:/static
+      - static:/static
+      - ./nginx/nginx_tests.conf:/etc/nginx/nginx.conf
+    ports:
+      - 8000:8000
+    depends_on:
+      - storetest
+      - terminaltest
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    #depends_on:
+    #  - django
+
+volumes:
+  postgres_data:
+  static_volume:

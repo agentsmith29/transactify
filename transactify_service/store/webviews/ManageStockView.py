@@ -15,12 +15,17 @@ from ..webmodels.ProductRestock import ProductRestock
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-
+from store import StoreLogsDBHandler
 
 #from ..apps import hwcontroller
 @method_decorator(login_required, name='dispatch')
 class ManageStockView(View):
     template_name = 'store/add_stock.html'
+
+    def __init__(self):
+        super().__init__()
+        self.logger = StoreLogsDBHandler.setup_custom_logging('ManageProductsView')
+
 
     def post(self, request):
         ean = request.POST.get('ean')
@@ -28,7 +33,7 @@ class ManageStockView(View):
         purchase_price = Decimal(request.POST.get('purchase_price'))
 
         try:
-           response, product = StoreHelper.restock_product(ean, quantity, purchase_price)
+           response, product = StoreHelper.restock_product(ean, quantity, purchase_price, self.logger )
            if response.status_code != 200:
                return response
         except StoreProduct.DoesNotExist:

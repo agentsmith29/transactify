@@ -13,7 +13,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 import sys
-
+import logging
+import logging.config
+from rich.logging import RichHandler
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -175,27 +177,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'store_logs_db': {
-            'level': 'DEBUG',
-            'class': 'store.StoreLogsDBHandler.StoreLogsDBHandler',
-        },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-    },
-    
-}
 
 REST_FRAMEWORK = {
     # Custom exception handler to always return a JSON response
@@ -209,24 +190,37 @@ REST_FRAMEWORK = {
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {'rich': {'datefmt': '[%X]', 'format':'[%(name)s] %(message)s'}},
     'handlers': {
         'store_logs_db': {
             'level': 'DEBUG',
             'class': 'store.StoreLogsDBHandler.StoreLogsDBHandler',
         },
+        'richconsole': {
+            'level': 'DEBUG',
+            'class': 'rich.logging.RichHandler',
+            'formatter': 'rich',
+        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+            'formatter': 'rich',
         },
     },
     'loggers': {
         'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'root': {
             'handlers': ['console'],
             'level': 'DEBUG',
         },
     },
     
 }
+logging.config.dictConfig(LOGGING)
+print("Logging configured.")
 
 # Login and redirect URLs
 #LOGIN_REDIRECT_URL = STORE_NAME + '/dashboard/'  # Redirect after login

@@ -31,7 +31,7 @@ COPY ./static /app/static
 COPY ./transactify_terminal /app/
 
 RUN chmod +x /app/entrypoint.sh 
-
+RUN chmod +x /app/entrypoint.tests.sh
 # Expose the application port
 EXPOSE 8000
 

@@ -1,57 +1,73 @@
 from decimal import Decimal
-import os
-
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.views import View
-from django.db.models import Sum, F
-from django.contrib.auth.mixins import LoginRequiredMixin
-
-from store.helpers.ManageStockHelper import StoreHelper
-
-from ..webmodels.StoreProduct import StoreProduct
-
-
-
-
+from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.http import JsonResponse
+from store.webmodels.StoreProduct import StoreProduct
+from store.helpers.ManageStockHelper import StoreHelper
+from transactify_service.HttpResponses import HTTPResponses
 
+from store import StoreLogsDBHandler
 
-#from ..apps import hwcontroller
 @method_decorator(login_required, name='dispatch')
 class ManageProductsView(View):
     template_name = 'store/manage_products.html'
-    #socket_host = f"ws://${window.location.host}/tcon/page/${pageName}/"
-                                  
+
+    def __init__(self):
+        super().__init__()
+        self.logger = StoreLogsDBHandler.setup_custom_logging('ManageProductsView')
+
 
     def get(self, request):
         """Handle GET requests to display all products."""
-        products = StoreProduct.objects.all()
-        #hwcontroller.view.request_view(hwcontroller.view.PAGE_PRODUCTS_MGM)
-        return render(request, self.template_name, {'products': products})
+        try:
+            products = list(StoreProduct.objects.values())  # Convert QuerySet to a list of dictionaries
+            return render(request, self.template_name, {'products': products})
+        except Exception as e:
+            self.logger.error(f"Error fetching products: {e}")
+            data, status = HTTPResponses.HTTP_STATUS_PRODUCT_CREATE_FAILED("", str(e)).json_data()
+            return JsonResponse(data, status=status)
 
     def post(self, request):
         """Handle POST requests for adding or editing products."""
-        print(f"********* request.POST: {request.POST}\n\n\n")
-        #return redirect('manage_products')
         try:
             ean = request.POST.get('product_ean')
             name = request.POST.get('product_name')
             resell_price = request.POST.get('resell_price')
 
-            print(f"********* request.POST: {request.POST}\n\n\n")
-            if 'delete_ean' in request.POST:
-                ean = request.POST.get('delete_ean')
-                print(f"********* Trying to delete product with EAN: {ean}\n\n\n")
-                # Delete the product with the given EAN
-                StoreProduct.objects.filter(ean=ean).delete()
-                return redirect('manage_products')
-        
-            response, product = StoreHelper._get_or_create_product(ean, name, resell_price)
-            
-            # Redirect to avoid resubmission issues
-            return redirect('manage_products')
-        except Exception as e:
-            print(f"********* Exception: {e}\n\n\n")
-            return redirect('manage_products')
+            # -- Comment 1: Validate input data
+            if not ean or not name or not resell_price:
+                self.logger.error("Missing required fields for product creation.")
+                return JsonResponse({'success': False, 'message': "Missing required fields."}, status=400)
+            # -- End 1
 
+            # Handle delete operation
+            if 'delete_ean' in request.POST:
+                delete_ean = request.POST.get('delete_ean')
+                self.logger.warning(f"Trying to delete product with EAN: {delete_ean}")
+                deleted_count, _ = StoreProduct.objects.filter(ean=delete_ean).delete()
+                if deleted_count > 0:
+                    return JsonResponse({'success': True, 'message': f"Product with EAN {delete_ean} successfully deleted."}, status=200)
+                else:
+                    return JsonResponse({'success': False, 'message': f"Product with EAN {delete_ean} not found."}, status=404)
+
+            # -- Comment 2: Wrap operations in an atomic transaction
+            with transaction.atomic():
+                try:
+                    resell_price = Decimal(resell_price)  # Validate Decimal conversion
+                except Exception as e:
+                    self.logger.error(f"Invalid input for resell price: {e}")
+                    return JsonResponse({'success': False, 'message': "Invalid resell price. Please enter a valid number."}, status=400)
+
+                response, product = StoreHelper._get_or_create_product(ean, name, resell_price, self.logger)
+                data, status = response.json_data()
+                return JsonResponse(data=data, status=status)
+            
+        except Exception as e:
+            # -- Comment 3: Catch generic exceptions and log them
+            self.logger.error(f"Unexpected error: {e}")
+            data, status = HTTPResponses.HTTP_STATUS_PRODUCT_CREATE_FAILED(ean if 'ean' in locals() else "", str(e)).json_data()
+            return JsonResponse(data, status=status)
+            # -- End 3

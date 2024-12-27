@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 import os
-
+import logging
 hwcontroller = None
 
 class StoreConfig(AppConfig):
@@ -8,10 +8,10 @@ class StoreConfig(AppConfig):
     name = 'store'
 
     def ready(self):
-        print("****** Store app is ready to go! ******")
-        import logging
-        #import store.custom_logging  # Import your custom logging here
-        #store.custom_logging.setup_custom_logging()
-        logger = logging.getLogger('store')  # Create a new logger
+        # setup the logger
+        import store.StoreLogsDBHandler	  # Import your custom logging here
+        logger = store.StoreLogsDBHandler.setup_custom_logging('apps')
+       
         # set the name of the store
         self.store_name = os.getenv('SERVICE_NAME')
+        logger.info(f"****** Store {self.store_name} is ready to go! ******")

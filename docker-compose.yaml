@@ -23,6 +23,7 @@ services:
     security_opt:
       - apparmor:unconfined  # Unrestricted access to hardware
     environment:
+      REMIGRATE: "false"
       SERVICE_NAME: "terminal1"
       SERVICE_HOST: ${PROJECT_HOST} # use  from .env
       PORT: ${PROJECT_PORT}
@@ -44,6 +45,7 @@ services:
     depends_on:
       - db
     environment:
+      REMIGRATE: "false"
       SERVICE_NAME: "donknabberello"
       # Database Setting
       DJANGO_DB_HOST: db
@@ -66,6 +68,7 @@ services:
     depends_on:
       - db
     environment:
+      REMIGRATE: "false"
       SERVICE_NAME: "doncaramello"
       # Database Setting
       DJANGO_DB_HOST: db
@@ -92,7 +95,8 @@ services:
   nginx:
     image: nginx:latest
     volumes:
-      - static_volume:/static
+      #- static_volume:/static
+      - ./static:/static
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     ports:
       - 8000:8000

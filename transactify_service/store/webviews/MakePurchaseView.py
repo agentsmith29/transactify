@@ -11,10 +11,9 @@ from django.http import HttpResponse
 
 from store.webmodels.Customer import Customer
 from store.helpers.ManageStockHelper import StoreHelper
-
+from store.StoreLogsDBHandler import StoreLogsDBHandler
 
 from ..webmodels.CustomerDeposit import CustomerDeposit
-from ..webmodels.CustomerBalance import CustomerBalance
 from ..webmodels.StoreProduct import StoreProduct
 from ..webmodels.CustomerPurchase import CustomerPurchase
 
@@ -27,8 +26,11 @@ from django.utils.decorators import method_decorator
 @method_decorator(login_required, name='dispatch')
 class MakePurchaseView(View):
     template_name = 'store/make_sale.html'
+
     def __init__(self):
-        pass
+        super().__init__()
+        self.logger = StoreLogsDBHandler.setup_custom_logging('ManageProductsView')
+
                       
 
     def get(self, request):
@@ -43,7 +45,7 @@ class MakePurchaseView(View):
         sale_price = Decimal(request.POST.get('sale_price'))
         customer = request.POST.get('customer')
         try:
-             StoreHelper.customer_purchase(ean, quantity, sale_price, customer)
+             StoreHelper.customer_purchase(ean, quantity, sale_price, customer, self.logger)
         except StoreProduct.DoesNotExist:
              return HttpResponse("Error: Product with the given EAN does not exist.")
         

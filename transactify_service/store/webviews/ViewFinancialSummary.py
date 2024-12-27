@@ -7,7 +7,6 @@ from django.views import View
 from store.webmodels.Customer import Customer
 
 from ..webmodels.CustomerDeposit import CustomerDeposit
-from ..webmodels.CustomerBalance import CustomerBalance
 from ..webmodels.CustomerPurchase import CustomerPurchase
 from ..webmodels.ProductRestock import ProductRestock
 from store.helpers.ManageStockHelper import StoreHelper

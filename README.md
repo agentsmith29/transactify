@@ -25,5 +25,7 @@ To run this project, use the docker-compose file. All other things are setup aut
 docker-compose up --build
 ```
 
+## Running the tests
+```bash
+docker-compose -f docker-compose.tests.yaml up --build
 ```
-

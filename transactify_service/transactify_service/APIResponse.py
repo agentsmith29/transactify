@@ -3,13 +3,21 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework import status
 
+from django.http import JsonResponse
+
+
+class WebResponse(Response):
+
+    def json_data(self):
+        return self.data, self.status_code
+
 class APIResponse:
     """
     Utility class to construct custom API responses with internal codes and HTTP status.
     """
 
     @staticmethod
-    def success(data=None, message="Success", code=0, http_status=200):
+    def success(data=None, message="Success", code=0, http_status=200, as_json=True):
         """
         Constructs a success response.
 
@@ -22,14 +30,16 @@ class APIResponse:
         Returns:
             Response: A DRF Response object.
         """
-        return Response(
+        return WebResponse(
             {
                 "data": data if data is not None else {},
                 "message": message,
                 "code": code,
+                'status': 'success'
             },
             status=http_status,
         )
+    
 
     @staticmethod
     def error(message="Error", code=999, http_status=400, data=None):
@@ -45,11 +55,12 @@ class APIResponse:
         Returns:
             Response: A DRF Response object.
         """
-        return Response(
+        return WebResponse(
             {
                 "data": data if data is not None else {},
                 "message": message,
                 "code": code,
+                'status': 'error'
             },
             status=http_status,
         )

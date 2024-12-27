@@ -13,9 +13,6 @@ class StoreLogsDBHandler(logging.Handler):
     def emit(self, record):
         from .webmodels.StoreLogs import StoreLog
         try:
-            # Log to stdout using RichHandler
-            self.rich_handler.emit(record)
-
             # Log to database
             StoreLog.objects.create(
                 loglevel=record.levelname,
@@ -23,13 +20,15 @@ class StoreLogsDBHandler(logging.Handler):
                 message=record.getMessage()
             )
         except Exception as e:
+            # alter the message to include the error
+            record.name = f"{record.name} (no DB)"
+            #print(f"Messsage: {record.message}")
             # Fail gracefully if database logging fails
-            print(f"Failed to log to database: {e}")
+            #print(f"Failed to log to database: {e}")
 
-
-def setup_custom_logging():
+def setup_custom_logging(name):
     """Sets up the custom logging handler."""
-    logger = logging.getLogger('store')  # Create a new logger
+    logger = logging.getLogger(name)  # Create a new logger
     logger.setLevel(logging.DEBUG)
 
     db_handler = StoreLogsDBHandler()
@@ -37,4 +36,5 @@ def setup_custom_logging():
 
     # Add the handler to the logger
     logger.addHandler(db_handler)
-    logger.info("Custom logging has been initialized.")
+    #logger.info("Custom logging has been initialized.")
+    return logger

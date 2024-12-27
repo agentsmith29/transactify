@@ -7,16 +7,18 @@
 PYTHON_EXEC=python
 MANAGE_PY="python manage.py"
 
-# rename /app/cashlessui/store to /app/cashlessui/$DJANGO_DB_NAME
-#mv /app/cashlessui/store /app/cashlessui/$DJANGO_DB_NAME
-#
-#chmod +x make_migrations.sh
-chmod +x make_user_db_migration.sh
+# check if REMIGRATE is set or available
+if [ -z "$REMIGRATE" ]; then
+    echo "REMIGRATE is not set. Setting REMIGRATE to false..."
+    REMIGRATE=false
+fi
+# if statement to check if REMIGRATE is set to true
 chmod +x make_store_db_migration.sh
-#chmod +x convert_svg_png.py
-# run make migrations
-#./make_user_db_migration.sh
-#./make_store_db_migration.sh
+if [ "$REMIGRATE" = "true" ]; then
+    echo "Remigrating the database..."
+    # run make migrations
+    ./make_store_db_migration.sh
+fi
 
 #$MANAGE_PY migrate --noinput || {
 #    echo "ERROR: Failed to migrate"
@@ -32,7 +34,7 @@ chmod +x make_store_db_migration.sh
 
 # python /app/static/tools/convert_svg_png.py
 
-
+export PYTHONUNBUFFERED=1
 # Step 7: Start the server
 echo "Starting the Django development server..."
 daphne -b 0.0.0.0 -p ${DJANGO_WEB_PORT} transactify_service.asgi:application 
