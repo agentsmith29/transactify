@@ -35,7 +35,7 @@ class APIResponse:
                 "data": data if data is not None else {},
                 "message": message,
                 "code": code,
-                'status': 'success'
+                "success": True
             },
             status=http_status,
         )
@@ -60,7 +60,7 @@ class APIResponse:
                 "data": data if data is not None else {},
                 "message": message,
                 "code": code,
-                'status': 'error'
+                "success": False
             },
             status=http_status,
         )

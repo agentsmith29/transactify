@@ -1,5 +1,6 @@
 class ManageProducts {
-    constructor(pageName) {
+    constructor(pageName, page_url) {
+        this.page_url = page_url
         this.pageName = pageName;
         this.socket = new WebSocket(`ws://${window.location.host}/tcon/page/${pageName}/`);
         this.initSocket();
@@ -46,57 +47,63 @@ class ManageProducts {
         const form = document.getElementById('addProductForm');
         const formData = new FormData(form);
 
-        fetch('/manage_products/', {
+        // print form data
+        fetch(this.page_url, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'cmd': 'add'
             },
             body: JSON.stringify({
                 product_ean: formData.get('product_ean'),
                 product_name: formData.get('product_name'),
                 resell_price: formData.get('resell_price')
             })
-        })
+        }
+    )
+        .then(console.log("Form data sent to " + this.page_url))
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showToast('Product added successfully.', true);
-                location.reload();
+                //location.reload();
+                window.toastManager.successAndReload('Product added successfully', data.message, "");
             } else {
-                //showErrorToast(title, message, submessage)
-                showErrorToast("Product add failed", data.message, "Please try again.");
+                //window.toastManager.error(title, message, submessage)
+                window.toastManager.error("Product add failed", data.message, "Please try again.");
             }
         })
         .catch(error => {
             console.error('Error adding product:', error);
             // Toast message with error
-            showErrorToast("Failed to add product", error, "Please try again.");
+            window.toastManager.error("Failed to add product", error, "Please try again.");
         });
     }
 
     deleteProduct(ean) {
-        fetch('/manage_products/', {
+        fetch(this.page_url, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'cmd': 'delete'
             },
-            body: JSON.stringify({ delete_ean: ean })
+            body: JSON.stringify({ product_ean: ean })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showToast(`Product with EAN ${ean} deleted successfully.`, true);
-                location.reload();
+                //location.reload();
+                window.toastManager.successAndReload(`Product ${ean} deleted successfully`, data.message, "");
+                
             } else {
-                showErrorToast("Failed to deleted product", data.message, "Please try again.");
+                window.toastManager.error("Failed to deleted product", data.message, "Please try again.");
             }
         })
         .catch(error => {
             console.error('Error deleting product:', error);
-            showErrorToast("Failed to deleted product", error, "Please try again.");
+            window.toastManager.error("Failed to deleted product", error, "Please try again.");
         });
     }
 
@@ -104,11 +111,12 @@ class ManageProducts {
         const form = document.getElementById('editProductForm');
         const formData = new FormData(form);
 
-        fetch('/manage_products/', {
+        fetch(this.page_url, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'cmd': 'edit'
             },
             body: JSON.stringify({
                 product_ean: formData.get('product_ean'),
@@ -119,15 +127,15 @@ class ManageProducts {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                this.showToast('Product updated successfully.', true);
-                location.reload();
+                //location.reload();
+                window.toastManager.successAndReload(`Product updated successfully`, data.message, ""); 
             } else {
-                showErrorToast("Failed to deleted product", data.message, "Please try again.");
+                window.toastManager.error("Failed to deleted product", data.message, "Please try again.");
             }
         })
         .catch(error => {
             console.error('Error updating product:', error);
-            showErrorToast("Failed to update product", error, "Please try again.");
+            window.toastManager.error("Failed to update product", error, "Please try again.");
         });
     }
 

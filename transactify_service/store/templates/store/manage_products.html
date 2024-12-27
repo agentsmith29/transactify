@@ -110,7 +110,7 @@
 <script src="{% static 'assets/js/manage-products.js' %}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        window.manageProducts = new ManageProducts('manage_products');
+        window.manageProducts = new ManageProducts('manage_products', "{% url 'manage_products' %}");
     });
 </script>
 {% endblock %}

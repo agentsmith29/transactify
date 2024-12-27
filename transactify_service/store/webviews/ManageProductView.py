@@ -11,6 +11,8 @@ from transactify_service.HttpResponses import HTTPResponses
 
 from store import StoreLogsDBHandler
 
+import json
+
 @method_decorator(login_required, name='dispatch')
 class ManageProductsView(View):
     template_name = 'store/manage_products.html'
@@ -33,9 +35,32 @@ class ManageProductsView(View):
     def post(self, request):
         """Handle POST requests for adding or editing products."""
         try:
-            ean = request.POST.get('product_ean')
-            name = request.POST.get('product_name')
-            resell_price = request.POST.get('resell_price')
+            
+            # check the header for field cmd
+            if 'cmd' in request.headers:
+                cmd = request.headers['cmd']
+            else:
+                cmd = "add"
+                
+            data = json.loads(request.body)
+            self.logger.debug(f"Post request recieved: {data}")
+            
+            ean = data.get('product_ean')
+
+            # Handle delete operation
+            if cmd == "delete":
+                self.logger.warning(f"Trying to delete product with EAN: {ean}")
+                deleted_count, _ = StoreProduct.objects.filter(ean=ean).delete()
+                if deleted_count > 0:
+                    return JsonResponse({'success': True, 'message': f"Product with EAN {ean} successfully deleted."}, status=200)
+                else:
+                    return JsonResponse({'success': False, 'message': f"Product with EAN {ean} not found."}, status=404)
+
+
+
+            ean = data.get('product_ean')
+            name = data.get('product_name')
+            resell_price = data.get('resell_price')
 
             # -- Comment 1: Validate input data
             if not ean or not name or not resell_price:
@@ -43,15 +68,6 @@ class ManageProductsView(View):
                 return JsonResponse({'success': False, 'message': "Missing required fields."}, status=400)
             # -- End 1
 
-            # Handle delete operation
-            if 'delete_ean' in request.POST:
-                delete_ean = request.POST.get('delete_ean')
-                self.logger.warning(f"Trying to delete product with EAN: {delete_ean}")
-                deleted_count, _ = StoreProduct.objects.filter(ean=delete_ean).delete()
-                if deleted_count > 0:
-                    return JsonResponse({'success': True, 'message': f"Product with EAN {delete_ean} successfully deleted."}, status=200)
-                else:
-                    return JsonResponse({'success': False, 'message': f"Product with EAN {delete_ean} not found."}, status=404)
 
             # -- Comment 2: Wrap operations in an atomic transaction
             with transaction.atomic():

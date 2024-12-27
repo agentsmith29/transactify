@@ -9,33 +9,32 @@
     <meta name="description" content="">
     <meta name="csrf-token" content="{{ csrf_token }}">
     
-    <!-- <link rel="stylesheet" href="{% static 'assets/dist/css/css@3.css' %}"> -->
+    <link rel="stylesheet" href="{% static 'assets/dist/css/css@3.css' %}">
     <!--link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3"-->
 
     <!-- Local Bootstrap CSS -->
-    <!-- <link href="{% static 'assets/dist/css/bootstrap.min.css' %}" rel="stylesheet"> -->
+    <link href="{% static 'assets/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Toasts CSS -->
+    <link href="{% static 'assets/dist/css/toasts.css' %}" rel="stylesheet">
+
+    <!-- Sidebar CSS -->
+    <link href="{% static 'assets/dist/css/sidebars.css' %}" rel="stylesheet">
     
     <!-- Local DocSearch CSS -->
     <!-- <link href="{% static 'assets/dist/css/docsearch-css.css' %}" rel="stylesheet"> -->
     {% block header %}
     <!-- Dynamic content from child templates will appear here -->
     {% endblock %}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
- 
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous"> -->
+    
+    
     <style>
         body {
             display: flex;
             height: 100vh;
             overflow: hidden; /* Prevents body from scrolling */
         }
-
-        .sidebar {
-            width: 280px;
-            flex-shrink: 0;
-            height: 100vh; /* Makes the sidebar take the full height */
-            overflow-y: auto; /* Allows scrolling within the sidebar */
-        }
-
         .main-content {
             flex-grow: 1; /* Expands to fill the remaining space */
             overflow-y: auto; /* Enables scrolling for the main content */
@@ -126,13 +125,7 @@
         display: block !important;
       }
 
-      .toastImageError {
-        filter: invert(20%) sepia(100%) saturate(10000%) hue-rotate(-15deg) brightness(100%) contrast(100%);
-      }
 
-      .toastImageSuccess {
-        filter: invert(20%) sepia(100%) saturate(10000%) hue-rotate(120deg) brightness(100%) contrast(100%);
-      }
 
 
       
@@ -190,7 +183,7 @@
         <ul class="nav nav-pills flex-column mb-auto">
             <li class="nav-item">
                 {% load static %}
-                <a href="{% url 'dashboard' %}" class="nav-link {% if request.path|regex_match:'^/.*' %}active{% else %}text-white{% endif %}" aria-current="page">
+                <a href="{% url 'dashboard' %}" class="nav-link" aria-current="page">
                     <img src="{% static 'icons/svg/house.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
                     Dashboard
                 </a>
@@ -272,8 +265,7 @@
             </div>
         </div>
     </div> -->
-    <div class="toast" id="infoToast" role="alert" aria-live="assertive" aria-atomic="true"  
-    style="position: absolute;top: 0; right: 50%; z-index:1;">
+    <div class="toast toast-centered" id="infoToast" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header">
             <img id="toastIcon" src="">
             <strong class="me-auto" id="toastTitle">Error</strong>
@@ -294,8 +286,8 @@
         </div>
     </div>
 <!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>     -->
-<!-- <script src="{% static 'assets/dist/js/bootstrap.bundle.min.js' %}"></script>  -->
-<!-- <script src="{% static 'assets/dist/js/sidebars.js' %}"></script> -->
+<script src="{% static 'assets/dist/js/bootstrap.bundle.min.js' %}"></script> 
+<script src="{% static 'assets/dist/js/sidebars.js' %}"></script>
 
 <!-- <script src="{% static 'assets/js/docs.min.js' %}"></script> -->
 <!-- <script src="{% static 'assets/dist/cdn/docsearch.min.js' %}"></script> -->
@@ -304,72 +296,13 @@
 
 <!-- Local Bootstrap JS -->
 <!-- <script src="{% static 'assets/dist/js/bootstrap-js.js' %}"></script> -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
- 
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script> -->
+<script>
+    window.toastManager = new ToastManager('{% static "/icons/svg/" %}');
+    document.addEventListener("DOMContentLoaded", displaySuccessAfterReload);
+</script>
 </body>
-
 {% block scripts %}
 <!-- Dynamic content from child templates will appear here -->
 {% endblock %}
-<script>
-    function showToast_(message, isSuccess) {
-        const toastElement = document.getElementById('liveToast');
-        const toastMessage = document.getElementById('notificationMessage');
-
-        toastMessage.textContent = message;
-
-        if (isSuccess) {
-            toastElement.classList.remove('text-bg-danger');
-            toastElement.classList.add('text-bg-primary');
-        } else {
-            toastElement.classList.remove('text-bg-primary');
-            toastElement.classList.add('text-bg-danger');
-        }
-
-        const toast = new bootstrap.Toast(toastElement);
-        toast.show();
-    }
-    
-    function showToast(title, message) {
-        showErrorToast(title, message, '');
-    }
-    
-    function showErrorToast(title, message, submessage) { 
-        const toastLiveExample = document.getElementById("infoToast");
-        const toastIcon = document.getElementById('toastIcon');
-        const toastTitle = document.getElementById('toastTitle');
-        const toastMessage = document.getElementById('toastMessage');
-        const toastSubMessage = document.getElementById('toastSubMessage');
-
-        toastTitle.textContent = title;
-        toastMessage.textContent = message;
-        toastSubMessage.textContent = submessage;
-
-        toastIcon.src = "{% static '/icons/svg/x-circle-fill.svg' %}";
-        toastIcon.className = 'toastImageError rounded me-2';
-
-        const toast = new bootstrap.Toast(toastLiveExample);
-        toast.show();
-    }
-
-    function showSuccessToast(title, message, submessage) { 
-        const toastLiveExample = document.getElementById("infoToast");
-        const toastIcon = document.getElementById('toastIcon');
-        const toastTitle = document.getElementById('toastTitle');
-        const toastMessage = document.getElementById('toastMessage');
-        const toastSubMessage = document.getElementById('toastSubMessage');
-
-        toastTitle.textContent = title;
-        toastMessage.textContent = message;
-        toastSubMessage.textContent = submessage;
-
-        toastIcon.src = "{% static '/icons/svg/check-circle-fill.svg' %}";
-        // set the css style for the icon 0 .toastImageError
-        toastIcon.className = 'toastImageSuccess rounded me-2';
-
-        const toast = new bootstrap.Toast(toastLiveExample);
-        toast.show();
-    }
-</script>
-
 </html>
