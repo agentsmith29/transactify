@@ -1,6 +1,9 @@
 {% extends "./sidebar/sidebar.html" %}
 {% load static %}
-
+{% load custom_filters %}
+{% block header %}
+<title>Manage Products</title>
+{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -48,12 +51,25 @@
                     <tr>
                         <td>{{ product.ean }}</td>
                         <td>{{ product.name }}</td>
-                        <td>{{ product.resell_price }}</td>
+                        {% if product.discount == 0 %}
+                            <td>{{ product.resell_price }}</td>
+                        {% else %}
+                            <td>
+                                <del>{{ product.resell_price }}</del> 
+                                <b>
+                                    <span style="color: red;">{{ product.final_price }}</span> (-{{ product.discount|multiply:100 }}%)
+                                </b>
+                            </td>
+                            </td>
+                            </td>
+                        {% endif %}
                         <td>{{ product.stock_quantity }}</td> 
                         <td>
                             <!-- Edit Button -->
                              <button type="button" class="btn btn-warning btn-sm"
-                            onclick="manageProducts.openEditModal('{{ product.ean }}', '{{ product.name }}', '{{ product.resell_price }}')">
+                            onclick="manageProducts.openEditModal(
+                                '{{ product.ean }}', '{{ product.name }}', '{{ product.resell_price }}', '{{ product.discount}}'
+                                )">
                             Edit
                             </button>
                             <!-- Delete Button -->
@@ -80,8 +96,8 @@
             <form id="editProductForm">
                 {% csrf_token %}
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editProductModalLabel">Edit Product </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="manageProducts.closeEditModal()">
+                    <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="manageProducts.closeModal()">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -95,9 +111,13 @@
                         <label for="modal_resellprice">Price (€)</label>
                         <input type="number" class="form-control" id="modal_resellprice" name="resell_price" step="0.01" required>
                     </div>
+                    <div class="form-group">
+                        <label for="modal_discount">Discount (%)</label>
+                        <input type="number" class="form-control" id="modal_discount" name="discount" min="0" max="100" step="0.1" required>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="manageProducts.closeEditModal()">Close</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="manageProducts.closeModal()">Close</button>
                     <button type="button" class="btn btn-primary" onclick="manageProducts.submitEditForm()">Save Changes</button>
                 </div>
             </form>
@@ -108,7 +128,6 @@
 {% endblock %}
 
 {% block scripts %}
-<title>Manage Products</title>
 <script src="{% static 'assets/js/manage-products.js' %}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {

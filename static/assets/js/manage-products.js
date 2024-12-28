@@ -56,7 +56,8 @@ class ManageProducts {
             body: JSON.stringify({
                 product_ean: formData.get('product_ean'),
                 product_name: formData.get('product_name'),
-                resell_price: formData.get('resell_price')
+                resell_price: formData.get('resell_price'),
+                discount: parseFloat(formData.get('discount')/100)
             })
         }
     )
@@ -123,7 +124,8 @@ class ManageProducts {
             body: JSON.stringify({
                 product_ean: formData.get('product_ean'),
                 product_name: formData.get('product_name'),
-                resell_price: formData.get('resell_price')
+                resell_price: formData.get('resell_price'),
+                discount: parseFloat(formData.get('discount')/100)
             })
         })
         .then(response => response.json())
@@ -141,22 +143,27 @@ class ManageProducts {
         });
     }
 
-
-    openEditModal(ean, name, resellPrice) {
+    openEditModal(ean, name, resellPrice, dicount) {
+        console.log("Opening edit modal for product:", ean);
+        document.getElementById('editProductModalLabel').value = `Edit Product ${ean}`;
         document.getElementById('modal_ean').value = ean;
         document.getElementById('modal_name').value = name;
         document.getElementById('modal_resellprice').value = resellPrice;
-        //$('#editProductModal').modal('show');
-        const editProductModal = document.getElementById('editProductModal');
-        // show modal
-        editProductModal.modal = "show";
-        
-
+        document.getElementById('modal_discount').value = dicount * 100;
+        // Use Bootstrap's modal API to show the modal
+        const modal = new bootstrap.Modal('#editProductModal');
+        modal.show();
+    
     }
     
-    closeEditModal() {
-        const editProductModal = document.getElementById('editProductModal');
-        editProductModal.hidden = true;
+    closeModal() {
+        // Use Bootstrap's modal API to hide the modal
+        const modal = bootstrap.Modal.getInstance('#editProductModal');
+        if (modal) {
+            modal.hide();
+        }
     }
 
+
 }
+

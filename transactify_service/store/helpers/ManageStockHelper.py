@@ -268,10 +268,23 @@ class StoreHelper:
 
     @staticmethod
     @transaction.atomic
-    def _get_or_create_product(ean: str, name: str, resell_price: Decimal, logger: logging.Logger) -> tuple[Response, StoreProduct]:
+    def _get_or_create_product(ean: str, name: str, resell_price: Decimal, discount: Decimal, logger: logging.Logger) -> tuple[Response, StoreProduct]:
         """
         Get or create a product by EAN, and update its details if it exists.
         """
+        # check if all required fields are present
+        if not ean or not name or not resell_price:
+            logger.error("Missing required fields for product creation.")
+            raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_CREATE_FAILED(ean, "Missing required fields"))
+            
+        if discount < 0 or discount > 100:
+            logger.error(f"Invalid discount value for product '{name}': {discount}")
+            raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_CREATE_FAILED(ean, f"Invalid discount value: {discount}"))
+        
+        if resell_price < 0:
+            logger.error(f"Invalid resell price for product '{name}': {resell_price}")
+            raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_CREATE_FAILED(ean, f"Invalid resell price: {resell_price}"))
+        
         logger.info(f"Creating or retrieving product '{name}' with EAN '{ean}' (Resell Price: {resell_price})")
         try:
             product, created = StoreProduct.objects.get_or_create(ean=ean)
@@ -279,6 +292,7 @@ class StoreHelper:
                 logger.info(f"New product created: {product}")
             product.name = name
             product.resell_price = resell_price
+            product.discount = discount
             product.save()
         except Exception as e:
             logger.error(f"Error during product creation: {e}")

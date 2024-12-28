@@ -1,30 +1,43 @@
 <!DOCTYPE html>
 {% extends "./sidebar/sidebar.html" %}
+{% load custom_filters %}
+{% load static %}
+
+{% block header %}
+<title>Manage Products</title>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
     <h1 class="mb-4">Add Stock to Existing Product</h1>
 
-    <form method="post" class="border p-4 shadow-sm bg-light">
+    <form id="addStockForm" class="border p-4 shadow-sm bg-light">
         {% csrf_token %}
         <div class="form-group">
             <label for="ean">EAN (Article Number)</label>
             <!-- Create a dropdown menu for the product -->
-            <select class="form-control" id="ean" name="ean" required>
+            <select class="form-control" id="ean" name="ean" onchange="manage_stock.updateResellPrice()" required>
                 {% for product in products %}
-                <option value="{{ product.ean }}">{{ product.name }} (EAN: {{ product.ean }})</option>
+                <option value="{{ product.ean }}" data_price="{{ product.final_price }}">
+                    {{ product.name }} (EAN: {{ product.ean }})
+                </option>
                 {% endfor %}
             </select>
         </div>
+        <div class="form-group">
+            <label for="resell_price">Resell Price (€)</label>
+            <label class="form-control" id="resell_price" name="resell_price"></label>
         <div class="form-group">
             <label for="quantity">Stock Quantity</label>
             <input type="number" class="form-control" id="quantity" name="quantity" required>
         </div>
         <!-- Add a new input field for the unit price -->
         <div class="form-group">
-            <label for="purchase_price">Unit Price</label>
+            <label for="purchase_price">Unit (paid) Price</label>
+            <small id="purchase_price_help" class="form-text text-muted">Price paid for the product.</small>
             <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="0.01" required>
         </div>
-        <button type="submit" class="btn btn-secondary">Add Stock</button>
+        <button type="button" class="btn btn-secondary" onclick="manage_stock.submitStockForm()">Add Stock</button>
     </form>
 </div>
 
@@ -37,7 +50,7 @@
                 <tr>
                     <th>EAN</th>
                     <th>Name</th>
-                    <th>Price (€)</th>
+                    <th>Resell Price (€)</th>
                     <th>Stock Quantity</th>
                 </tr>
             </thead>
@@ -46,8 +59,25 @@
                 <tr>
                     <td>{{ product.ean }}</td>
                     <td>{{ product.name }}</td>
-                    <td>{{ product.resell_price }}</td>
-                    <td>{{ product.stock_quantity }}</td>
+                    {% if product.discount == 0 %}
+                        <td>{{ product.final_price }}</td>
+                    {% else %}
+                        <td>
+                            <del>{{ product.resell_price }}</del> 
+                            <b>
+                                <span style="color: red;">{{ product.final_price }}</span> (-{{ product.discount|multiply:100 }}%)
+                            </b>
+                        </td>
+                    {% endif %}
+                    {% if product.stock_quantity > 0 %}
+                        <td>{{ product.stock_quantity }}</td>
+                    {% else %}
+                        <td>
+                            <b>
+                                <span style="color: red;">{{ product.stock_quantity }}</span>
+                            </b>
+                        </td>
+                    {% endif %}
                 </tr>
                 {% empty %}
                 <tr>
@@ -130,4 +160,15 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+
+{% block scripts %}
+<script src="{% static 'assets/js/manage-stock.js' %}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        window.manage_stock = new ManageStock('manage_stock', "{% url 'manage_stock' %}");
+        manage_stock.updateResellPrice();
+    });
+</script>
 {% endblock %}

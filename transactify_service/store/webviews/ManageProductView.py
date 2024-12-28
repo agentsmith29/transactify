@@ -41,7 +41,7 @@ class ManageProductsView(View):
                 cmd = request.headers['cmd']
             else:
                 cmd = "add"
-                
+
             data = json.loads(request.body)
             self.logger.debug(f"Post request recieved: {data}")
             
@@ -56,11 +56,9 @@ class ManageProductsView(View):
                 else:
                     return JsonResponse({'success': False, 'message': f"Product with EAN {ean} not found."}, status=404)
 
-
-
-            ean = data.get('product_ean')
             name = data.get('product_name')
             resell_price = data.get('resell_price')
+            discount = data.get('discount')
 
             # -- Comment 1: Validate input data
             if not ean or not name or not resell_price:
@@ -73,11 +71,12 @@ class ManageProductsView(View):
             with transaction.atomic():
                 try:
                     resell_price = Decimal(resell_price)  # Validate Decimal conversion
+                    discount = Decimal(data.get('discount'))
                 except Exception as e:
                     self.logger.error(f"Invalid input for resell price: {e}")
                     return JsonResponse({'success': False, 'message': "Invalid resell price. Please enter a valid number."}, status=400)
 
-                response, product = StoreHelper._get_or_create_product(ean, name, resell_price, self.logger)
+                response, product = StoreHelper._get_or_create_product(ean, name, resell_price, discount, self.logger)
                 data, status = response.json_data()
                 return JsonResponse(data=data, status=status)
             
