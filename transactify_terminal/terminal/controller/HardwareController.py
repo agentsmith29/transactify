@@ -67,7 +67,7 @@ class HardwareController():
             self.view_controller.request_view(self.view_controller.PAGE_MAIN, 
                                               store_name=self.store_bases[0].name, display_back=False, )
         else:
-            self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION, 
+            self.view_controller.request_view(self.view_controller._SCREEN_SAVER, 
                                               stores=self.store_bases)
         
     

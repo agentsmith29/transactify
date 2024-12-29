@@ -9,6 +9,8 @@ from .OLEDPageCustomer import OLEDPageCustomer
 from .OLEDPageCustomerUnknown import OLEDPageCustomer_Unknown
 from .OLEDPagePurchaseSuccessfull import OLEDPagePurchaseSuccessfull
 
+from .OLEDScreenSaver import OLEDScreenSaver
+
 from .OLEDPageInsufficientStock import OLEDPageInsufficientStock
 
 from .OLEDPageError import OLEDPageError
@@ -29,6 +31,7 @@ import threading
 
 from ..ConfParser import Store
 from ...api_endpoints.StoreProduct import StoreProduct
+from luma.oled.device import ssd1322 as OLED
 
 class OLEDViewControllerSignals():
     view_changed = Signal()
@@ -37,7 +40,7 @@ class OLEDViewControllerSignals():
 class OLEDViewController():
 
     
-    def __init__(self, oled,
+    def __init__(self, oled: OLED,
                  sig_on_barcode_read: Signal,
                  sig_on_nfc_read: Signal,
                  sig_on_btn_pressed: Signal,
@@ -74,6 +77,8 @@ class OLEDViewController():
         self.PAGE_CUSTOMER_UNKNW = OLEDPageCustomer_Unknown(**kwargs)
         self.PAGE_PURCHASE_SUCC = OLEDPagePurchaseSuccessfull(**kwargs)
         self.PAGE_ERROR = OLEDPageError(**kwargs)
+
+        self._SCREEN_SAVER = OLEDScreenSaver(**kwargs)
 
         
         
@@ -147,7 +152,9 @@ class OLEDViewController():
         print(f"Requesting view: {view}.")
         if self.view_thread is not None and self.view_thread.is_alive():
             try:
-                self.view_thread.join() 
+                print("Joining thread...")
+                self.current_view.break_loop = True  # Break the loop of the current view
+                self.view_thread.join(timeout=3) 
             except Exception as e:
                 print(f"Error joining thread: {e}")
         self.current_view = view
@@ -157,3 +164,17 @@ class OLEDViewController():
         self.signals.view_changed.send(sender=self, view=view)
 
 
+    def start_screen_saver(self):
+             # if given a string for the view, get the view object.
+
+    
+        self.view_thread = threading.Thread(target=self.current_view.screensaver_game_of_life, daemon=True)
+        self.view_thread.start()
+        self.signals.view_changed.send(sender=self, view=view)
+
+    def __del__(self):
+        self.break_loop = True
+        if self.view_thread is not None and self.view_thread.is_alive():
+            self.view_thread.join(timeout=3)
+        self.oled.cleanup()
+        print("OLEDViewController cleaned up.")

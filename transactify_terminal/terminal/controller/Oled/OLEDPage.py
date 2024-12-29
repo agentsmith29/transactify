@@ -20,6 +20,10 @@ from ..ConfParser import Store
 from ...api_endpoints.StoreProduct import StoreProduct
 from ...api_endpoints.Customer import Customer
 
+from random import randint
+from luma.core.render import canvas
+
+
 class OLEDPage():
     name: str = "OLEDPage"
     
@@ -92,7 +96,7 @@ class OLEDPage():
     def class_name(cls):
         return cls.__name__
     
-    def view(self, *args, **kwargs):
+    def view(self,  kill_flag=False, *args, **kwargs,):
         raise NotImplementedError("View not implemented")
     
     def convert_image_to_base64(self, image):
@@ -427,3 +431,5 @@ class OLEDPage():
                                         store=store)
             return None
             
+    def __del__(self):
+        print(f"Life of {self.name} ended.")
