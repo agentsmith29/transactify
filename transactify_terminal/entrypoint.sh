@@ -17,6 +17,10 @@ chmod +x make_terminal_db_migration.sh
 if [ "$REMIGRATE" = "true" ]; then
     echo "Remigrating the database..."
     ./make_terminal_db_migration.sh
+    $MANAGE_PY collectstatic --noinput || {
+        echo "ERROR: Failed to collect static files."
+        exit 1
+    }
 fi
 
 

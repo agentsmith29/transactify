@@ -14,7 +14,8 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 
 from store.helpers.ManageStockHelper import StoreHelper
-
+from asgiref.sync import sync_to_async
+import httpx
 
 from ..webmodels.CustomerDeposit import CustomerDeposit
 #from ..webmodels.CustomerBalance import CustomerBalance
@@ -49,8 +50,23 @@ class ManageCustomersView(View):
         customers = self.get_all_customers()
         return render(request, 'store/manage_customers.html', {'customers': customers})
     
+    async def fetch_nfc_data(self):
+        """Fetch NFC data asynchronously using httpx."""
+        terminal_url = f"{os.getenv('TERMINAL_SERVICES')}/api/read/nfc-blocking/"
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(terminal_url, timeout=10)
+                response.raise_for_status()
+                return response.json()
+        except httpx.HTTPStatusError as e:
+            self.logger.error(f"HTTP error while fetching NFC data: {e}")
+            return {"status": "error", "message": f"HTTP error: {str(e)}"}
+        except httpx.RequestError as e:
+            self.logger.error(f"Request error while fetching NFC data: {e}")
+            return {"status": "error", "message": f"Request error: {str(e)}"}
+        
     @method_decorator(csrf_protect)
-    def post(self, request):
+    async def post(self, request):
         """Handle POST requests to add a new customer."""     
         
         try:
@@ -82,21 +98,28 @@ class ManageCustomersView(View):
         try:
             # Trigger NFC read
             time = datetime.now()
+            # Trigger NFC read
             self.logger.info("Waiting for NFC card...")
-            # create a request 
-            terminal_url = f"{os.getenv('TERMINAL_SERVICES')}/api/read/nfc-blocking/"
-            json_response = requests.get(terminal_url)
-            if json_response.status_code != 200:
-                return JsonResponse({'status': 'error', 'message': 'Failed to read NFC card'}, status=500)
-            card_number = json_response.json().get('id')
-            content = json_response.json().get('content')
+            time_start = datetime.now()
+            nfc_data = await self.fetch_nfc_data(request)
+
+            if nfc_data.get("status") == "error":
+                return JsonResponse(nfc_data, status=500)
+
+            card_number = nfc_data.get("id")
+            content = nfc_data.get("content")
+
+
             time_stop = datetime.now()
             time_delta = time_stop - time
             self.logger.debug(f"Waited for NFC card for: {time_delta}.")
             self.logger.info(f"Card number: {card_number}, Content: {content}.")
             # --------------------------------------
             # Create and save the new customer
-            response, customer = StoreHelper.create_new_customer(username, first_name, last_name, email, balance, card_number, self.logger)
+             # Create and save the new customer
+            response, customer = StoreHelper.create_new_customer(
+                username, first_name, last_name, email, balance, card_number, self.logger
+            )
             data, status = response.json_data()
             # --------------------------------------
             return JsonResponse(data, status=status)

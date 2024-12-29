@@ -68,7 +68,7 @@ services:
     depends_on:
       - db
     environment:
-      REMIGRATE: "true"
+      REMIGRATE: "false"
       SERVICE_NAME: "doncaramello"
       # Database Setting
       DJANGO_DB_HOST: db
@@ -95,8 +95,8 @@ services:
   nginx:
     image: nginx:latest
     volumes:
-      #- static_volume:/static
-      - ./static:/static
+      - static_volume:/static
+      #- ./static:/static
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/nginx.donknabberello.conf:/etc/nginx/nginx.donknabberello.conf
     ports:

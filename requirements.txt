@@ -8,6 +8,7 @@ asyncio
 channels
 websockets
 daphne      # ASGI server
+httpx       # For making HTTP requests
 
 # Postgress database
 psycopg     

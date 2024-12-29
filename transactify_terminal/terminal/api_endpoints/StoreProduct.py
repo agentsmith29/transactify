@@ -67,6 +67,8 @@ class StoreProduct:
             except Exception as e:
                 print(f"Unexpected error when fetching product from {store}: {e}")
                 traceback.print_exc()
+
+                
         return None  # Return None if no product is found
 
     def customer_purchase(self, customer: Customer, quantity=1) -> Response:

@@ -51,3 +51,5 @@ $MANAGE_PY migrate || {
     echo "ERROR: Failed to apply migrations for the default database."
     exit 1
 }
+
+
