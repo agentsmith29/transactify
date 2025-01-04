@@ -173,8 +173,5 @@ class OLEDViewController():
         self.signals.view_changed.send(sender=self, view=view)
 
     def __del__(self):
-        self.break_loop = True
-        if self.view_thread is not None and self.view_thread.is_alive():
-            self.view_thread.join(timeout=3)
         self.oled.cleanup()
         print("OLEDViewController cleaned up.")

@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Run Transactify Server (Docker)",
+        "type": "node",
+        "request": "launch",
+        "runtimeExecutable": "docker-compose",
+        "runtimeArgs": ["up", "--build"],
+        "console": "integratedTerminal",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      {
+        "name": "Run Tests (Docker)",
+        "type": "node",
+        "request": "launch",
+        "runtimeExecutable": "docker-compose",
+        "runtimeArgs": ["-f", "docker-compose.tests.yaml", "up", "--build"],
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      }
+    ]
+  }
+  

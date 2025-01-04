@@ -17,6 +17,7 @@ services:
     build:
       context: .
       dockerfile: ./transactify_terminal/Dockerfile
+    restart: always
     privileged: true  # Grants access to devices and kernel features
     cap_add:
       - SYS_RAWIO  # Allows raw GPIO access
@@ -42,6 +43,7 @@ services:
     build:
       context: .
       dockerfile: ./transactify_service/Dockerfile
+    restart: always
     depends_on:
       - db
     environment:
@@ -65,6 +67,7 @@ services:
     build:
       context: .
       dockerfile: ./transactify_service/Dockerfile
+    restart: always
     depends_on:
       - db
     environment:
@@ -94,6 +97,7 @@ services:
 
   nginx:
     image: nginx:latest
+    restart: always
     volumes:
       - static_volume:/static
       #- ./static:/static

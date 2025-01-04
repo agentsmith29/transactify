@@ -12,11 +12,11 @@ import argparse
 # LED strip configuration:
 LED_COUNT = 8        # Number of LED pixels.
 LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
-#LED_PIN = 10        # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
-LED_FREQ_HZ = 8000000  # LED signal frequency in hertz (usually 800khz)
-LED_DMA = 1     # DMA channel to use for generating signal (try 10)
-LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
-LED_INVERT = False    # True to invert the signal (when using NPN transistor level shift)
+# LED_PIN = 10        # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
+LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
+LED_DMA = 10          # DMA channel to use for generating signal (try 10)
+LED_BRIGHTNESS = 10  # Set to 0 for darkest and 255 for brightest
+LED_INVERT = True    # True to invert the signal (when using NPN transistor level shift)
 LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
 
@@ -90,20 +90,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--clear', action='store_true', help='clear the display on exit')
     args = parser.parse_args()
-    for LED_FREQ_HZ in [0, 1, 400, 800, 1000, 2000, 4000, 8000, 10000, 20000, 40000, 80000, 100000, 200000, 400000, 800000, 1000000, 2000000, 4000000, 8000000]:
-        LED_FREQ_HZ = 8000000
-        print(f"Testing with LED_FREQ_HZ = {LED_FREQ_HZ}")
-        #for hz in range(1, 800000):
-        # Create NeoPixel object with appropriate configuration.
-        strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
-        # Intialize the library (must be called once before other functions).
-        strip.begin()
-        strip.setPixelColor(0, Color(255, 255, 255))
-        strip.show()
-        strip.setPixelColor(0, Color(0, 0, 0))
-        strip.show()
-        time.sleep(1)
-    exit(0)
+
+    # Create NeoPixel object with appropriate configuration.
+    strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
+    # Intialize the library (must be called once before other functions).
+    strip.begin()
 
     print('Press Ctrl-C to quit.')
     if not args.clear:

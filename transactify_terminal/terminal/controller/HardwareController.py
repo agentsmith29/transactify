@@ -263,7 +263,9 @@ class HardwareController():
             page, 
             payload,
         )
-
+    
+    def __del__(*args, **kwargs):
+        print("HardwareController deleted.")
 
 
 
