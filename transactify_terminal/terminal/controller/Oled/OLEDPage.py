@@ -23,15 +23,21 @@ from ...api_endpoints.Customer import Customer
 from random import randint
 from luma.core.render import canvas
 
+from terminal.controller.LEDStripController import LEDStripController
+
 
 class OLEDPage():
     name: str = "OLEDPage"
+
+    BTN_OKAY = "F"
+    BTN_BACK = "E"
     
     def __init__(self, oled, 
                  stores: list[Store],
                  sig_abort_view: Signal, sig_request_view: Signal,
                  sig_on_barcode_read: Signal, sig_on_nfc_read: Signal, sig_on_btn_pressed: Signal,
                  view_controller,
+                 ledstrip: LEDStripController,
                  locked = False, overwritable = True):
         
         self._signal_abort_view = sig_abort_view
@@ -45,7 +51,7 @@ class OLEDPage():
         
         self.view_controller: OLEDViewController = view_controller
 
-
+        self.ledstrip = ledstrip
         self.oled = oled
 
         OLEDPage.name: str = str(self.__class__.__name__)
@@ -77,8 +83,6 @@ class OLEDPage():
         self._signal_on_btn_pressed.connect(self._sig_on_btn_pressed)
         self.break_loop = False
         self.is_active = False
-
-        self.btn_back = "D"
 
         self.oled_image = None
         self.oled_image_base64 = None

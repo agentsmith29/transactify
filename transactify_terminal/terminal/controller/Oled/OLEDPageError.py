@@ -16,6 +16,7 @@ class OLEDPageError(OLEDPage):
              icon=r'/app/static/icons/png_16/x-circle-fill.png', 
              display_back = False,
              next_view = None, *args, **kwargs):
+        self.ledstrip.animate(self.led_animation)
         image, draw = self._post_init()
 
         header_height = 20
@@ -40,6 +41,7 @@ class OLEDPageError(OLEDPage):
         # ------------- Body ----------------
         if next_view:
             self.display_next(image, draw, next_view, 5, *args, **kwargs)
+        self.ledstrip.stop_animation()
 
     def on_barcode_read(self, sender, barcode, **kwargs):
         pass
@@ -48,5 +50,20 @@ class OLEDPageError(OLEDPage):
         pass
 
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):
-        if kypd_btn == self.btn_back:
-            self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)
+        if kypd_btn == OLEDPage.BTN_BACK:
+            self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)    
+    
+    def led_animation(self):
+        from rpi_ws281x import Color
+        try:
+            print('Screensaver animations.')
+            while not self.ledstrip.break_loop:
+                self.ledstrip.pulse(Color(255, 0, 0), 3)  # Red wipe
+            print("Screensaver Animation stopped.")
+
+        except KeyboardInterrupt:
+            self.ledstrip.colorWipe(Color(0, 0, 0), 10)
+        
+        except Exception as e:
+            print(f"Error in LEDStripeController: {e}")
+            self.ledstrip.colorWipe(Color(0, 0, 0), 10)

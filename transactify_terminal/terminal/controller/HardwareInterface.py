@@ -7,6 +7,7 @@ from .KeyPad import KeyPad
 
 from .BarcodeScanner import BarcodeScanner
 from .NFCReader import NFCReader
+from .LEDStripController import LEDStripController
 
 class HardwareSignals():
     pass
@@ -21,6 +22,7 @@ class HardwareInterface():
         serial_monitor = spi(port = 0, device=1, gpio_DC=23, gpio_RST=24)
         self._oled = OLED(serial_monitor)
         self._keypad = KeyPad()
+        self._ledstrip = LEDStripController()
 
         # Multithreading 
         self._nfc_reader = NFCReader()
@@ -42,6 +44,12 @@ class HardwareInterface():
     @property
     def barcode_reader(self):
         return self._barcode_reader
+    
+    @property
+    def ledstrip(self):
+        return self._ledstrip
+    
+
     
 
 

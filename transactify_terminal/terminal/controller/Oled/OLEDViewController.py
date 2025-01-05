@@ -33,23 +33,27 @@ from ..ConfParser import Store
 from ...api_endpoints.StoreProduct import StoreProduct
 from luma.oled.device import ssd1322 as OLED
 
+from ..LEDStripController import LEDStripController
+
 class OLEDViewControllerSignals():
     view_changed = Signal()
 
 
 class OLEDViewController():
-
+    OLED_SCREEN_SAVER_TIMEOUT = 5
     
     def __init__(self, oled: OLED,
                  sig_on_barcode_read: Signal,
                  sig_on_nfc_read: Signal,
                  sig_on_btn_pressed: Signal,
-                 stores: list[Store]):
+                 stores: list[Store],
+                 ledstrip: LEDStripController):
         
         self.sig_abort_page = Signal()
         self.sig_request_view = Signal()
         self.sig_request_view.connect(self.request_view)
         self.oled = oled
+        self.ledstrip = ledstrip
 
         self.signals = OLEDViewControllerSignals()
 
@@ -58,9 +62,11 @@ class OLEDViewController():
             'view_controller': self,
             "sig_abort_view": self.sig_abort_page,
             "sig_request_view": self.sig_request_view,
+            #
             "sig_on_barcode_read": sig_on_barcode_read,
             "sig_on_nfc_read": sig_on_nfc_read,
-            "sig_on_btn_pressed": sig_on_btn_pressed
+            "sig_on_btn_pressed": sig_on_btn_pressed,
+            "ledstrip": ledstrip
         }
 
         self.PAGE_STORE_SELECTION = OLEDStoreSelection(**kwargs)
@@ -92,7 +98,58 @@ class OLEDViewController():
         # Flags
         self.button_A_for_release = False   # Allows the release of the terminal by pressing button A
 
-   
+        
+        self._screensaver_timeout = OLEDViewController.OLED_SCREEN_SAVER_TIMEOUT
+        self._screensaver_time_left = self._screensaver_timeout 
+
+        self._init_screensaver_thread()
+
+        sig_on_barcode_read.connect(self.on_barcode_read)
+        sig_on_nfc_read.connect(self.on_nfc_read)
+        sig_on_btn_pressed.connect(self.on_btn_pressed)
+    
+    def on_barcode_read(self, sender, barcode, **kwargs):
+        self._reset_screensaver_timer()
+
+    def on_nfc_read(self, sender, nfc, **kwargs):
+        self._reset_screensaver_timer()
+        
+    def on_btn_pressed(self, sender, btn, **kwargs):
+        self._reset_screensaver_timer()
+
+    # =========================================================================================================================================
+    # Screensaver Timer
+    # =========================================================================================================================================
+    def _init_screensaver_thread(self):
+        """
+        Initialize the screensaver thread.
+        """
+        self.screensaver_thread = threading.Thread(target=self._screensaver_timer, 
+                                                    args=(self._screensaver_timeout,), daemon=True)
+        self.screensaver_thread.start()
+
+    def _screensaver_timer(self, timeout=3):
+        """
+        Screensaver timer that resets the timer when a button is pressed.
+        :param timeout: The timeout in seconds.
+        """
+        while True:
+            self._screensaver_time_left = timeout
+            while self._screensaver_time_left >= 0:
+                print(f"Screen saver timer: {self._screensaver_time_left}s")
+                time.sleep(1)
+                self._screensaver_time_left -= 1
+            print(f"Screen saver starts now.")
+            try:
+                self._SCREEN_SAVER.view(self.current_view.image)
+            except Exception as e:
+                print(f"Error in screensaver thread: {e}")
+    
+    def _reset_screensaver_timer(self):
+        """
+        Reset the screensaver timer.
+        """
+        self._screensaver_time_left = self._screensaver_timeout
     # =========================================================================================================================================
     # Wrapper with parameter name and releasable
     # =========================================================================================================================================
@@ -130,6 +187,9 @@ class OLEDViewController():
 
     
     def request_view(self, view: OLEDPage | str, unlock=False, *args, **kwargs): 
+        # get the whole parameter from the function call and store it in context
+        #self.current_view_context = {**args, **kwargs}
+
         # if given a string for the view, get the view object.
         if self.current_view is not None:
             self.current_view.is_active = False
@@ -160,15 +220,6 @@ class OLEDViewController():
         self.current_view = view
         self.current_view.is_active = True
         self.view_thread = threading.Thread(target=self.current_view.view, args=args, kwargs=kwargs, daemon=True)
-        self.view_thread.start()
-        self.signals.view_changed.send(sender=self, view=view)
-
-
-    def start_screen_saver(self):
-             # if given a string for the view, get the view object.
-
-    
-        self.view_thread = threading.Thread(target=self.current_view.screensaver_game_of_life, daemon=True)
         self.view_thread.start()
         self.signals.view_changed.send(sender=self, view=view)
 

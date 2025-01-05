@@ -69,7 +69,7 @@ class OLEDPageProduct(OLEDPage):
         self._make_purchase(view_controller=self.view_controller, product=self.product, card_number=id)
 
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):
-        if kypd_btn == self.btn_back:
+        if kypd_btn == OLEDPage.BTN_BACK:
             self.view_controller.request_view(self.view_controller.PAGE_MAIN,
                                               store=self.product.store) 
     

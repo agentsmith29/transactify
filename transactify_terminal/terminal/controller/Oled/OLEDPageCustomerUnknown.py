@@ -47,5 +47,5 @@ class OLEDPageCustomer_Unknown(OLEDPage):
         pass
 
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):
-        if kypd_btn == self.btn_back:
+        if kypd_btn == OLEDPage.BTN_BACK:
             self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)

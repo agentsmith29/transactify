@@ -20,6 +20,8 @@ from requests.models import Response
 
 
 
+
+
 class HardwareController():
     init_counter = 0
 
@@ -27,6 +29,9 @@ class HardwareController():
         logger = logging.getLogger('store')
         logger.info(f"HardwareController initilized. {HardwareController.init_counter} Number of initializations.")
         HardwareController.init_counter += 1
+        if HardwareController.init_counter > 1:
+            logger.error("Multiple initializations of HardwareController.")
+            return
 
         lock_interaction = False
 
@@ -47,7 +52,8 @@ class HardwareController():
                                                   self.hwif.nfc_reader.signals.tag_read,
                                                   self.hwif.keypad.signals.key_pressed,
                                                   #
-                                                  stores=self.store_bases)
+                                                  stores=self.store_bases,
+                                                  ledstrip=self.hwif.ledstrip)
         
         self.view_controller.signals.view_changed.connect(self.on_view_changed)
 
@@ -67,7 +73,7 @@ class HardwareController():
             self.view_controller.request_view(self.view_controller.PAGE_MAIN, 
                                               store_name=self.store_bases[0].name, display_back=False, )
         else:
-            self.view_controller.request_view(self.view_controller._SCREEN_SAVER, 
+            self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION, 
                                               stores=self.store_bases)
         
     

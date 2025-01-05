@@ -17,23 +17,60 @@ from luma.core.render import canvas
 from luma.core.sprite_system import framerate_regulator
 
 import asyncio
+import logging
+
+from terminal.controller.Oled.ScreenSavers.SevenSegmentDate import SevenSegmentDate
 
 class OLEDScreenSaver(OLEDPage):
     name: str = "OLEDScreenSaver"
+    logger = logging.getLogger('OLEDScreenSaver')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.underlaying_context = None
         OLEDScreenSaver.name: str = str(self.__class__.__name__) 
 
-    def view(self, *args, **kwargs):
+    def view(self, underlaying_context, *args, **kwargs):
+        self.underlaying_context  = underlaying_context
+        OLEDScreenSaver.logger.info(f"Screensaver started.")
+        self.ledstrip.animate(self.led_animation)
+        self.break_loop = False
         self.screensaver_matrix()
+        #try:
+        #    screensaver = SevenSegmentDate(self.view_controller.oled, self.break_loop)
+        #    screensaver.main()
+        #except Exception as e:
+        #    OLEDScreenSaver.logger.error(f"Error in screensaver: {e}")
 
+    def _sig_on_btn_pressed(self, sender, btn, **kwargs):
+        self.on_btn_pressed(sender, btn, **kwargs)
+    
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):          
-        if kypd_btn == 'D':
-            self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)
+        #if kypd_btn:
+        OLEDScreenSaver.logger.info(f"Button pressed: {kypd_btn}")
+        self.break_loop = True
+        self.oled.clear()
+        self.oled.display(self.underlaying_context)
+        self.ledstrip.stop_animation()
             
         #self.display_message_overlay("Scan NFC to select store")
+        
     
+    def led_animation(self):
+        from rpi_ws281x import Color
+        try:
+            print('Screensaver animations.')
+            while not self.ledstrip.break_loop:
+                self.ledstrip.pulse(Color(255, 255, 255, 1), 5)  # Red wipe
+            print("Screensaver Animation stopped.")
+
+        except KeyboardInterrupt:
+            self.ledstrip.colorWipe(Color(0, 0, 0), 10)
+        
+        except Exception as e:
+            print(f"Error in LEDStripeController: {e}")
+            self.ledstrip.colorWipe(Color(0, 0, 0), 10)
+
     # =================================================================================================================
     # Screensaver
     # =================================================================================================================
