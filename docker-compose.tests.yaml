@@ -61,25 +61,25 @@ services:
       - static_volume:/app/staticfiles
     entrypoint: ["/app/entrypoint.tests.sh"]
     
-  nginx:
-    image: nginx:latest
-    volumes:
-      #- static_volume:/static
-      - static:/static
-      - ./nginx/nginx_tests.conf:/etc/nginx/nginx.conf
-    ports:
-      - 8000:8000
-    depends_on:
-      - storetest
-      - terminaltest
+  # nginx:
+  #   image: nginx:latest
+  #   volumes:
+  #     #- static_volume:/static
+  #     - static_volume:/static
+  #     - ./nginx/nginx_tests.conf:/etc/nginx/nginx.conf
+  #   ports:
+  #     - 8000:8000
+  #   depends_on:
+  #     - storetest
+  #     - terminaltest
 
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
-    #depends_on:
-    #  - django
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8080:8080
+  #   #depends_on:
+  #   #  - django
 
 volumes:
   postgres_data:

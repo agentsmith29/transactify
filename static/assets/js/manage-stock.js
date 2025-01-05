@@ -92,7 +92,7 @@ class ManageStock {
                 return response.json();
             })
             .then(data => {
-                if (data.success && data.code === 307) {
+                if (data.success && data.code === 116) {
                     window.toastManager.success('Stock added successfully', data.message, "", true);
                 } else {
                     window.toastManager.error("Stock update failed", data.message, "Please try again.", false);

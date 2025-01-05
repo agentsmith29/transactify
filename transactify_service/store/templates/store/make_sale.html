@@ -1,5 +1,17 @@
 {% extends "./sidebar/sidebar.html" %}
 {% load static %}
+
+{% block header %}
+<title>Make Sale</title>
+<style>
+.table-responsive {
+    max-height: calc(5 * 3em); /* 5 rows */
+    overflow-y: auto; /* Scrolls only the table content */
+}
+</style>
+{% endblock %}
+
+
 {% block content %}
 <body>
 

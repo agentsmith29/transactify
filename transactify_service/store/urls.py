@@ -30,5 +30,5 @@ urlpatterns = [
     path('customer/<str:card_number>/', SingleCustomerView.as_view(), name='customer_detail'),
     path('make-sale/', MakePurchaseView.as_view(),  name='make_sale'),
     path('financial-summary/', ViewFinancialSummary.as_view(), name='financial_summary'),
-    path('logs/', StoreLogListView.as_view(), name='store_logs'),
+    path('logs/', StoreLogListView.as_view(), name='logs'),
 ]

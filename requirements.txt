@@ -2,6 +2,9 @@ Django>=5.0.0
 # GPIOs
 luma.oled
 evdev
+# For the LED Stripe
+rpi_ws281x
+
 # Django
 django-bootstrap5   # Frontend
 asyncio
@@ -28,6 +31,9 @@ rich
 pytest 
 pytest-asyncio
 
+# better errors
+django-fastdev # django-fastdev is an app that makes it safer, faster and more fun to develop Django apps.
+
 # for using the restful API
 djangorestframework
 markdown       
@@ -36,3 +42,4 @@ djangorestframework-simplejwt
 
 # others
 pyyaml
+

@@ -29,3 +29,8 @@ docker-compose up --build
 ```bash
 docker-compose -f docker-compose.tests.yaml up --build
 ```
+
+
+```bash
+sudo /home/pi/workspace/cashless/.venv/bin/python neopixel_test.py
+```

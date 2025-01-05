@@ -59,79 +59,91 @@ class HTTPResponses():
         http_status=status.HTTP_200_OK
     )
 
-    # === Purchase related responses (200-300) ===
     HTTP_STATUS_INSUFFICIENT_BALANCE = lambda card_number, required, available: APIResponse.error(
         message=f"Insufficient balance for card number. Required: {required}, Available: {available}",
-        code=200,
+        code=105,
         http_status=status.HTTP_500_INTERNAL_SERVER_ERROR
     )
 
     HTTP_STATUS_INSUFFICIENT_STOCK = lambda product_name, available, requested: APIResponse.error(
         message=f"Insufficient stock for product {product_name}. Available: {available}, Requested: {requested}",
-        code=201,
+        code=106,
         http_status=status.HTTP_500_INTERNAL_SERVER_ERROR
     )
 
     HTTP_STATUS_PURCHASE_FAILED = lambda error_msg: APIResponse.error(
         message=f"Purchase failed due to error: {error_msg}",
-        code=202,
+        code=107,
         http_status=status.HTTP_500_INTERNAL_SERVER_ERROR
     )
 
     HTTP_STATUS_PURCHASE_SUCCESS = lambda product_name: APIResponse.success(
         message=f"Purchase of {product_name} successful.",
-        code=203,
+        code=108,
         http_status=status.HTTP_200_OK
     )
 
-    # === Deposit related responses (300-400) ===
     HTTP_STATUS_UPDATE_BALANCE_FAILED = lambda customer, error_msg: APIResponse.error(
         message=f"Failed to update balance for customer {customer}: {error_msg}",
-        code=300,
+        code=109,
         http_status=status.HTTP_500_INTERNAL_SERVER_ERROR
     )
 
     HTTP_STATUS_UPDATE_DEPOSIT_SUCCESS = lambda customer: APIResponse.success(
         message=f"Deposit successful. Balance update for customer {customer} successful.",
-        code=301,
+        code=110,
         http_status=status.HTTP_200_OK
     )
 
     HTTP_STATUS_UPDATE_DEPOSIT_FAILED = lambda error_msg: APIResponse.error(
         message=f"Deposit failed. Failed to update balance: {error_msg}",
-        code=302,
+        code=111,
         http_status=status.HTTP_500_INTERNAL_SERVER_ERROR
     )
 
     HTTP_STATUS_BALANCE_MISMATCH = lambda customer: APIResponse.error(
         message=f"Balance mismatch for customer {customer}",
-        code=303,
+        code=112,
         http_status=status.HTTP_500_INTERNAL_SERVER_ERROR
     )
 
     HTTP_STATUS_UPDATE_PURCHASE_SUCCESS = lambda customer: APIResponse.success(
         message=f"Purchase successful. Balance update for customer {customer} successful.",
-        code=304,
+        code=113,
         http_status=status.HTTP_200_OK
     )
 
     HTTP_STATUS_UPDATE_PURCHASE_FAILED = lambda error_msg: APIResponse.error(
         message=f"Purchase failed. Failed to update balance: {error_msg}",
-        code=305,
+        code=114,
         http_status=status.HTTP_500_INTERNAL_SERVER_ERROR
     )
 
     HTTP_STATUS_RESTOCK_FAILED = lambda error_msg: APIResponse.error(
         message=f"Restock failed due to error: {error_msg}",
-        code=306,
+        code=115,
         http_status=status.HTTP_500_INTERNAL_SERVER_ERROR
     )
 
     HTTP_STATUS_RESTOCK_SUCCESS = lambda product_name: APIResponse.success(
         message=f"Restock of {product_name} successful.",
-        code=307,
+        code=116,
         http_status=status.HTTP_200_OK
     )
+
+    # === Log Respnses ===
+    HTTP_STATUS_LOG_CLEAR_FAILED = lambda error_msg: APIResponse.error(
+        message=f"Failed to clear logs: {error_msg}",
+        code=115,
+        http_status=status.HTTP_500_INTERNAL_SERVER_ERROR
+    )
+
+    HTTP_STATUS_LOG_CLEAR_SUCCESS = lambda: APIResponse.success(
+        message=f"Clear logs successfuly.",
+        code=116,
+        http_status=status.HTTP_200_OK
+    )
+
 
     # === Generic responses (900) ===
     HTTP_STATUS_NOT_DECIMAL = lambda field_name, field_type, error_msg: APIResponse.error(

@@ -27,12 +27,23 @@ fi
 
 # Step 6: Collect static files
 #echo "Collecting static files..."
+rm -rf /app/static/*
+echo "Copying staticfiles to /static..."
+ls -l /app/static/
+
+cp -r /app/staticfiles/* /app/static/ || {
+    echo "ERROR: Failed copy staticfiles to /static"
+    exit 1
+}
+
 #$MANAGE_PY collectstatic --noinput || {
 #    echo "ERROR: Failed to collect static files."
 #    exit 1
 #}
 
-# python /app/static/tools/convert_svg_png.py
+ls -l /app/static/assets/js/
+ls -l /app/staticfiles/assets/js/
+#ls -l /app/staticfiles/assets/js/
 
 export PYTHONUNBUFFERED=1
 # Step 7: Start the server

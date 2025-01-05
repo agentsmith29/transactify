@@ -28,7 +28,7 @@ COPY ./requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./transactify_service /app/
-COPY ./static /app/static
+COPY ./static /app/staticfiles
 
 #COPY ./entrypoint.sh /app/entrypoint.sh
 #COPY ./make_migrations.sh /app/make_migrations.sh

@@ -16,7 +16,7 @@ def store_selection(request):
 
 @login_required
 def dashboard(request):
-    stores = [
+    sites = [
             {"name": "Don Knabberello", "url": f"/{settings.STORE_NAME}/customers/", 
              'description':"Management of the Don Knabberello Store", 
              'icon_link': "#home",
@@ -34,13 +34,13 @@ def dashboard(request):
     if user.groups.filter(name='Admins').exists():
         return redirect('/admin/')
     elif user.groups.filter(name='Owner').exists():
-        return render(request, 'dashboard.html', {"entries": stores})
+        return render(request, 'dashboard.html', {"entries": sites})
     elif user.groups.filter(name='Manager').exists():
-        return render(request, 'dashboard.html', {"entries": stores})
+        return render(request, 'dashboard.html', {"entries": sites})
     elif user.groups.filter(name='Customer').exists():
-        return render(request, 'dashboard.html', {"entries": stores})
+        return render(request, 'dashboard.html', {"entries": sites})
     else:
-        return render(request, 'dashboard.html', {"entries": stores})
+        return render(request, 'dashboard.html', {"entries": sites})
         #return render(request, 'dashboard.html')
         return redirect('/')
     

@@ -50,11 +50,13 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    #'django.contrib.staticfiles',
     #
     'transactify_service',
     'store',
-    'api'
+    'api',
+    #
+    'django_fastdev'
 ]
 
 MIDDLEWARE = [
@@ -172,6 +174,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, '/static')
+#print(STATIC_ROOT)
+#print(STATIC_URL)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

@@ -40,11 +40,6 @@
             overflow-y: auto; /* Enables scrolling for the main content */
             padding: 20px; /* Adds padding to main content */
         }
-
-        .table-responsive {
-            max-height: calc(5 * 3rem); /* Limit the table height for 5 rows */
-            overflow-y: auto; /* Scrolls only the table content */
-        }
         .icon-white {
             filter: invert(100%);
         }
@@ -227,7 +222,7 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'store_logs' %}" class="nav-link {% if request.path|regex_match:'^/.*/logs/$' %}active{% else %}text-white{% endif %}">
+                <a href="{% url 'logs' %}" class="nav-link {% if request.path|regex_match:'^/.*/logs/$' %}active{% else %}text-white{% endif %}">
                     <img src="{% static 'icons/svg/terminal.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
                     View logs
                 </a>

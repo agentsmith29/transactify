@@ -60,7 +60,7 @@ services:
       #
       TERMINAL_SERVICES: http://terminal1:${PROJECT_PORT}/terminal1
     volumes:
-      - static_volume:/app/staticfiles
+      - static_volume:/app/static
     
 
   doncaramello:
@@ -84,7 +84,7 @@ services:
       #
       TERMINAL_SERVICES: http://terminal1:${PROJECT_PORT}/terminal1
     volumes:
-      - static_volume:/app/staticfiles
+      - static_volume:/app/static
 
 
   adminer:
@@ -100,7 +100,6 @@ services:
     restart: always
     volumes:
       - static_volume:/static
-      #- ./static:/static
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/nginx.donknabberello.conf:/etc/nginx/nginx.donknabberello.conf
     ports:
@@ -109,6 +108,7 @@ services:
       - donknabberello
       - doncaramello
       - terminal1
+    
 
 
 

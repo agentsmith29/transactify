@@ -1,5 +1,15 @@
 {% extends "./sidebar/sidebar.html" %}
 
+{% block header %}
+<title>Financial Sum</title>
+<style>
+.table-responsive {
+    max-height: calc(5 * 3em); /* 5 rows */
+    overflow-y: auto; /* Scrolls only the table content */
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <body>
 
