@@ -14,4 +14,3 @@ class StoreConfig(AppConfig):
        
         # set the name of the store
         self.store_name = os.getenv('SERVICE_NAME')
-        logger.info(f"****** Store {self.store_name} is ready to go! ******")

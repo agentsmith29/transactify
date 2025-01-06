@@ -36,6 +36,4 @@ def setup_custom_logging(name):
 
     # Add the handler to the logger
     logger.addHandler(db_handler)
-    logger.info("Custom logging has been initialized.")
-    print(f" Handlers: {logger.handlers}")
     return logger

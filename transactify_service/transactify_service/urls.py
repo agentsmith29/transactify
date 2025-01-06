@@ -24,6 +24,8 @@ from django.conf import settings
 from transactify_service.webviews.LoginView import LoginView, LogoutView  
 from django.contrib.auth import views as auth_views
 
+from transactify_service.views import health_check
+
 urlpatterns = [
     
 
@@ -33,4 +35,6 @@ urlpatterns = [
 
     path(f'{settings.STORE_NAME}/', include("store.urls")),
     path(f'{settings.STORE_NAME}/api/', include("api.urls")),
+
+    path(f'{settings.STORE_NAME}/health/', health_check),
 ]

@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
     ntpdate \
     curl \
     libcairo2-dev \
+    jq \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip
@@ -30,15 +31,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ./transactify_service /app/
 COPY ./static /app/staticfiles
 
-#COPY ./entrypoint.sh /app/entrypoint.sh
-#COPY ./make_migrations.sh /app/make_migrations.sh
-#COPY ./make_user_db_migration.sh /app/make_user_db_migration.sh
-#COPY ./make_store_db_migration.sh /app/make_store_db_migration.sh
-
 RUN chmod +x /app/entrypoint.sh 
-#RUN chmod +x /app/make_migrations.sh 
-#RUN chmod +x /app/make_user_db_migration.sh
-#RUN chmod +x /app/make_store_db_migration.sh
 
 
 # Expose the application port

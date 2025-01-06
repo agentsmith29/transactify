@@ -30,12 +30,15 @@ SECRET_KEY = 'django-insecure-804j38-egddb2k2+jt!52)%*k89ohsg$i0@*&oxbp@0z2r_i^!
 DEBUG = True
 
 STORE_NAME = os.getenv('SERVICE_NAME', 'store')
+HOSTNAME = os.getenv('HOSTNAME', 'localhost')
+CONTAINER_NAME = os.getenv('CONTAINER_NAME', 'store_db')
 
 ALLOWED_HOSTS = [
-    STORE_NAME,
+    STORE_NAME, HOSTNAME, CONTAINER_NAME,
     os.getenv('DJANGO_WEB_HOST', '*'),
     'localhost',
 ] 
+print(f"Allowed hosts: {ALLOWED_HOSTS}.".replace('[','').replace(']',''))
 
 
 # Application definition
@@ -50,7 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    #'django.contrib.staticfiles',
+    'django.contrib.staticfiles',
     #
     'transactify_service',
     'store',
@@ -109,7 +112,7 @@ WSGI_APPLICATION = 'transactify_service.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': STORE_NAME,
+        'NAME': CONTAINER_NAME,
         'USER': os.getenv('DJANGO_DB_USER', 'default_user'),
         'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', 'default_password'),
         'HOST': os.getenv('DJANGO_DB_HOST', 'localhost'),
@@ -173,7 +176,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, '/static')
+STATIC_ROOT = os.path.join(BASE_DIR, '/app/static')
 #print(STATIC_ROOT)
 #print(STATIC_URL)
 

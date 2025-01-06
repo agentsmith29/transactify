@@ -1,4 +1,6 @@
 # .dockerignore
 .venv
 .idea
+.vscode
+__pycache__
 old
