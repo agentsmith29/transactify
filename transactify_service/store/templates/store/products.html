@@ -1,20 +1,7 @@
-{% extends "./sidebar/sidebar.html" %}
-{% load static %}
+{% extends "./index.html" %}
 {% load custom_filters %}
-{% block header %}
-<title>Manage Products</title>
-<style>
-.table-responsive {
-    max-height: calc(5 * 3em); /* 5 rows */
-    overflow-y: auto; /* Scrolls only the table content */
-}
-</style>
-{% endblock %}
-
+{% load static_assets %}
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4">Manage Products</h1>
-
     <!-- Add Product Section -->
     <div class="mb-5">
         <h2 class="mb-3">Add New Product</h2>
@@ -128,16 +115,15 @@
                 </div>
             </form>
         </div>
-    </div>
-</div>
 
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'assets/js/manage-products.js' %}"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        window.manageProducts = new ManageProducts('manage_products', "{% url 'manage_products' %}");
-    });
-</script>
+    {{ block.super }} 
+    <script src="{% static_assets 'js/pages/store.products.js' %}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            window.manageProducts = new ManageProducts("{% url 'products' %}");
+        });
+    </script> 
 {% endblock %}
