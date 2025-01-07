@@ -1,7 +1,9 @@
 from store.helpers.ManageStockHelper import StoreHelper
 import logging
-from store.webmodels.Customer import Customer
+
 from django.contrib.auth.models import User
+from store.webmodels.Customer import Customer
+from store.webmodels.StoreProduct import StoreProduct
 
 import random
 from datetime import datetime, timedelta
@@ -23,10 +25,10 @@ def generate_random_date(time_delta=30):
     # Combine the date with the random time
     return random_date.replace(hour=random_hour, minute=random_minute, second=random_second)
 
-def generate_random_balance(start=10.0, end=100.0):
+def generate_random_number(start=10.0, end=100.0):
     return round(random.uniform(start, end), 2)
 
-def generate_random_card_number(digits=16):
+def generate_random_numeric_string(digits=16):
     return ''.join([str(random.randint(0, 9)) for _ in range(digits)])
 
 def mock_store_content():
@@ -59,7 +61,24 @@ def mock_store_content():
         rsp, customer = StoreHelper.create_new_customer(username=f"user{i}", 
                                         first_name=f"first{i}", last_name=f"last{i}", 
                                         email=f"last{i}.first{i}@user{i}.com", 
-                                        balance=generate_random_balance(10, 150), card_number=f"{i}_{generate_random_card_number(16)}", logger=logger)
+                                        balance=generate_random_number(10, 150), card_number=f"{i}_{generate_random_numeric_string(16)}", logger=logger)
         # generate a random date between now and 30 days ago, but only between 9am and 5pm
         customer.issued_at = generate_random_date(30)
         customer.save()
+        # Create some products
+
+    for i in range(0, 16):
+        try:
+            product = StoreProduct.objects.get(name=f"test_product{i}")
+            product.delete()
+        except Exception as e:
+            logger.error(f"Failed to get user user{i}: {e}")
+            
+        rsp, product = StoreHelper.get_or_create_product(
+            ean=f"{i}_f{generate_random_numeric_string(8)}", 
+            name=f"test_product{i}", 
+            resell_price=generate_random_number(1, 15), 
+            discount=generate_random_number(1, 10)/100,
+            logger=logger)
+
+    
