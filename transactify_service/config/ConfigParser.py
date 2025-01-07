@@ -4,48 +4,115 @@ import pathlib
 import socket
 import requests
 
+class BaseConfigField():
+    def __init__(self, data, env, field_name):
+        self.field_name = field_name
+        self._data = {}
+        # flatten the data
+        for key, value in data.items():
+            if isinstance(value, dict):
+                for k, v in value.items():
+                    self._data[k] = v
+
+        self._data_field = data.get(field_name, {})
+        self._env = env
+        
+
+    def _replace_with_env(self, value):
+            
+            
+            return value
+
+    def _replace_inconfig(self, value):
+            # all values in the config file are also variables
+            
+            for key, data_val in self._data.items():
+                if "${"+key+"}" in value:
+                    value = value.replace("${"+key+"}", data_val)
+                    print(f"{value} -> ", end="")   
+            
+            for env_key, env_value in self._env.items():
+                if "${ENV."+env_key+"}" in value:
+                    value =  value.replace("${ENV."+env_key+"}", env_value)
+                    print(f"{value} -> ", end="")   
+            
+            if "${" in value and "}" in value:
+                value = self._replace_with_env(value)
+
+            return value
+    
+    def assign(self, key, default=None, required=True):
+        if required and default is not None:
+            required = False
+        else:
+            required = True
+
+        if default is None:
+            required = True
+        elif default.strip() != "":
+            required = False
+
+
+        try:
+            _value = self._data_field.get(key, default)
+            # split the values between 
+        except Exception as e:
+            _value = default
+            raise e
+        _val = _value
+        print(f"Key: {key}, Value: {_value} -> ", end="")   
+        _val = self._replace_inconfig(_val)
+        print(f"{_val}")   
+         
+        if required and _val is None or _val == f"_{key}_NOT_SET" or _val == "":
+            raise ValueError(f"Required field {key} not set.")
+        return _val
+
+    def __str__(self):
+        ret_dict = self.__dict__
+        # remove private variables
+        for key in list(ret_dict.keys()):
+            if key.startswith("_"):
+                del ret_dict[key]
+        return str(ret_dict)
+
 class ConfigParser:
-    class DatabaseConfig:
+    class DatabaseConfig(BaseConfigField):
         def __init__(self, data, env):
-            self.DB_RESET = self._replace_with_env(data.get("DB_RESET", "false"), env)
-            self.REMIGRATE = self._replace_with_env(data.get("REMIGRATE", "false"), env)
-            self.DJANGO_DB_HOST = self._replace_with_env(data.get("DJANGO_DB_HOST", "db"), env)
-            self.DJANGO_DB_PORT = self._replace_with_env(data.get("DJANGO_DB_PORT", "${DB_PORT}"), env)
-            self.DJANGO_DB_USER = self._replace_with_env(data.get("DJANGO_DB_USER", "${DB_USER}"), env)
-            self.DJANGO_DB_PASSWORD = self._replace_with_env(data.get("DJANGO_DB_PASSWORD", "${DB_PASSWORD}"), env)
+            super().__init__(data, env, "database")
+            self.DB_RESET = self.assign("DB_RESET", "false")
+            self.REMIGRATE = self.assign("REMIGRATE", "false")
+            
+            self.NAME = self.assign("DB_NAME")
+            self.HOST = self.assign("DB_HOST")
+            self.PORT = self.assign("DB_PORT")
+            self.USER = self.assign("DB_USER")
+            self.PASSWORD = self.assign("DB_PASSWORD")
 
-        def _replace_with_env(self, value, env):
-            if value.startswith("${") and value.endswith("}"):
-                return env.get(value[2:-1], f"{value[2:-1]}_NOT_SET")
-            return value
 
-    class WebConfig:
+    class WebService(BaseConfigField):
         def __init__(self, data, env):
-            self.SERVICE_NAME = self._replace_with_env(data.get("SERVICE_NAME", "default_service"), env)
-            self.DJANGO_WEB_PORT = self._replace_with_env(data.get("DJANGO_WEB_PORT", "${PROJECT_PORT}"), env)
-            self.DJANGO_WEB_HOST = self._replace_with_env(data.get("DJANGO_WEB_HOST", "${PROJECT_HOST}"), env)
+            super().__init__(data, env, "webservice")
+            self.SERVICE_NAME = self.assign("SERVICE_NAME")
+            self.SERVICE_WEB_PORT = self.assign("SERVICE_WEB_PORT")
+            self.SERVICE_WEB_HOST = self.assign("SERVICE_WEB_HOST")
 
-        def _replace_with_env(self, value, env):
-            if value.startswith("${") and value.endswith("}"):
-                return env.get(value[2:-1], f"{value[2:-1]}_NOT_SET")
-            return value
 
-    class AdminConfig:
-        def __init__(self, data):
-            self.ADMIN_USER = data.get("ADMIN_USER", "admin")
-            self.ADMIN_PASSWORD = data.get("ADMIN_PASSWORD", "admin")
-            self.ADMIN_EMAIL = data.get("ADMIN_EMAIL", "admin@admin.com")
-
-    class TerminalConfig:
+    class AdminConfig(BaseConfigField):
         def __init__(self, data, env):
-            self.TERMINAL_SERVICES = self._replace_with_env(data.get("TERMINAL_SERVICES", "http://localhost:8000/terminal"), env)
+            super().__init__(data, env, "admin")
+            self.ADMIN_USER = self.assign("ADMIN_USER", "admin")
+            self.ADMIN_PASSWORD = self.assign("ADMIN_PASSWORD", "admin")
+            self.ADMIN_EMAIL = self.assign("ADMIN_EMAIL", "admin@admin.com")
 
-        def _replace_with_env(self, value, env):
-            if value.startswith("${") and value.endswith("}"):
-                return env.get(value[2:-1], f"{value[2:-1]}_NOT_SET")
-            return value
+    class TerminalConfig(BaseConfigField):
 
-    class ContainerConfig:
+        def __init__(self, data, env):
+            super().__init__(data, env, "terminal")
+            self.TERMINAL_SERVICES = self.assign("TERMINAL_SERVICES")
+
+
+    class ContainerConfig(BaseConfigField):
         def __init__(self):
             self.HOSTNAME = self._get_hostname()
             self.CONTAINER_NAME = self._get_container_name()
@@ -117,13 +184,15 @@ class ConfigParser:
         with open(self.config_file, 'r') as file:
             config_data = yaml.safe_load(file)
 
-        self.database = self.DatabaseConfig(config_data.get("database", {}), self.env)
-        self.webconfig = self.WebConfig(config_data.get("webconfig", {}), self.env)
-        self.admin = self.AdminConfig(config_data.get("admin", {}))
-        self.terminal = self.TerminalConfig(config_data.get("terminal", {}), self.env)
+        self.database = self.DatabaseConfig(config_data, self.env)
+        self.webservice = self.WebService(config_data, self.env)
+        self.admin = self.AdminConfig(config_data, self.env)
+        self.terminal = self.TerminalConfig(config_data, self.env)
         self.container = self.ContainerConfig()
 
-
+    def __str__(self):
+        return f"databse:\n {self.database}\nwebservice:\n {self.webservice}\nadmin:\n {self.admin}\nterminal:\n {self.terminal}\ncontainer:\n {self.container}"
+    
 # Example usage
 if __name__ == "__main__":
     config = ConfigParser("config.yaml")
