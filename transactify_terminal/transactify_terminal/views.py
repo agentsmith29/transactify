@@ -6,6 +6,6 @@ from django.http import HttpResponse
 
 
 def health_check(request):
-    print(f'Health check request from {request.META.get("REMOTE_ADDR")}')
+    #print(f'Health check request from {request.META.get("REMOTE_ADDR")}')
     # 200 response for health check
     return HttpResponse(status=200)
