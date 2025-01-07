@@ -3,6 +3,9 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from django.conf import settings
 
+from django.http import HttpResponse
+from django.template import loader
+
 #@login_required
 def store_selection(request):
     # Replace this with actual store data from the database
@@ -16,6 +19,8 @@ def store_selection(request):
 
 @login_required
 def dashboard(request):
+    template = loader.get_template("store/index.html")
+    return HttpResponse(template.render({}, request))
     sites = [
             {"name": "Don Knabberello", "url": f"/{settings.STORE_NAME}/summary/", 
              'description':"Management of the Don Knabberello Store", 

@@ -1,0 +1,103 @@
+{% extends "./index.html" %}
+{% load static_assets %}
+{% block content %}
+
+<meta name="csrf-token" content="{{ csrf_token }}">
+<div class="container mt-5">
+    {% csrf_token %}
+    <!-- Add New Customer Section -->
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">Add New Customer</h1>
+            <form id="addCustomerForm"  class="border p-4 shadow-sm bg-light">
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" class="form-control" id="first_name" name="first_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" class="form-control" id="last_name" name="last_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="balance">Initial Balance (€)</label>
+                    <input type="number" class="form-control" id="balance" name="balance" step="0.01" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    Add Customer
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Customer List Section -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h1 class="mb-4">Manage Customers</h1>
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Card Number</th>
+                            <th>Email</th>
+                            <th>Issued At</th>
+                            <th>Balance (€)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customers %}
+                        <tr>
+                            <td>{{ customer.user.username }}</td>
+                            <td>{{ customer.user.first_name }}</td>
+                            <td>{{ customer.user.last_name }}</td>
+                            <td>{{ customer.card_number }}</td>
+                            <td>{{ customer.user.email }}</td>
+                            <td>{{ customer.issued_at }}</td>
+                            <td>{{ customer.balance }}</td>
+                            <td>
+                                <!--  open href -->
+                                <button type="button" class="btn btn-warning btn-sm"
+                                    onclick="location.href='{% url 'customer' customer.card_number %}'"
+                                >
+                                    View
+                                </button>
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Are you sure you want to delete user {{customer.user.username}}?')">
+                                        Delete
+                                </button>
+                            </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No customers available.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- NFC Overlay -->
+<!-- NFC Overlay -->
+<div id="nfcOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 9999; color: white; text-align: center; padding-top: 20%;">
+    <div>
+        <img src="https://icons.getbootstrap.com/assets/icons/rss.svg" alt="NFC Scan" style="width: 150px;">
+        <p>Scan your card to proceed...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }} 
+    <!-- script src="{% static_assets 'js/pages/store.customers.js' %}"></script-->
+{% endblock %}

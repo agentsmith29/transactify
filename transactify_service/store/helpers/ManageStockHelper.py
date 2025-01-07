@@ -270,7 +270,7 @@ class StoreHelper:
 
     @staticmethod
     @transaction.atomic
-    def _get_or_create_product(ean: str, name: str, resell_price: Decimal, discount: Decimal, logger: logging.Logger) -> tuple[Response, StoreProduct]:
+    def get_or_create_product(ean: str, name: str, resell_price: Decimal, discount: Decimal, logger: logging.Logger) -> tuple[Response, StoreProduct]:
         """
         Get or create a product by EAN, and update its details if it exists.
         """
