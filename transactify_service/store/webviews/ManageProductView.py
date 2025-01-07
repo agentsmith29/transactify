@@ -15,7 +15,7 @@ import json
 
 @method_decorator(login_required, name='dispatch')
 class ManageProductsView(View):
-    template_name = 'store/manage_products.html'
+    template_name = 'store/products.html'
 
     def __init__(self):
         super().__init__()
@@ -76,7 +76,7 @@ class ManageProductsView(View):
                     self.logger.error(f"Invalid input for resell price: {e}")
                     return JsonResponse({'success': False, 'message': "Invalid resell price. Please enter a valid number."}, status=400)
 
-                response, product = StoreHelper._get_or_create_product(ean, name, resell_price, discount, self.logger)
+                response, product = StoreHelper.get_or_create_product(ean, name, resell_price, discount, self.logger)
                 data, status = response.json_data()
                 return JsonResponse(data=data, status=status)
             

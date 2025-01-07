@@ -35,6 +35,7 @@ from transactify_service.HttpResponses import HTTPResponses
 @method_decorator(login_required, name='dispatch')
 class ManageCustomersView(View):
     """Class-based view to handle customer-related operations."""
+    template_name = 'store/customers.html'
 
     def __init__(self):
         super().__init__()
@@ -48,7 +49,7 @@ class ManageCustomersView(View):
     def get(self, request):
         """Handle GET requests to display all customers."""
         customers = self.get_all_customers()
-        return render(request, 'store/manage_customers.html', {'customers': customers})
+        return render(request, self.template_name, {"customers": customers})
     
     async def fetch_nfc_data(self):
         """Fetch NFC data asynchronously using httpx."""
