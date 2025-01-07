@@ -70,8 +70,9 @@
     }
 
 
-    socket.onopen = function () {
+    window.terminal_connection.onopen = function () {
         console.log(`WebSocket connection established for page: ${webpage}`);
+        window.toastManager.warning("WebSocket connection closed", "WebSocket connection was closed or resetted.", "", false);
     };
 
     socket.onmessage = function (event) {
@@ -104,14 +105,14 @@
         }
     };
 
-    socket.onclose = function () {
+    window.terminal_connection.onclose = function () {
         console.log("WebSocket connection closed");
         toastManager.warning("WebSocket connection closed", "WebSocket connection was closed or resetted.", "", false);
+    
     };
 
-    socket.onerror = function (error) {
+    window.terminal_connection.onerror = function (error) {
         console.error("WebSocket error:", error);
-        console.error("WebSocket error:", error.message);
-
+        window.toastManager.error("WebSocket error", "WebSocket error.", "", false);
     };
 })();
