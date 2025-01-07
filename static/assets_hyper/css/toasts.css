@@ -1,0 +1,22 @@
+.toast-centered {
+    position: absolute;
+    top: calc(var(--navbar-height, 60px) + 15px);
+    right: calc(50% - 280px); /* Adjust based on the sidebar width */
+    z-index: 1;
+}
+
+.toastImageError {
+    filter: invert(20%) sepia(100%) saturate(10000%) hue-rotate(-15deg) brightness(100%) contrast(100%);
+}
+
+.toastImageSuccess {
+    filter: invert(20%) sepia(100%) saturate(10000%) hue-rotate(120deg) brightness(100%) contrast(100%);
+}
+
+.toastImageInfo {
+    filter: invert(20%) sepia(100%) saturate(10000%) hue-rotate(180deg) brightness(100%) contrast(100%);
+}
+
+.toastImageWarning {
+    filter: invert(20%) sepia(100%) saturate(10000%) hue-rotate(60deg) brightness(100%) contrast(100%);
+}
