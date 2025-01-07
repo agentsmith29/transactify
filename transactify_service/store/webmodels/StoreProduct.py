@@ -10,6 +10,9 @@ class StoreProduct(models.Model):
     discount = models.DecimalField(max_digits=3, default = 0, decimal_places=2) # In percent
     resell_price = models.DecimalField(max_digits=10, default = 0, decimal_places=2)
     final_price = models.DecimalField(max_digits=10, default = 0, decimal_places=2)
+    added_at = models.DateTimeField(auto_now_add=True)
+    product_fill_amout = models.DecimalField(max_digits=5, default = 0, decimal_places=2)
+    product_calories = models.DecimalField(max_digits=5, default = 0, decimal_places=2)
 
     @property
     def get_final_price(self):

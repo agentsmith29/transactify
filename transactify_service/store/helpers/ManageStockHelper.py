@@ -1,5 +1,5 @@
 import logging
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from datetime import datetime
 
 from django.db.models import Sum
@@ -117,17 +117,19 @@ class StoreHelper:
         """
         logger.info(f"Adding deposit for customer {customer} with amount {amount}.")
         if amount <= 0:
-            logger.error(f"Invalid deposit amount for customer {customer}. Must be greater than 0.")
-            raise HelperException(f"Invalid deposit amount for customer {customer}",  
-                                  HTTPResponses.HTTP_STATUS_UPDATE_BALANCE_FAILED(customer,
-                                                                                   f"Invalid deposit amount for customer {customer}. Must be greater than 0."))
+            msg = f"Invalid deposit amount for customer {customer}. Must be greater than 0 (was {amount})."
+            logger.error(msg)
+            raise HelperException(msg, HTTPResponses.HTTP_STATUS_UPDATE_BALANCE_FAILED(customer, msg))
         
         try:
             amount = Decimal(amount)
+            # round to 2 decimal places
+            amount = amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
         except Exception as e:
-            logger.error(f"Failed to convert amount to Decimal for customer {customer}: {e}."
-                         f"\nTraceback: {traceback.format_exc()}")
-            raise HelperException(f"", HTTPResponses.HTTP_STATUS_NOT_DECIAML("amount", type(amount), e))
+            msg = f"Failed to convert amount to Decimal for customer {customer}: {e}."
+            logger.error(f"{msg}\n\nTraceback:\n {traceback.format_exc()}\n\n")
+            raise HelperException(msg, HTTPResponses.HTTP_STATUS_NOT_DECIMAL("amount", type(amount), msg))
 
         try:
             customer.total_deposits += 1
@@ -208,6 +210,8 @@ class StoreHelper:
         """
         logger.info(f"Creating new customer: Username {username}, Email {email}, Balance {balance}.")
 
+        # convert the card number to a string
+        card_number = str(card_number)
         if card_number is None or len(card_number) == 0 or card_number.strip == "":
             logger.error(f"Invalid card number for customer {username}.")
             raise HelperException(f"Invalid card number for customer {username}.", 
@@ -222,10 +226,9 @@ class StoreHelper:
             )
             logger.info(f"User created for customer {username}.")
         except Exception as e:
-            logger.error(f"Failed to create user for customer {username}: {e}."
-                         f"\nTraceback: {traceback.format_exc()}")
-            raise HelperException(f"Failed to create user for customer {username}", 
-                                  HTTPResponses.HTTP_STATUS_CUSTOMER_CREATE_FAILED(username, e))
+            msg = f"Failed to create user for customer {username}: {e}."
+            logger.error(f"{msg}\n\nTraceback:\n {traceback.format_exc()}\n\n")
+            raise HelperException(msg, HTTPResponses.HTTP_STATUS_CUSTOMER_CREATE_FAILED(username, e))
 
         try:
             group, _ = Group.objects.get_or_create(name="Customer")
@@ -241,8 +244,6 @@ class StoreHelper:
                 issued_at=datetime.now()
             )
             customer.user.groups.add(group)
-            customer.save()
-            logger.info(f"Customer record created for {username}.")
         except Exception as e:
             logger.error(f"Failed to create customer record for {username}: {e}."
                          f"\nTraceback: {traceback.format_exc()}")
@@ -259,7 +260,8 @@ class StoreHelper:
             raise HelperException(
                 f"Failed to log initial deposit for customer {username}: {e}", 
                 HTTPResponses.HTTP_STATUS_CUSTOMER_CREATE_FAILED(username, e))
-
+        customer.save()
+        logger.info(f"Customer record created for {username}.")
         return HTTPResponses.HTTP_STATUS_CUSTOMER_CREATE_SUCCESS(username), customer
   
   	# =========================================================================================================
