@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
     ntpdate \
     curl \
     libcairo2-dev \
+    jq \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip
@@ -26,14 +27,21 @@ RUN pip install --upgrade pip
 COPY ./requirements.txt /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
+COPY ./scripts /app/scripts
+COPY ./static /app/staticfiles
+COPY ./entrypoint_template.sh /app/entrypoint_template.sh
+RUN chmod +x /app/entrypoint_template.sh
 
-COPY ./static /app/static
+# Expose the application port
+EXPOSE 8000
+
+# ----------------- NEW CODE -----------------
+
 COPY ./transactify_terminal /app/
+
 
 RUN chmod +x /app/entrypoint.sh 
 RUN chmod +x /app/entrypoint.tests.sh
-# Expose the application port
-EXPOSE 8000
 
 # Run migrations and start the Django development server
 ENTRYPOINT ["/app/entrypoint.sh"]

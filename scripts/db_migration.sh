@@ -4,10 +4,11 @@ set -e
 PYTHON_EXEC=python
 MANAGE_PY="python manage.py"
 
+
 echo "Starting Django setup script..."
-echo "Applying migrations for the default database..."
-$MANAGE_PY migrate store || {
-    echo "ERROR: Failed to apply store migrations for the default database."
+echo "Applying migrations for application $APP_NAME ..."
+$MANAGE_PY migrate $APP_NAME || {
+    echo "ERROR: Failed to apply $APP_NAME migrations for the default database."
     exit 1
 } 
 

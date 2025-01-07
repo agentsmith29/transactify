@@ -29,14 +29,14 @@ SECRET_KEY = 'django-insecure-804j38-egddb2k2+jt!52)%*k89ohsg$i0@*&oxbp@0z2r_i^!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-STORE_NAME = os.getenv('SERVICE_NAME', 'store')
-HOSTNAME = os.getenv('HOSTNAME', 'localhost')
-CONTAINER_NAME = os.getenv('CONTAINER_NAME', 'store_db')
+STORE_NAME = os.getenv('SERVICE_NAME')
+HOSTNAME = os.getenv('HOSTNAME')
+CONTAINER_NAME = os.getenv('CONTAINER_NAME')
 
 ALLOWED_HOSTS = [
     STORE_NAME, HOSTNAME, CONTAINER_NAME,
     os.getenv('DJANGO_WEB_HOST', '*'),
-    'localhost',
+    'localhost', '127.0.0.1'
 ] 
 print(f"Allowed hosts: {ALLOWED_HOSTS}.".replace('[','').replace(']',''))
 
@@ -127,6 +127,7 @@ DATABASES = {
     #     'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
     # },
 }
+print(f"Database: {DATABASES}.")
 # Use in-memory SQLite for testing
 if 'test' in sys.argv:
     DATABASES['default'] = {

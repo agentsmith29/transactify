@@ -25,7 +25,7 @@ class Command(BaseCommand):
         grp_admin, _ = Group.objects.get_or_create(name='admin')
         grp_owner, _ = Group.objects.get_or_create(name='owner')
         grp_manager, _ = Group.objects.get_or_create(name='manager')
-        grp_customer, _ =Group.objects.get_or_create(name='customer')
+        grp_customer, _ = Group.objects.get_or_create(name='customer')
 
         # Check if the superuser already exists
         try:

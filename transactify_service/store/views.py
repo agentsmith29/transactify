@@ -17,11 +17,11 @@ def store_selection(request):
 @login_required
 def dashboard(request):
     sites = [
-            {"name": "Don Knabberello", "url": f"/{settings.STORE_NAME}/customers/", 
+            {"name": "Don Knabberello", "url": f"/{settings.STORE_NAME}/summary/", 
              'description':"Management of the Don Knabberello Store", 
              'icon_link': "#home",
              'goto_text': "Go to Store"},
-            {"name": "User Management (Under Construction)", "url": f"/{settings.STORE_NAME}/customers/", 
+            {"name": "User Management (Under Construction)", "url": f"/{settings.STORE_NAME}/summary/", 
              'description':"Management of the Don Knabberello Store", 
              'icon_link': "#people-circle",
              'goto_text': "Access"},

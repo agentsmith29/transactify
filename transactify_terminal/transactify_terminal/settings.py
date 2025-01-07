@@ -25,10 +25,16 @@ SECRET_KEY = 'django-insecure-%$_5dhp*byaq92$0iz*751&e27y_=ray(kys90(%ppy8e6!nna
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 SERVICE_NAME = os.getenv('SERVICE_NAME', 'terminal')
-SERVICE_HOST = os.getenv('SERVICE_HOST', 'localhost')
+DJANGO_WEB_HOST = os.getenv('DJANGO_WEB_HOST', 'localhost')
+STORE_NAME = os.getenv('SERVICE_NAME', 'store')
+HOSTNAME = os.getenv('HOSTNAME', 'localhost')
+CONTAINER_NAME = os.getenv('CONTAINER_NAME', 'store_db')
 
-ALLOWED_HOSTS = [SERVICE_NAME, SERVICE_HOST]
-print(ALLOWED_HOSTS)
+ALLOWED_HOSTS = [
+    STORE_NAME, HOSTNAME, CONTAINER_NAME, DJANGO_WEB_HOST,
+    'localhost', '127.0.0.1'
+] 
+print(f"Allowed hosts: {ALLOWED_HOSTS}.".replace('[','').replace(']',''))
 
 
 # Application definition
@@ -64,6 +70,9 @@ CHANNEL_LAYERS = {
 
 ROOT_URLCONF = 'transactify_terminal.urls'
 
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, '/app/static')
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -89,7 +98,7 @@ WSGI_APPLICATION = 'transactify_terminal.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('SERVICE_NAME', 'default_user'),
+        'NAME': CONTAINER_NAME,
         'USER': os.getenv('DJANGO_DB_USER', 'default_user'),
         'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', 'default_password'),
         'HOST': os.getenv('DJANGO_DB_HOST', 'localhost'),

@@ -24,25 +24,31 @@ services:
     security_opt:
       - apparmor:unconfined  # Unrestricted access to hardware
     environment:
+      # !DANGEROUS! DB_RESET: "false"    # Delets and recreates the database (dangerous)
       REMIGRATE: "false"
       SERVICE_NAME: "terminal1"
-      SERVICE_HOST: ${PROJECT_HOST} # use  from .env
-      PORT: ${PROJECT_PORT}
+      # Creation of the admin user
+      ADMIN_USER: "admin"
+      ADMIN_PASSWORD: "admin1" 
+      ADMIN_EMAIL: "admin@admin.com"
       # 
       DJANGO_DB_HOST: db
       DJANGO_DB_PORT: ${DB_PORT}
       DJANGO_DB_USER: ${DB_USER}
       DJANGO_DB_PASSWORD: ${DB_PASSWORD}
-     
+      #
+      DJANGO_WEB_PORT: ${PROJECT_PORT}
+      DJANGO_WEB_HOST: ${PROJECT_HOST}
       #TARGET_SERVICES: http://192.168.1.190:8000/donknabberello #, http://service2:8000
     volumes:
-      - nginx_data:/etc/nginx
+      - /run/docker.sock:/run/docker.sock:ro
+      - nginx_data:/etc/nginx/conf.d
       - static_volume:/app/static
     depends_on:
       - doncaramello
       - donknabberello 
     healthcheck:
-      test: "curl --fail --silent --write-out 'HTTP CODE : %{http_code}\n' http://{HOSTNAME}:${PROJECT_PORT}/${SERVICE_NAME}/health"
+      test: "curl http://127.0.0.1:${PROJECT_PORT}/terminal1/health"
       start_period: 10s
       interval: 10s
       timeout: 10s
@@ -62,8 +68,9 @@ services:
       REMIGRATE: "false"  # Remigrates the database
       # The name of the service, used for url construction: e.g. http://localhost:8000/<SERVICE_NAME>
       SERVICE_NAME: "donknabberello"
+      # Creation of the admin user
       ADMIN_USER: "admin"
-      ADMIN_PASSWORD: "admin1" 
+      ADMIN_PASSWORD: "admin" 
       ADMIN_EMAIL: "admin@admin.com"
       # Database Setting, set in the .env file
       DJANGO_DB_HOST: db
@@ -77,10 +84,10 @@ services:
       TERMINAL_SERVICES: http://terminal1:${PROJECT_PORT}/terminal1
     volumes:
       - /run/docker.sock:/run/docker.sock:ro
-      - nginx_data:/etc/nginx
+      - nginx_data:/etc/nginx/conf.d
       - static_volume:/app/static
     healthcheck:
-      test: "curl http://${HOSTNAME}:${PROJECT_PORT}/${SERVICE_NAME}/health/"
+      test: "curl http://127.0.0.1:${PROJECT_PORT}/donknabberello/health"
       start_period: 10s
       interval: 10s
       timeout: 10s
@@ -97,7 +104,7 @@ services:
       - db
     environment:
       # Trigger the remigration or resetting of the database
-      DB_RESET: "true"    # Delets and recreates the database (dangerous)
+      # !DANGEROUS! DB_RESET: "false"    # Delets and recreates the database (dangerous)
       REMIGRATE: "false"  # Remigrates the database
       # The name of the service, used for url construction: e.g. http://localhost:8000/<SERVICE_NAME>
       SERVICE_NAME: "doncaramello" 
@@ -115,10 +122,10 @@ services:
       TERMINAL_SERVICES: http://terminal1:${PROJECT_PORT}/terminal1
     volumes:
       - /run/docker.sock:/run/docker.sock:ro
-      - nginx_data:/etc/nginx
+      - nginx_data:/etc/nginx/conf.d
       - static_volume:/app/static
     healthcheck:
-      test: "curl --fail --silent --write-out 'HTTP CODE : %{http_code}\n' http://${PROJECT_HOST}:${PROJECT_PORT}/${SERVICE_NAME}/health"
+      test: "curl http://127.0.0.1:${PROJECT_PORT}/doncaramello/health"
       start_period: 10s
       interval: 10s
       timeout: 10s
@@ -139,9 +146,9 @@ services:
     restart: always
     volumes:
       - static_volume:/static
-      - nginx_data:/etc/nginx
+      - nginx_data:/etc/nginx/conf.d
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/nginx.sh:/docker-entrypoint.d/nginx.sh
+      # - ./nginx/nginx.sh:/docker-entrypoint.d/nginx.sh
       #- ./nginx/nginx.donknabberello.conf:/etc/nginx/nginx.donknabberello.conf
     ports:
       - 8000:8000
