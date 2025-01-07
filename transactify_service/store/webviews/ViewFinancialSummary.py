@@ -91,8 +91,8 @@ class FinancialMetrics:
 
 #from ..apps import hwcontroller
 @method_decorator(login_required, name='dispatch')
-class ViewFinancialSummary(View):
-    template_name = 'store/view_financial_summary.html'
+class Summary(View):
+    template_name = 'store/summary.html'
 
 
     def get_customers(self, timespan: tuple[datetime, datetime] = None):
@@ -238,4 +238,4 @@ class ViewFinancialSummary(View):
             'products_bought': products_bought,
 
         }
-        return render(request, 'store/view_financial_summary.html', context)
+        return render(request, self.template_name, context)
