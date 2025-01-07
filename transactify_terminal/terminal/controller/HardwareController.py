@@ -8,8 +8,10 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.dispatch import Signal
 
-from .HardwareInterface import HardwareInterface
-from .Oled.OLEDViewController import OLEDViewController
+if os.getenv('INIT_HARDWARE', '0') == '1':
+    from .HardwareInterface import HardwareInterface
+    from .Oled.OLEDViewController import OLEDViewController
+
 from .ConfParser import parse_services_config_from_yaml
 from .ConfParser import Store
 
@@ -18,7 +20,7 @@ from ..api_endpoints.Customer import Customer
 
 from requests.models import Response
 
-
+import os
 
 
 
@@ -26,6 +28,11 @@ class HardwareController():
     init_counter = 0
 
     def __init__(self, *args, **kwargs):
+        
+        if os.getenv('INIT_HARDWARE', '0') == '0':
+           return
+
+
         logger = logging.getLogger('store')
         logger.info(f"HardwareController initilized. {HardwareController.init_counter} Number of initializations.")
         HardwareController.init_counter += 1

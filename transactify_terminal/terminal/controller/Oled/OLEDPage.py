@@ -141,10 +141,10 @@ class OLEDPage():
             image.paste(symb, pos)  # Paste at (2, 2) in the top-left corner
         except Exception as e:
             print(f"Error loading symbol: {e}")
-            symb = PIL.Image.open('/app/static/icons/png_16/coin.png')
-            symb = symb.convert('RGB')
-            symb = ImageOps.invert(symb)
-            image.paste(symb, pos)  # Paste at (2, 2) in the top-left corner
+            #symb = PIL.Image.open('/app/static/icons/png_16/coin.png')
+            #symb = symb.convert('RGB')
+            #symb = ImageOps.invert(symb)
+            #image.paste(symb, pos)  # Paste at (2, 2) in the top-left corner
 
     def align_right(self, draw, text, pos_y, font):
         (w, h), (offset_x, offset_y) = font.font.getsize(text)

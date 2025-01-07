@@ -112,7 +112,7 @@ class LEDStripController():
             self.strip.show()
             time.sleep(time_sleep)
         time_end = time.time()
-        print(f"Pulse duration: {time_end - time_start}")
+        # print(f"Pulse duration: {time_end - time_start}")
 
 
     def theaterChase(self, color, wait_ms=50, iterations=10):
