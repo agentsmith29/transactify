@@ -25,16 +25,20 @@ from transactify_service.webviews.LoginView import LoginView, LogoutView
 from django.contrib.auth import views as auth_views
 
 from transactify_service.views import health_check
+import store.StoreLogsDBHandler 
 
+
+
+SERVICE_NAME = settings.CONFIG.webservice.SERVICE_NAME
+logger = store.StoreLogsDBHandler.setup_custom_logging("transactify_service")
+logger.info(f"Service Name: {SERVICE_NAME}")
 urlpatterns = [
-    
+    path(f'{SERVICE_NAME}/login/', LoginView.as_view(template_name='login.html'), name='login'),
+    path(f'{SERVICE_NAME}/logout/', LogoutView.as_view(), name='logout'),
+    path(f'{SERVICE_NAME}/admin/', admin.site.urls),
 
-    path(f'{settings.STORE_NAME}/login/', LoginView.as_view(template_name='login.html'), name='login'),
-    path(f'{settings.STORE_NAME}/logout/', LogoutView.as_view(), name='logout'),
-    path(f'{settings.STORE_NAME}/admin/', admin.site.urls),
+    path(f'{SERVICE_NAME}/', include("store.urls")),
+    path(f'{SERVICE_NAME}/api/', include("api.urls")),
 
-    path(f'{settings.STORE_NAME}/', include("store.urls")),
-    path(f'{settings.STORE_NAME}/api/', include("api.urls")),
-
-    path(f'{settings.STORE_NAME}/health/', health_check),
+    path(f'{SERVICE_NAME}/health/', health_check),
 ]

@@ -1,23 +1,22 @@
 from django import template
-from django.templatetags.static import static
 from django.conf import settings
+from django.template.defaulttags import register
+from store.templatetags.static2 import static2 as static
+from config.ConfigParser import ConfigParser as Config
 
 register = template.Library()
 
-@register.simple_tag(takes_context=True)
-def static_assets(context, path):
+
+
+@register.simple_tag()
+def static_assets(path):
     """
-    Custom tag to generate the full URL for static assets, including <ip>:<port>.
-    Usage: {% assets 'icons/svg/database-add.svg' %}
+    Custom tag to generate the full URL for static assets.
+    Usage: {% static_assets 'icons/svg/database-add.svg' %}
     """
-    request = context.get('request')  # Get the request object from the template context
-    if not request:
-        # If the request object is not available, fall back to STATIC_URL
-        return f"{settings.STATIC_URL}{path}"
-    
-    # Construct the full URL using the request's host and port
-    host = request.get_host()  # Includes <ip>:<port> from the request
-    fixed_ip = "192.168.1.190"  # Replace with your fixed IP
-    port = "8000"
-    host = f"{fixed_ip}:{port}"
-    return f"http://{host}/static/assets_hyper/{path}"
+    config: Config  = settings.CONFIG
+    assets_path = config.django.STATIC_ASSETS_PATH
+    # Delegate the URL construction to the `static` function
+    static_url = static(f"{assets_path}{path}")
+    return static_url
+

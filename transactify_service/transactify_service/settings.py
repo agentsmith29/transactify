@@ -16,6 +16,45 @@ import sys
 import logging
 import logging.config
 from rich.logging import RichHandler
+
+from config import CONFIG
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {'rich': {'datefmt': '[%X]', 'format':'[%(name)s] %(message)s'}},
+    'handlers': {
+        'store_logs_db': {
+            'level': 'DEBUG',
+            'class': 'store.StoreLogsDBHandler.StoreLogsDBHandler',
+        },
+        'richconsole': {
+            'level': 'DEBUG',
+            'class': 'rich.logging.RichHandler',
+            'formatter': 'rich',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'rich',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'root': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+    
+}
+logging.config.dictConfig(LOGGING)
+logging.info("Logging configured.")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,21 +63,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-804j38-egddb2k2+jt!52)%*k89ohsg$i0@*&oxbp@0z2r_i^!'
+SECRET_KEY = CONFIG.django.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = CONFIG.django.DEBUG
 
-STORE_NAME = os.getenv('SERVICE_NAME')
-HOSTNAME = os.getenv('HOSTNAME')
-CONTAINER_NAME = os.getenv('CONTAINER_NAME')
 
 ALLOWED_HOSTS = [
-    STORE_NAME, HOSTNAME, CONTAINER_NAME,
-    os.getenv('DJANGO_WEB_HOST', '*'),
+    CONFIG.container.HOSTNAME,
+    CONFIG.container.CONTAINER_NAME,
+    #
+    CONFIG.webservice.SERVICE_NAME,
+    CONFIG.webservice.SERVICE_WEB_HOST,
+    #
     'localhost', '127.0.0.1'
 ] 
-print(f"Allowed hosts: {ALLOWED_HOSTS}.".replace('[','').replace(']',''))
+logging.info(f"Allowed hosts: {ALLOWED_HOSTS}.".replace('[','').replace(']',''))
 
 
 # Application definition
@@ -77,10 +117,10 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
-    f"http://{os.getenv('DJANGO_WEB_HOST', 'localhost')}",
-    f"http://{os.getenv('DJANGO_WEB_HOST', 'localhost')}:{os.getenv('DJANGO_WEB_PORT', '8000')}",
-    f"https://{os.getenv('DJANGO_WEB_HOST', 'localhost')}",
-    f"https://{os.getenv('DJANGO_WEB_HOST', 'localhost')}:{os.getenv('DJANGO_WEB_PORT', '8000')}",
+    f"http://{CONFIG.webservice.SERVICE_WEB_HOST}",
+    f"http://{CONFIG.webservice.SERVICE_WEB_HOST}:{CONFIG.webservice.SERVICE_WEB_PORT}",
+    f"https://{CONFIG.webservice.SERVICE_WEB_HOST}",
+    f"https://{CONFIG.webservice.SERVICE_WEB_HOST}:{CONFIG.webservice.SERVICE_WEB_PORT}",
 ]
 CSRF_FAILURE_VIEW = "transactify_service.views.custom_csrf_failure_view"
 
@@ -112,11 +152,11 @@ WSGI_APPLICATION = 'transactify_service.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': CONTAINER_NAME,
-        'USER': os.getenv('DJANGO_DB_USER', 'default_user'),
-        'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', 'default_password'),
-        'HOST': os.getenv('DJANGO_DB_HOST', 'localhost'),
-        'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
+        'NAME': CONFIG.database.NAME,
+        'USER': CONFIG.database.USER,
+        'PASSWORD': CONFIG.database.PASSWORD,
+        'HOST': CONFIG.database.HOST,
+        'PORT': CONFIG.database.PORT,
     },
     # 'USER': {
     #     'ENGINE': 'django.db.backends.postgresql',
@@ -127,6 +167,7 @@ DATABASES = {
     #     'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
     # },
 }
+
 print(f"Database: {DATABASES}.")
 # Use in-memory SQLite for testing
 if 'test' in sys.argv:
@@ -176,8 +217,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, '/app/static')
+STATIC_URL = CONFIG.django.STATIC_URL
+STATIC_ROOT = CONFIG.django.STATIC_ROOT
 #print(STATIC_ROOT)
 #print(STATIC_URL)
 
@@ -196,46 +237,12 @@ REST_FRAMEWORK = {
     ],
 }
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {'rich': {'datefmt': '[%X]', 'format':'[%(name)s] %(message)s'}},
-    'handlers': {
-        'store_logs_db': {
-            'level': 'DEBUG',
-            'class': 'store.StoreLogsDBHandler.StoreLogsDBHandler',
-        },
-        'richconsole': {
-            'level': 'DEBUG',
-            'class': 'rich.logging.RichHandler',
-            'formatter': 'rich',
-        },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'rich',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        },
-        'root': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-    },
-    
-}
-logging.config.dictConfig(LOGGING)
-print("Logging configured.")
 
 # Login and redirect URLs
 #LOGIN_REDIRECT_URL = STORE_NAME + '/dashboard/'  # Redirect after login
 #LOGOUT_REDIRECT_URL = STORE_NAME +'/'  # Redirect after logout
 #LOGIN_URL = '/'  # Login page
 
-LOGIN_REDIRECT_URL = f"/{STORE_NAME}/dashboard/"    # Redirect to the dashboard after login
-LOGOUT_REDIRECT_URL = f"/{STORE_NAME}/"             # Redirect to the store's root after logout
-LOGIN_URL = f"/{STORE_NAME}/login/"                 # URL of the login page
+LOGIN_REDIRECT_URL = f"/{CONFIG.webservice.SERVICE_NAME}/dashboard/"    # Redirect to the dashboard after login
+LOGOUT_REDIRECT_URL = f"/{CONFIG.webservice.SERVICE_NAME}/"             # Redirect to the store's root after logout
+LOGIN_URL = f"/{CONFIG.webservice.SERVICE_NAME}/login/"                 # URL of the login page
