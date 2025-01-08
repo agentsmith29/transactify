@@ -17,9 +17,9 @@
                         <li class="list-group-item">Name: {{ customer.user.first_name }} {{ customer.user.last_name}}</li>
                         <li class="list-group-item">Username: {{ customer.user.username }}</li>
                         <li class="list-group-item">E-Mail: {{ customer.user.email }}</li>
-                        <li class="list-group-item">Balance: € {{ balance.balance }}</li>
-                        <li class="list-group-item">Total purchased: € {{ total_purchases }} ({{ balance.total_purchases }})</li>
-                        <li class="list-group-item">Total deposited: € {{ total_deposits }} ({{ balance.total_deposits }})</li>
+                        <li class="list-group-item">Balance: € {{ customer.balance }}</li>
+                        <li class="list-group-item">Total purchased: € {{ total_purchases }} ({{ customer.total_purchases }})</li>
+                        <li class="list-group-item">Total deposited: € {{ total_deposits }} ({{ customer.total_deposits }})</li>
                         <li class="list-group-item">Issue Date: {{ customer.issued_at }}</li>
                     </ul>
                 </div>
@@ -134,7 +134,7 @@
         // Retrieve CSRF token from the hidden input in the form
         const csrftoken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
         const customerCardNumber = "{{ customer.card_number|default:'' }}";  // Ensure it’s not null
-        const customerDetailUrl = "{% url 'customer_detail' 'placeholder' %}".replace('placeholder', customerCardNumber);
+        const customerDetailUrl = "{% url 'customer' 'placeholder' %}".replace('placeholder', customerCardNumber);
 
 
         // Make a POST request

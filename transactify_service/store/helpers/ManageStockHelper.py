@@ -29,26 +29,27 @@ class StoreHelper:
         Calculate the remaining stock for a product.
         """
         try:
-            quantity_bought = ProductRestock.get_all_restocks_aggregated(product=product) or 0
+            quantity_stock = ProductRestock.get_all_restocks_aggregated(product=product) or 0
             quantity_sold = CustomerPurchase.get_all_purchases_aggregated(product=product) or 0
-            logging.info(f"Stock calculation - Quantity Bought: {quantity_bought}, Quantity Sold: {quantity_sold}")
-            return quantity_bought - quantity_sold
+            quantity_left = quantity_stock - quantity_sold
+            logger.info(f"{product.name} stock calculation: Stock: {quantity_stock}, Sold: {quantity_sold}. Left: {quantity_left}")
+            return quantity_left
         except Exception as e:
-            logging.error(f"Error calculating stock quantity for product {product}: {e}."
+            logger.error(f"Error calculating stock quantity for product {product}: {e}."
                           f"\nTraceback: {traceback.format_exc()}")
             raise e
 
     @staticmethod
     @transaction.atomic
-    def customer_purchase(ean: str, quantity: int, card_number: str, logger: logging.Logger) -> tuple[Response, Customer]:
+    def customer_purchase(ean: str, quantity: int, card_number: str, logger: logging.Logger) -> tuple[Response, CustomerPurchase]:
         """
         Handle customer purchase transaction with atomic database operations.
         """
         logger.info(f"Initiating purchase of product with EAN {ean}, Quantity: {quantity}, Card Number: {card_number}")
-
         try:
             try:
                 customer = Customer.objects.get(card_number=card_number)
+                logger.info(f"Customer information: Name: {customer.user.first_name} {customer.user.last_name}, Balance: {customer.balance}")
             except Customer.DoesNotExist:
                 logger.error(f"Customer with card number {card_number} not found.")
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_CUSTOMER_NOT_FOUND(card_number))
@@ -60,6 +61,8 @@ class StoreHelper:
 
             try:
                 product = StoreProduct.objects.get(ean=ean)
+                logger.info(f"Product information: Name: {product.name}, Price: {product.resell_price}€, Total Price: {quantity * product.resell_price}€, Stock: {product.stock_quantity}")
+
             except StoreProduct.DoesNotExist:
                 logger.error(f"Product with EAN {ean} not found.")
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_NOT_FOUND(ean))
@@ -81,17 +84,19 @@ class StoreHelper:
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_INSUFFICIENT_STOCK(product.name, left_in_stock, quantity))
 
             try:
-                response, customer_purchase = StoreHelper._customer_add_purchase(
-                    customer=customer, amount=product.resell_price, quantity=quantity, product=product, logger=logger
-                )
-                if response.status_code != 200:  # Change No. #2: Ensure response tuple is properly unpacked.
-                    return response
+                for i in range(quantity):
+                    response, customer_purchase = StoreHelper._customer_add_purchase(
+                        customer=customer, amount=product.resell_price, quantity=1, product=product, logger=logger
+                    )
+                    if response.status_code != 200:  # Change No. #2: Ensure response tuple is properly unpacked.
+                        return response
             except Exception as e:
                 logger.error(f"Error during purchase. Cannot add a new purchase: {e}."
                              f"\nTraceback: {traceback.format_exc()}")
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_PURCHASE_FAILED(e))
 
             try:
+                old_stock_quantity = product.stock_quantity
                 product.stock_quantity = StoreHelper._get_stock_quantity(product, logger)
                 product.save()
                 if product.stock_quantity <= 0:
@@ -101,8 +106,8 @@ class StoreHelper:
                              f"\nTraceback: {traceback.format_exc()}")
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_STOCK_UPDATE_FAILED(e))
 
-            logger.info(f"Purchase successful. Updated stock for {product.name}: {product.stock_quantity}")
-            return HTTPResponses.HTTP_STATUS_PURCHASE_SUCCESS(product.name), customer  # Change No. #3: Return actual customer object.
+            logger.info(f"Purchase successful. Updated stock for {product.name}: {product.stock_quantity} (was {old_stock_quantity})")
+            return HTTPResponses.HTTP_STATUS_PURCHASE_SUCCESS(product.name), customer_purchase  # Change No. #3: Return actual customer object.
 
         except Exception as e:
             logger.error(f"Purchase failed due to error: {e}."
@@ -154,8 +159,8 @@ class StoreHelper:
             raise HelperException(f"", HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_FAILED(customer, e))
 
         try:
-            total_deposit = customer.get_all_deposits_aggregated(CustomerDeposit)
-            total_purchases = customer.get_all_purchases_aggregated(CustomerPurchase)
+            total_deposit = customer.get_all_deposits_aggregated()
+            total_purchases = customer.get_all_purchases_aggregated()
 
             if Decimal(total_deposit) - Decimal(total_purchases) != Decimal(customer.balance):  # Change No. #4: Replace float comparisons with Decimal.
                 logger.error(f"Balance mismatch for customer {customer}. Total Deposits: {total_deposit}, Total Purchases: {total_purchases}, Balance: {customer.balance}")
@@ -313,13 +318,14 @@ class StoreHelper:
         """
         Process a purchase for a customer and update their balance and transaction logs.
         """
-        logger.info(f"Processing purchase for customer {customer}: Product {product}, Quantity {quantity}, Amount {amount}.")
-
+        
         try:
+            amount *= quantity
             amount = Decimal(amount)
+            logger.info(f"Processing purchase for customer {customer}: Product {product}, Quantity {quantity}, Amount {amount}.")
         except Exception as e:
             logger.error(f"Failed to convert amount to Decimal for customer {customer}: {e}.\nTraceback: {traceback.format_exc()}")
-            raise HelperException(f"", HTTPResponses.HTTP_STATUS_NOT_DECIAML("amount", type(amount), e))
+            raise HelperException(f"", HTTPResponses.HTTP_STATUS_NOT_DECIMAL("amount", type(amount), e))
 
         try:
             #customer_balance, _ = CustomerBalance.objects.get_or_create(customer=customer)
@@ -339,21 +345,21 @@ class StoreHelper:
                 customer=customer,
                 customer_balance=customer.balance
             )
-            purchase_entry.calculate_revenue()
+            purchase_entry.calculate_revenue(logger)
             logger.info(f"Logged purchase for customer {customer}: {purchase_entry}.")
         except Exception as e:
             logger.error(f"Failed to log purchase for customer {customer}: {e}.\nTraceback: {traceback.format_exc()}")
             raise HelperException(f"", HTTPResponses.HTTP_STATUS_PURCHASE_FAILED(customer, e))
 
         try:
-            total_deposit = customer.get_all_deposits_aggregated(CustomerDeposit)
-            total_purchases = customer.get_all_purchases_aggregated(CustomerPurchase)
+            total_deposit = customer.get_all_deposits_aggregated()
+            total_purchases = customer.get_all_purchases_aggregated()
 
             if Decimal(total_deposit) - Decimal(total_purchases) != Decimal(customer.balance):  # Change No. #8: Replace float comparisons with Decimal.
-                logger.error(f"Balance mismatch after purchase for customer {customer}. Total Deposits: {total_deposit}, Total Purchases: {total_purchases}, Balance: {customer_balance.balance}")
+                logger.error(f"Balance mismatch after purchase for customer {customer}. Total Deposits: {total_deposit}, Total Purchases: {total_purchases}, Balance: {customer.balance}")
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_BALANCE_MISMATCH(customer))
         except Exception as e:
             logger.error(f"Failed to validate balance after purchase for customer {customer}: {e}")
-            raise HelperException(f"", HTTPResponses.HTTP_STATUS_PURCHASE_FAILED(customer, e))
+            raise HelperException(f"", HTTPResponses.HTTP_STATUS_PURCHASE_FAILED(e))
 
         return HTTPResponses.HTTP_STATUS_PURCHASE_SUCCESS(customer), purchase_entry

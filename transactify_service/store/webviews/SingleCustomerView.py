@@ -11,7 +11,7 @@ from store.webmodels.Customer import Customer
 from ..webmodels.CustomerDeposit import CustomerDeposit
 from ..webmodels.CustomerPurchase import CustomerPurchase
 from store.helpers.ManageStockHelper import StoreHelper
-from store.StoreLogsDBHandler import StoreLogsDBHandler
+from store import StoreLogsDBHandler 
 
 
 from django.contrib.auth.decorators import login_required
@@ -21,27 +21,27 @@ from django.utils.decorators import method_decorator
 #from ..apps import hwcontroller
 @method_decorator(login_required, name='dispatch')
 class SingleCustomerView(View):
-    template_name = 'store/customer_detail.html'
+    template_name = 'store/customer.html'
 
     def __init__(self):
         super().__init__()
-        self.logger = StoreLogsDBHandler.setup_custom_logging('ManageProductsView')
+        self.logger = StoreLogsDBHandler.setup_custom_logging('SingleCustomerView')
 
 
     @method_decorator(ensure_csrf_cookie)
     def get(self, request, card_number=None):
-        """
+        """+
         Handle GET requests to display customer details and deposit history.
         """
         if card_number is None:
             card_number = request.GET.get('card_number')
 
         customer = get_object_or_404(Customer, card_number=card_number)
-        balance = CustomerBalance.objects.get(customer=customer)
+        balance = customer.balance
         deposits = CustomerDeposit.objects.filter(customer=customer).order_by('-deposit_date')
         purchases = CustomerPurchase.objects.filter(customer=customer).order_by('-purchase_date')
-        total_deposits = customer.get_all_deposits_aggregated(CustomerDeposit)
-        total_purchases = customer.get_all_purchases_aggregated(CustomerPurchase)
+        total_deposits = customer.get_all_deposits_aggregated()
+        total_purchases = customer.get_all_purchases_aggregated()
 
         return render(request, self.template_name, {
             'customer': customer,

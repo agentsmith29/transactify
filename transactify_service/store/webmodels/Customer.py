@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 from django.contrib.auth.models import User
 from store.webmodels.APIKey import APIKey
+
 import uuid 
 
 class Customer(models.Model):
@@ -27,10 +28,6 @@ class Customer(models.Model):
     total_deposits = models.PositiveIntegerField(default=0)
     total_purchases = models.PositiveIntegerField(default=0)
     last_changed = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.customer.user.first_name} {self.customer.user.last_name} has {self.balance}"
-    
 
     def get_balance(self, balance_model: Any) -> float:
         return balance_model.objects.get(customer=self).balance
@@ -58,8 +55,10 @@ class Customer(models.Model):
     def get_all_deposits(self, deposit_model: models.Model) -> list:
         return deposit_model.objects.filter(customer=self).order_by('-deposit_date')
     
-    def get_all_deposits_aggregated(self, deposit_model: models.Model) -> float:
-        dagg = deposit_model.objects.filter(customer=self).aggregate(
+    def get_all_deposits_aggregated(self) -> float:
+        from store.webmodels.CustomerDeposit import CustomerDeposit
+
+        dagg = CustomerDeposit.objects.filter(customer=self).aggregate(
             total=Coalesce(
                 models.Sum(
                     models.ExpressionWrapper(
@@ -74,9 +73,10 @@ class Customer(models.Model):
     def get_all_purchases(self, purchase_model: models.Model) -> list:
         return purchase_model.objects.filter(customer=self).order_by('-purchase_date')
     
-    def get_all_purchases_aggregated(self, purchase_model: models.Model) -> float:
+    def get_all_purchases_aggregated(self) -> float:
+        from store.webmodels.CustomerPurchase import CustomerPurchase
         # purchases are purchase_price*quantity
-        pagg = purchase_model.objects.filter(customer=self).aggregate(
+        pagg = CustomerPurchase.objects.filter(customer=self).aggregate(
             total=Coalesce(
                 models.Sum(
                     models.ExpressionWrapper(
@@ -89,4 +89,4 @@ class Customer(models.Model):
         return pagg
     
     def __str__(self):
-        return f"Customer: {self.user.username}"
+        return f"{self.user.first_name} {self.user.last_name} ({self.user.username})"

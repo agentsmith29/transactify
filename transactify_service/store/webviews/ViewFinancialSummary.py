@@ -28,6 +28,9 @@ from datetime import datetime, timedelta
 
 from datetime import datetime
 from django.db.models import Sum
+from django.db.models import Sum, F
+from datetime import datetime, timedelta
+
 
 class _TimeSpanProxy:
     def __init__(self, outer):
@@ -66,6 +69,61 @@ class FinancialMetrics:
         """Get the total earnings within a given timespan or all."""
         return self.get_revenue(timespan) - self.get_expenses(timespan)
 
+
+    def get_financial_data(self, start_date=None, end_date=None):
+        start_date = self._timespan[0] if start_date is None else start_date
+        end_date = self._timespan[1] if end_date is None else end_date
+
+        print(f"Fetching data from {start_date} to {end_date}")
+
+        purchases = (
+            CustomerPurchase.objects.filter(purchase_date__range=[start_date, end_date])
+            .annotate(day=F("purchase_date__date"))
+            .values("day")
+            .annotate(total_revenue=Sum("revenue"), total_profit=Sum("profit"))
+        )
+        print(f"Purchases: {list(purchases)}")
+
+        restocks = (
+            ProductRestock.objects.filter(restock_date__range=[start_date, end_date])
+            .annotate(day=F("restock_date__date"))
+            .values("day")
+            .annotate(total_cost=Sum("total_cost"))
+        )
+        print(f"Restocks: {list(restocks)}")
+
+        results = {}
+        for purchase in purchases:
+            day = purchase["day"]
+            results[day] = {
+                "revenue": float(purchase["total_revenue"]),
+                "profit": float(purchase["total_profit"]),
+                "cost": 0.0,
+            }
+
+        for restock in restocks:
+            day = restock["day"]
+            if day in results:
+                results[day]["cost"] += float(restock["total_cost"])
+            else:
+                results[day] = {
+                    "revenue": 0.0,
+                    "profit": 0.0,
+                    "cost": float(restock["total_cost"]),
+                }
+
+        sorted_results = dict(sorted(results.items(), key=lambda x: x[0]))
+
+        chart_data = {
+            "timestamps": [day.strftime("%Y-%m-%d") for day in sorted_results.keys()],
+            "revenue": [data["revenue"] for data in sorted_results.values()],
+            "cost": [data["cost"] for data in sorted_results.values()],
+            "profit": [data["profit"] for data in sorted_results.values()],
+        }
+        print(chart_data)
+        return chart_data
+
+
     @property
     def revenue(self):
         return self.get_revenue()
@@ -93,6 +151,7 @@ class FinancialMetrics:
 @method_decorator(login_required, name='dispatch')
 class Summary(View):
     template_name = 'store/summary.html'
+
 
 
     def get_customers(self, timespan: tuple[datetime, datetime] = None):
@@ -214,8 +273,8 @@ class Summary(View):
         #total_expenses = Stock.objects.aggregate(total_expense=Sum(F('quantity') * F('unit_price')))['total_expense'] or 0
         #total_earnings = total_revenue -ProductRestocktotal_expenses
 
-        products_sold = ProductRestock.objects.filter().all()        
-        products_bought = CustomerPurchase.objects.filter().all()
+        restock = ProductRestock.objects.filter().all()        
+        purchases = CustomerPurchase.objects.filter().all()
 
         timespan_start = datetime.now()
         timespan_end = datetime.now() - timedelta(days=30)
@@ -227,15 +286,18 @@ class Summary(View):
         purchases_statistics = self.get_purchase_statistics((timespan_start, timespan_end))
         restocks_statistics = self.get_restock_statistics((timespan_start, timespan_end))
 
+        finm = FinancialMetrics((timespan_start, timespan_end))
+        print(finm.get_financial_data(timespan_end, timespan_start))
+        
         # Revenue, expenses and earnings, one word, different than finance
         context = {
             'customer': customer_statistics,
             'products': products_statistics,
             'purchases': purchases_statistics,
             'restocks': restocks_statistics,
-            'financial_metrics': FinancialMetrics((timespan_start, timespan_end)),
-            'products_sold': products_sold,
-            'products_bought': products_bought,
-
+            'financial_metrics': finm,
+            'purchases_list': purchases,
+            'restocks_list': restock,
+            'chart_financial_data': finm.get_financial_data(timespan_end, timespan_start),
         }
         return render(request, self.template_name, context)
