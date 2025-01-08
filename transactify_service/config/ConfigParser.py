@@ -46,14 +46,18 @@ class ConfigParser:
         def __init__(self, *args, **kwargs):
             super().__init__(field_name="terminal", *args, **kwargs)
             self.docker_socket_helper = DockerSocketHelper(self.logger)
-            self.TERMINAL_SERVICES = self.assign_from_config("TERMINAL_SERVICES")
+            self.TERMINAL_SERVICE = self.assign_from_config("TERMINAL_SERVICE")
             self.TERMINAL_CONTAINER_NAME = self.assign_direct(
-                self.docker_socket_helper.container_name_from_service(self.TERMINAL_SERVICES)
+                self.docker_socket_helper.container_name_from_service(self.TERMINAL_SERVICE)
             )
-            self.TERMINAL_CONTAINER_ID = self.assign_direct(
-                self.docker_socket_helper.container_id_from_service(self.TERMINAL_SERVICES)
-            )
-            self.TERMINAL_WEBSOCKET_URL = self.assign_from_config("TERMINAL_WEBSOCKET_URL")
+            self.TERMINAL_CONTAINER_ID = str(self.assign_direct(
+                self.docker_socket_helper.container_id_from_service(self.TERMINAL_SERVICE)
+            ))
+
+            self.TERMINAL_SERVICE_URL = self.assign_from_config("TERMINAL_SERVICE_URL", 
+                                                                lambda_apply_func=lambda url: self.wrap_url(url, f"http"))
+            self.TERMINAL_WEBSOCKET_URL = self.assign_from_config("TERMINAL_WEBSOCKET_URL", 
+                                                                  lambda_apply_func=lambda url: self.wrap_url(url, f"ws"))
 
     class ContainerConfig(BaseConfigField):
         def __init__(self, *args, **kwargs):
@@ -73,7 +77,12 @@ class ConfigParser:
             self.DEBUG = bool(self.assign_from_config("DJANGO_DEBUG", "False"))
             self.SECRET_KEY = str(self.assign_from_config("SECRET_KEY", "Secret"))
             self.STATIC_ROOT = str(self.assign_direct(os.getenv("DIR_STATIC", "/app/static/")))
+            # Handeling static files
+
             self.STATIC_URL = str(self.assign_from_config("STATIC_URL", "static/"))
+            self.STATIC_ASSETS_PATH = str(self.assign_from_config("STATIC_ASSETS_PATH", "assets/"))
+            self.STATIC_WEBSERVER = str(self.assign_from_config("STATIC_WEBSERVER", None, required=False,
+                                                                lambda_apply_func=lambda url: self.wrap_url(url, f"http")))
 
     def __init__(self, config_file: str):
         self.logger = self._init_logger()

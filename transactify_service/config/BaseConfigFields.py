@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any
 import inspect
 from functools import wraps
 from typing import Optional, Any
-
+import re
 
 
 
@@ -19,6 +19,7 @@ class BaseConfigField:
         self._field_content = self._content.get(field_name, {}) # Stores the unaltered content
         self._keywords = self.data['keywords']                  # Stores the keywords     
         self._members = {}
+        self._members_apply_functions = {}
 
         self._debug_print = False
         self._initialized = False  # Tracks if the instance has been fully initialized
@@ -70,7 +71,9 @@ class BaseConfigField:
         return wrapper
 
     @get_assignment
-    def assign_from_config(self, key: str, default: Optional[str] = None, required: Optional[bool] = None, assigned_to: str = None) -> Any:
+    def assign_from_config(self, key: str, default: Optional[str] = None, required: Optional[bool] = None,
+                           lambda_apply_func: callable = None,
+                           assigned_to: str = None) -> Any:
         """
         Assign a configuration value, replacing placeholders as needed.
         """
@@ -90,13 +93,13 @@ class BaseConfigField:
             self.logger.error(f"Error accessing key {key}: {e}")
             raise ValueError(f"Error accessing key {key}: {e}")
 
-        _value = self._assign(key, _value, assigned_to)
+        _value = self._assign(key, _value, assigned_to, lambda_apply_func)
         
         if required:
             self.print(f"[{assigned_to.replace('self', self.field_name)}*]: {key}: {_value}")
         else:
             self.print(f"[{assigned_to.replace('self', self.field_name)}]: {key}: {_value}")
-
+        
         return _value
 
     @get_assignment
@@ -104,11 +107,12 @@ class BaseConfigField:
         assigned_to = assigned_to.replace("self.", "")
         return self._assign(key=assigned_to, value=value, assigned_to=assigned_to)
 
-    def _assign(self, key: str, value: Any, assigned_to: str) -> Any:
+    def _assign(self, key: str, value: Any, assigned_to: str, lambda_apply_func: callable=None) -> Any:
         self._keywords[f"{self.field_name}.{key}"] = value
         if assigned_to and "self" in assigned_to:
             assigned_to = assigned_to.replace("self.", "")
         self._members[f"{self.field_name}.{assigned_to}"] = value
+        self._members_apply_functions[f"{self.field_name}.{assigned_to}"] = lambda_apply_func
         setattr(self, assigned_to, value)
         reg_field = getattr(self, assigned_to)
         self.logger.debug(f"Registered: {assigned_to} = {reg_field}")
@@ -150,12 +154,32 @@ class BaseConfigField:
             member_attr = key.split(".")[1]
             self.print(f"Replacing keywords in {key} -> ", end="")
             _value = self._replace_inconfig(value)
+            # Apply the lambda function if one is defined
+            lambda_apply_func = self._members_apply_functions.get(key)
+            if lambda_apply_func:
+                _value = lambda_apply_func(_value)
             setattr(self, member_attr, _value)
             self.print(f"{_value}")
             reg_field = getattr(self, member_attr)
             self.logger.debug(f"Replaced: {member_attr} = {reg_field}")
         self.finalize_initialization()
 
+    # =================================================================================================================
+    # Functios for wrapping some values
+    # =================================================================================================================
+    def wrap_url(self, url: str, protocol: str) -> str:
+        # Check and prepend protocol if not given
+        if not re.match(r'^[a-zA-Z]+://', url):
+            url = f"{protocol}://{url}"
+
+        # Validate the final URL format
+        #pattern = re.compile(r'^[a-zA-Z]+://(?:[a-zA-Z0-9.-]+|\d{1,3}(?:\.\d{1,3}){3}):\d{1,5}/[a-zA-Z0-9_-]+(?:/[a-zA-Z0-9_-]+)*$')
+        pattern = re.compile(r'^[a-zA-Z]+://(?:[a-zA-Z0-9.-]+|\d{1,3}(?:\.\d{1,3}){3}):\d{1,5}(?:/[a-zA-Z0-9._-]+)*$')
+        # Thank you ChatGTP for this weird regex pattern
+        if not pattern.match(url):
+            raise ValueError(f"Invalid URL format: {url}")
+
+        return url
             
     def __setattr__(self, name, value):
         if hasattr(self, "_initialized") and self._initialized:

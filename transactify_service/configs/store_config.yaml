@@ -21,12 +21,15 @@ admin:
   ADMIN_EMAIL: "admin@admin.com"
 
 terminal:
-  TERMINAL_SERVICES: terminal1
-  #"http://terminal1:${ENV.PROJECT_PORT}/terminal1"
-  TERMINAL_WEBSOCKET_URL: "http://${ENV.PROJECT_HOST}:${ENV.PROJECT_PORT}/${TERMINAL_SERVICES}"
+  TERMINAL_SERVICE: terminal1 # IP or docker container
+  TERMINAL_SERVICE_URL: "${ENV.PROJECT_HOST}:${ENV.PROJECT_PORT}/${TERMINAL_SERVICE}"
+  TERMINAL_WEBSOCKET_URL: "${TERMINAL_SERVICE_URL}/ws"
 
 # Other configurations
 django:
   DEBUG: False
   SECRET_KEY: "YourSecretKey"
   STATIC_URL: "static/"
+  STATIC_ASSETS_PATH: "assets_hyper/"
+  # If those are set, the static path points to a different location instead of localhost
+  STATIC_WEBSERVER: "http://${ENV.PROJECT_HOST}:${ENV.PROJECT_PORT}"
