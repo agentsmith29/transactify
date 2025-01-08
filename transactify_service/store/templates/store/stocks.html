@@ -1,23 +1,9 @@
-<!DOCTYPE html>
-{% extends "./sidebar/sidebar.html" %}
+{% extends "./index.html" %}
 {% load custom_filters %}
-{% load static %}
-
-
-{% block header %}
-<title>Manage Stock</title>
-<style>
-.table-responsive {
-    max-height: calc(5 * 3em); /* 5 rows */
-    overflow-y: auto; /* Scrolls only the table content */
-}
-</style>
-{% endblock %}
-
+{% load static_assets %}
+{% load static_icons %}
 {% block content %}
 <div class="container mt-5">
-    <h1 class="mb-4">Add Stock to Existing Product</h1>
-
     <form id="addStockForm" class="border p-4 shadow-sm bg-light">
         {% csrf_token %}
         <div class="form-group">
@@ -48,7 +34,6 @@
         <button type="button" class="btn btn-secondary" onclick="manage_stock.submitStockForm()">Add Stock</button>
     </form>
 </div>
-
 <!-- Product List Section -->
 <div class="container mt-5">
     <h2 class="mb-4">Product List</h2>
@@ -96,7 +81,6 @@
         </table>
     </div>
 </div>
-
 <!-- Stock Purchases and Sales Section -->
 <div class="container mt-5">
     <h2 class="mb-4">Restocks and Sales</h2>
@@ -172,11 +156,12 @@
 
 
 {% block scripts %}
-<script src="{% static 'assets/js/manage-stock.js' %}"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        window.manage_stock = new ManageStock('manage_stock', "{% url 'manage_stock' %}");
-        manage_stock.updateResellPrice();
-    });
-</script>
+    {{ block.super }} 
+    <script src="{% static_assets 'js/pages/store.stocks.js' %}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            window.manage_stock = new ManageStock("{% url 'stocks' %}");
+            manage_stock.updateResellPrice();
+        });
+    </script> 
 {% endblock %}

@@ -29,6 +29,7 @@ terminal:
 django:
   DEBUG: False
   SECRET_KEY: "YourSecretKey"
+  # The path to the static files
   STATIC_URL: "static/"
   STATIC_ASSETS_PATH: "assets_hyper/"
   # If those are set, the static path points to a different location instead of localhost

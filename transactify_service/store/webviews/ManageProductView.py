@@ -10,6 +10,7 @@ from store.helpers.ManageStockHelper import StoreHelper
 from transactify_service.HttpResponses import HTTPResponses
 
 from store import StoreLogsDBHandler
+import traceback
 
 import json
 
@@ -29,6 +30,7 @@ class ManageProductsView(View):
             return render(request, self.template_name, {'products': products})
         except Exception as e:
             self.logger.error(f"Error fetching products: {e}")
+            traceback.print_exc()
             data, status = HTTPResponses.HTTP_STATUS_PRODUCT_CREATE_FAILED("", str(e)).json_data()
             return JsonResponse(data, status=status)
 

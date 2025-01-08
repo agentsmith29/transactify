@@ -23,7 +23,8 @@ from transactify_service.HttpResponses import HTTPResponses
 #from ..apps import hwcontroller
 @method_decorator(login_required, name='dispatch')
 class ManageStockView(View):
-    template_name = 'store/manage_stock.html'
+    template_name = 'store/stocks.html'
+    
     logger = StoreLogsDBHandler.setup_custom_logging('ManageStockView')
 
     def __init__(self):
