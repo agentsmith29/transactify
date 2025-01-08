@@ -12,6 +12,7 @@ from typing import Optional, Any
 from .BaseConfigFields import BaseConfigField
 from .DockerSocketHelper import DockerSocketHelper
 
+import os
 
 
 class ConfigParser:
@@ -52,6 +53,7 @@ class ConfigParser:
             self.TERMINAL_CONTAINER_ID = self.assign_direct(
                 self.docker_socket_helper.container_id_from_service(self.TERMINAL_SERVICES)
             )
+            self.TERMINAL_WEBSOCKET_URL = self.assign_from_config("TERMINAL_WEBSOCKET_URL")
 
     class ContainerConfig(BaseConfigField):
         def __init__(self, *args, **kwargs):
@@ -70,6 +72,8 @@ class ConfigParser:
             super().__init__(data, field_name, logger)
             self.DEBUG = bool(self.assign_from_config("DJANGO_DEBUG", "False"))
             self.SECRET_KEY = str(self.assign_from_config("SECRET_KEY", "Secret"))
+            self.STATIC_ROOT = str(self.assign_direct(os.getenv("DIR_STATIC", "/app/static/")))
+            self.STATIC_URL = str(self.assign_from_config("STATIC_URL", "static/"))
 
     def __init__(self, config_file: str):
         self.logger = self._init_logger()
@@ -122,7 +126,6 @@ class ConfigParser:
                             self.logger.debug(f"Ignoring invalid line in .env: {line}")  #<non>: Handle invalid lines
             return self.config_data
 
-
     def _load_config(self):
         kwargs = {"data": self.config_data, "logger": self.logger}
         self.database = self.DatabaseConfig(**kwargs)
@@ -142,4 +145,4 @@ class ConfigParser:
 
 
     def __str__(self) -> str:
-        return f"\n{self.database}\n{self.webservice}\n{self.admin}\n{self.terminal}\n{self.container}"
+        return f"\n{self._str_repr}"

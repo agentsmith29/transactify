@@ -122,6 +122,11 @@ class BaseConfigField:
             if f"${{{key}}}" in value:
                 value = value.replace(f"${{{key}}}", data_val)
                 self.print(f"{value} -> ", end="")
+            # also check, if the member without fieldname. is in the value7
+            key_without_fieldname = key.replace(f"{self.field_name}.", '') 
+            if f"${{{key_without_fieldname}}}" in value:
+                value = value.replace(f"${{{key.split('.')[1]}}}", data_val)
+                self.print(f"{value} -> ", end="")
 
         for env_key, env_value in self._env.items():
             if f"${{ENV.{env_key}}}" in value:
@@ -149,6 +154,7 @@ class BaseConfigField:
             self.print(f"{_value}")
             reg_field = getattr(self, member_attr)
             self.logger.debug(f"Replaced: {member_attr} = {reg_field}")
+        self.finalize_initialization()
 
             
     def __setattr__(self, name, value):
@@ -168,4 +174,5 @@ class BaseConfigField:
         """
         Marks the class as fully initialized, preventing further changes to attributes.
         """
+        self.logger.info(f"Finalizing initialization of {self.field_name}")
         self._initialized = True
