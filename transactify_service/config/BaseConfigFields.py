@@ -119,7 +119,7 @@ class BaseConfigField:
         return value
 
     def _replace_inconfig(self, value: Optional[str], depth=1) -> str:
-        if value is None:
+        if value is None or isinstance(value, bool) or isinstance(value, int) or isinstance(value, float):
             return value  # If value is None, return it unchanged
 
         for key, data_val in self._keywords.items():
