@@ -1,22 +1,25 @@
-environment: ../../.env  # Path to the .env file for global environment variable resolution
+ENV: ../../.env  # Path to the .env file for global environment variable resolution
 
 database:
   DB_RESET: "false"  # Deletes and recreates the database (dangerous)
   REMIGRATE: "false"  # Remigrates the database
-  DJANGO_DB_HOST: "db"
-  DJANGO_DB_PORT: "${DB_PORT}"
-  DJANGO_DB_USER: "${DB_USER}"
-  DJANGO_DB_PASSWORD: "${DB_PASSWORD}"
+  
+  DB_HOST: "db"                       # Database server (docker image name)
+  DB_PORT: "${ENV.DB_PORT}"               # Database port
+  DB_USER: "${ENV.DB_USER}"
+  DB_PASSWORD: "${ENV.DB_PASSWORD}"
+  DB_NAME: "${container.HOSTNAME}"  # Database name
 
-webconfig:
+webservice:
   SERVICE_NAME: "donknabberello"
-  DJANGO_WEB_PORT: "${PROJECT_PORT}"
-  DJANGO_WEB_HOST: "${PROJECT_HOST}"
-
+  SERVICE_WEB_HOST: "${ENV.PROJECT_HOST}"
+  SERVICE_WEB_PORT: "${ENV.PROJECT_PORT}"
+  
 admin:
   ADMIN_USER: "admin"
   ADMIN_PASSWORD: "admin"
   ADMIN_EMAIL: "admin@admin.com"
 
 terminal:
-  TERMINAL_SERVICES: "http://terminal1:${PROJECT_PORT}/terminal1"
+  TERMINAL_SERVICES: terminal1
+  #"http://terminal1:${ENV.PROJECT_PORT}/terminal1"

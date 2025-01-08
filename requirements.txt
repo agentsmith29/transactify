@@ -12,6 +12,8 @@ channels
 websockets
 daphne      # ASGI server
 httpx       # For making HTTP requests
+# For communicating with the docker unix socket
+requests-unixsocket2
 
 # Postgress database
 psycopg     
