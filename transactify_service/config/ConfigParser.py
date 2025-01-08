@@ -65,6 +65,12 @@ class ConfigParser:
             hostname = socket.gethostname()
             return hostname
 
+    class DjangoConfig(BaseConfigField):
+        def __init__(self, data, field_name, logger):
+            super().__init__(data, field_name, logger)
+            self.DEBUG = bool(self.assign_from_config("DJANGO_DEBUG", "False"))
+            self.SECRET_KEY = str(self.assign_from_config("SECRET_KEY", "Secret"))
+
     def __init__(self, config_file: str):
         self.logger = self._init_logger()
         self._str_repr = ""
@@ -124,6 +130,7 @@ class ConfigParser:
         self.admin = self.AdminConfig(**kwargs)
         self.terminal = self.TerminalConfig(**kwargs)
         self.container = self.ContainerConfig(**kwargs)
+        self.django = self.DjangoConfig(field_name='django', **kwargs)
        
         for member_key, member_val in self.__dict__.items():
             if isinstance(member_val, BaseConfigField):

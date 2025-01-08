@@ -23,3 +23,8 @@ admin:
 terminal:
   TERMINAL_SERVICES: terminal1
   #"http://terminal1:${ENV.PROJECT_PORT}/terminal1"
+
+# Other configurations
+django:
+  DEBUG: False
+  SECRET_KEY: "YourSecretKey"
