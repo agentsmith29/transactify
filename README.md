@@ -78,3 +78,30 @@ sudo systemctl restart cron.service
 # Check the status of the cron service
 sudo systemctl status cron.service  
 ```
+## Enable a watchdog
+I took it from [Medium: Enabling Watchdog on Raspberry Pi](https://medium.com/@arslion/enabling-watchdog-on-raspberry-pi-b7e574dcba6b)
+1. Activating watchdog hardware in pi
+```bash
+sudo chmod +x ./host_scripts/enable_watchdog.sh && sudo ./host_scripts/enable_watchdog.sh
+```
+2. Installing watchdog
+```bash
+sudo apt-get install watchdog
+```
+3. Reboot your raspberry pi. After reboot list devices with the name prefixed by watchdog, to do so run the following command:
+```bash
+sudo reboot
+```
+4. Configuring watchdog to respond to events
+```bash
+sudo chmod +x ./host_scripts/configure_watchdog.sh && sudo ./host_scripts/configure_watchdog.sh
+```
+Now the watchdog should be running.
+5. Restarting/Monitoring watchdog service:
+```bash
+# Start the watchdog
+sudo systemctl restart watchdog
+# View the status of the watchdog
+sudo systemctl status watchdog
+```
+Sometimes, when the config has changed, you need to restart it again.
