@@ -3,88 +3,153 @@
 {% load static_assets %}
 {% load static_icons %}
 {% block content %}
-<div class="container mt-5">
-    <form id="addStockForm" class="border p-4 shadow-sm bg-light">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="ean">EAN (Article Number)</label>
-            <!-- Create a dropdown menu for the product -->
-            <select class="form-control" id="ean" name="ean" onchange="manage_stock.updateResellPrice()" required>
-                {% for product in products %}
-                <option value="{{ product.ean }}" data_price="{{ product.final_price }}">
-                    {{ product.name }} (EAN: {{ product.ean }})
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="resell_price">Resell Price (€)</label>
-            <label class="form-control" id="resell_price" name="resell_price"></label>
-        </div>
-        <div class="form-group">
-            <label for="quantity">Stock Quantity</label>
-            <input type="number" class="form-control" id="quantity" name="quantity" required>
-        </div>
-        <!-- Add a new input field for the unit price -->
-        <div class="form-group">
-            <label for="purchase_price">Unit (paid) Price</label>
-            <small id="purchase_price_help" class="form-text text-muted">Price paid for the product.</small>
-            <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="0.01" required>
-        </div>
-        <button type="button" class="btn btn-secondary" onclick="manage_stock.submitStockForm()">Add Stock</button>
-    </form>
-</div>
-<!-- Product List Section -->
-<div class="container mt-5">
-    <h2 class="mb-4">Product List</h2>
-    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>EAN</th>
-                    <th>Name</th>
-                    <th>Resell Price (€)</th>
-                    <th>Stock Quantity</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for product in products %}
-                <tr>
-                    <td>{{ product.ean }}</td>
-                    <td>{{ product.name }}</td>
-                    {% if product.discount == 0 %}
-                        <td>{{ product.final_price }}</td>
-                    {% else %}
-                        <td>
-                            <del>{{ product.resell_price }}</del> 
-                            <b>
-                                <span style="color: red;">{{ product.final_price }}</span> (-{{ product.discount|multiply:100 }}%)
-                            </b>
-                        </td>
-                    {% endif %}
-                    {% if product.stock_quantity > 0 %}
-                        <td>{{ product.stock_quantity }}</td>
-                    {% else %}
-                        <td>
-                            <b>
-                                <span style="color: red;">{{ product.stock_quantity }}</span>
-                            </b>
-                        </td>
-                    {% endif %}
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" class="text-center">No products available.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<main class="col-lg-12 ms-sm-auto col-lg-10 px-md-4">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Product Stocks</h1>
     </div>
-</div>
+    <div class="row sm-12">
+        <div class="col-md-8">
+            <div class="card">
+                <form id="addStockForm" class="border p-4 shadow-sm bg-light">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="ean">EAN (Article Number)</label>
+                    <!-- Create a dropdown menu for the product -->
+                    <select class="form-control" id="ean" name="ean" onchange="manage_stock.updateResellPrice()" required>
+                        {% for product in products %}
+                        <option value="{{ product.ean }}" data_price="{{ product.final_price }}">
+                            {{ product.name }} (EAN: {{ product.ean }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Stock Quantity</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" required>
+                </div>
+                <!-- Add a new input field for the unit price -->
+                <div class="form-group">
+                    <label for="purchase_price">Unit (paid) Price</label>
+                    <small id="purchase_price_help" class="form-text text-muted">Price paid for the product.</small>
+                    <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="0.01" required>
+                </div>
+                <div class="mt-4">
+                <div class="d-flex">
+                    <button type="button" class="btn btn-primary" onclick="manage_stock.submitStockForm()">Add Stock</button>
+                </div>
+                </div>
+            </form>
+            </div>
+        </div>
+        <div class="col-md-4">           
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h4 class="header-title">Preview</h4>
+                    </div>
+                    <h5 class="card-title d-flex align-items-center">
+                        <span id="product-card-title">A Product</span>
+                        <span class="ms-2"></span>
+                        <span id="product-card-badge" class="badge bg-success-lighten ms-2">In Stock</span>
+                    </h5>
+                    <p class="card-text">The price at which the product will be sold to customers.</p>
+                    <h3> 
+                        <small class="form-text text-muted">Resell Price</small>
+                        <span id="resell_price" class="text-primary">
+                        <!-- display the selected product resell price via javascript-->
+                        €</span></h3>
+                    <h4> 
+                        <small class="form-text text-muted">Costs</small>
+                        <span id="cost" class="text-primary">
+                        <!-- display the selected product cost via javascript -->
+                        €
+                    </span> </h4>
+                    <h4>
+                        <small class="form-text text-muted">Profit</small>
+                        <span id="profit" class="text-primary">
+                        <!-- display the selected product profit via javascript-->
+                         €
+                    </span></h4>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<main class="col-lg-12 ms-sm-auto col-lg-10 px-md-4">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Product List</h1>
+    </div>
+    <!-- Product List Section -->
+    <div class="row sm-12">
+        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+            <table class="table table-centered table-nowrap mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>EAN</th>
+                        <th>Name</th>
+                        <th>Resell Price (€)</th>
+                        <th>Status</th>
+                        <th>Stock Quantity</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ product.ean }}</td>
+                        <td>
+                            <a href="{% url 'product' product.ean %}" class="text-body fw-bold">
+                                {{ product.name }}
+                            </td>
+                        <td>
+                            {% if product.discount == 0 %}
+                                {{ product.final_price }}</td>
+                            {% else %}
+                                    <del>{{ product.resell_price }}</del> 
+                                    <b><span style="color: red;">{{ product.final_price }}</span> (-{{ product.discount|multiply:100 }}%)</b>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if product.stock_quantity > 0 %}
+                                {{ product.stock_quantity }}
+                            {% else %}
+                                <b><span style="color: red;">{{ product.stock_quantity }}</span></b>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if product.stock_quantity > 2 %}
+                            <span class="badge bg-success">In Stock</span>
+                            {% elif product.stock_quantity > 0 %}
+                            <span class="badge bg-warning">Low Stock</span>
+                            {% else %}
+                            <span class="badge bg-danger">Out of Stock</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- button for restocking -->
+                            <button type="button" class="btn btn-sm btn-primary" onclick="manage_stock.restockProduct('{{ product.ean }}')">
+                                <i class="mdi mdi-plus"></i> Restock
+                        </td>  
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No products available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
 <!-- Stock Purchases and Sales Section -->
-<div class="container mt-5">
-    <h2 class="mb-4">Restocks and Sales</h2>
-    <div class="row">
+<main class="col-lg-12 ms-sm-auto col-lg-10 px-md-4">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Restocks and Sales</h1>
+    </div>
+    <div class="row sm-12">
+        <div class="row md-12">
         <!-- Stock Purchases Table -->
         <div class="col-md-6">
             <h5>Restocks</h5>
@@ -151,7 +216,6 @@
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
 
 
@@ -162,6 +226,18 @@
         document.addEventListener("DOMContentLoaded", function() {
             window.manage_stock = new ManageStock("{% url 'stocks' %}");
             manage_stock.updateResellPrice();
+            manage_stock.initEventListeners();
         });
+        window.products = [
+            {% for product in products %}
+                {
+                    ean: "{{ product.ean }}",
+                    resell_price: {{ product.resell_price }},
+                    final_price: {{ product.final_price }},
+                    name: "{{ product.name|escapejs }}",
+                    stock_quantity: {{ product.stock_quantity }}
+                },
+            {% endfor %}
+        ];
     </script> 
 {% endblock %}

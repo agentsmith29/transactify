@@ -19,6 +19,7 @@ class CustomerPurchase(models.Model):
     
     """
     id = models.AutoField(primary_key=True)
+
     product = models.ForeignKey(StoreProduct, on_delete=models.CASCADE)
     # The quantity of the product purchased
     quantity = models.PositiveIntegerField()
@@ -38,6 +39,10 @@ class CustomerPurchase(models.Model):
     customer_balance = models.DecimalField(max_digits=10, decimal_places=2)
     # The date the deposit was made
     purchase_date = models.DateTimeField(auto_now_add=True)
+
+    # other fields
+    payment_status = models.CharField(max_length=100, default="pending")
+    order_status = models.CharField(max_length=100, default="pending")
 
     def get_all_purchases(product: StoreProduct):
         return CustomerPurchase.objects.filter(product=product)

@@ -5,7 +5,7 @@ class ManageStock {
     }
 
     initSocket() {
-        window.terminal_connection.onmessage = (event) => {
+        window.storeManager.webSocketHandler.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
                 console.log("Message received from server:", data);
@@ -25,7 +25,18 @@ class ManageStock {
         };
     }
 
-    submitStockForm() {
+    initEventListeners() {
+        // Attach change event to the EAN dropdown
+        document.getElementById('ean').addEventListener('change', this.updateResellPrice.bind(this));
+        // Attach event to quantity and purchase price fields to recalculate profit dynamically
+        document.getElementById('quantity').addEventListener('input', this.updateResellPrice.bind(this));
+        // purchase_price: <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="0.01" required=""></input>
+        // value change event
+        document.getElementById('purchase_price').addEventListener('input', this.updateResellPrice.bind(this));
+        
+    }
+
+    async submitStockForm() {
         const form = document.getElementById('addStockForm');
 
         // Validate required fields
@@ -55,6 +66,15 @@ class ManageStock {
             return;
         }
         this.proceedWithStockForm(formData);
+    }
+
+    restockProduct(ean) {
+        const eanDropdown = document.getElementById('ean');
+        eanDropdown.value = ean;
+        this.updateResellPrice();
+
+        // Scroll to the add stock form for user to input details
+        document.getElementById('addStockForm').scrollIntoView({ behavior: 'smooth' });
     }
 
     proceedWithStockForm(formData) {
@@ -88,15 +108,46 @@ class ManageStock {
             });
     }
 
-
     updateResellPrice() {
-        const dropdown = document.getElementById('ean');
-        const selectedOption = dropdown.options[dropdown.selectedIndex];
-        const resellPrice = selectedOption.getAttribute('data_price');
-        
-        const resellPriceInput = document.getElementById('resell_price');
-        resellPriceInput.value = resellPrice || ''; // Set the price or clear if undefined
+        console.log("Updating resell price...");
+        const eanDropdown = document.getElementById('ean');
+        const selectedEan = eanDropdown.value; // Get the selected EAN
+    
+        // Find the product in the products array using the selected EAN
+        const product = window.products.find(prod => prod.ean === selectedEan);
+    
+        if (product) {
+            const resellPrice = product.resell_price;
+    
+            // Update resell price, cost, and profit fields
+            document.getElementById('resell_price').textContent = `€ ${parseFloat(resellPrice).toFixed(2)}`;
+            document.getElementById('product-card-title').textContent = product.name;
+            const stockBadge = document.getElementById('product-card-badge')
+            if (product.quantity > 2) {
+                stockBadge.textContent = 'In Stock';
+                stockBadge.className = 'badge bg-success-lighten';
+            } else if (product.quantity > 0) {
+                stockBadge.textContent = 'Low Stock';
+                stockBadge.className = 'badge bg-warning-lighten';
+            } else {
+                stockBadge.textContent = 'Out of Stock';
+                stockBadge.className = 'badge bg-danger-lighten';
+            }
+            //  purchase_price: <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="0.01" required=""></input>
+            cost =  parseFloat(document.getElementById('purchase_price').value);
+            // check if cost is not empty, otherwise assign 0
+            if (isNaN(cost)) {
+                cost = 0
+            }
+            profit = resellPrice - cost
+            document.getElementById('cost').textContent = `€ ${parseFloat(cost).toFixed(2)}`;
+            document.getElementById('profit').textContent = `€ ${parseFloat(profit).toFixed(2)}`;
+        } else {
+            console.error("Product not found for the selected EAN");
+        }
     }
+    
+
 
 
 }

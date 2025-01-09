@@ -21,8 +21,7 @@ class WebViewOrders(View):
     template_name = 'store/orders.html'
 
     def get(self, request):
-        context = {'purchases_list': CustomerPurchase.objects.filter().all(),
-        
+        context = {'purchases_list': CustomerPurchase.objects.filter().all().order_by('-purchase_date'),
                    }
         return render(request, self.template_name, context)
 

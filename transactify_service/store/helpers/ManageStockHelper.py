@@ -370,6 +370,8 @@ class StoreHelper:
             purchase_entry.calculate_profit(logger)
             logger.info(f"Logged purchase for customer {customer}: {purchase_entry}.")
         except Exception as e:
+            purchase_entry.payment_status = "error"
+            purchase_entry.order_status = "error"
             logger.error(f"Failed to log purchase for customer {customer}: {e}.\nTraceback: {traceback.format_exc()}")
             raise HelperException(f"", HTTPResponses.HTTP_STATUS_PURCHASE_FAILED(customer, e))
 
@@ -379,9 +381,15 @@ class StoreHelper:
 
             if Decimal(total_deposit) - Decimal(total_purchases) != Decimal(customer.balance):  # Change No. #8: Replace float comparisons with Decimal.
                 logger.error(f"Balance mismatch after purchase for customer {customer}. Total Deposits: {total_deposit}, Total Purchases: {total_purchases}, Balance: {customer.balance}")
+                purchase_entry.payment_status = "failed"
+                purchase_entry.order_status = "cancelled"
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_BALANCE_MISMATCH(customer))
         except Exception as e:
             logger.error(f"Failed to validate balance after purchase for customer {customer}: {e}")
             raise HelperException(f"", HTTPResponses.HTTP_STATUS_PURCHASE_FAILED(e))
+        
+        purchase_entry.order_status = "completed"
+        purchase_entry.payment_status = "paid"
+        purchase_entry.save()
 
         return HTTPResponses.HTTP_STATUS_PURCHASE_SUCCESS(customer), purchase_entry
