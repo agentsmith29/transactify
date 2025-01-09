@@ -16,6 +16,7 @@ from store import StoreLogsDBHandler
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.db import models
 
 
 #from ..apps import hwcontroller
@@ -42,6 +43,48 @@ class SingleCustomerView(View):
         purchases = CustomerPurchase.objects.filter(customer=customer).order_by('-purchase_date')
         total_deposits = customer.get_all_deposits_aggregated()
         total_purchases = customer.get_all_purchases_aggregated()
+        #deposits =  CustomerDeposit.objects.filter(customer=customer)
+        #purchases =  CustomerPurchase.objects.filter(customer=customer)
+        
+        chart_data = {
+            'deposit': [],
+            'purchase': [],
+            'timestamp': [],
+            'balance': []
+        }
+        for deposit in deposits:
+            purchases_on_this_date = CustomerPurchase.objects.filter(customer=customer, purchase_date=deposit.deposit_date).aggregate(models.Sum('revenue'))['revenue__sum'] or 0
+            chart_data['purchase'].append(float(purchases_on_this_date))
+            chart_data['deposit'].append(float(deposit.amount))
+            chart_data['timestamp'].append(int(deposit.deposit_date.timestamp()*1e3))
+            chart_data['balance'].append(float(deposit.customer_balance))
+
+        for purchase in purchases:
+            deposit_on_this_date = CustomerDeposit.objects.filter(customer=customer, deposit_date=purchase.purchase_date).aggregate(models.Sum('amount'))['amount__sum'] or 0
+            chart_data['deposit'].append(float(deposit_on_this_date))
+            chart_data['purchase'].append(float(purchase.revenue))
+            chart_data['timestamp'].append(int(purchase.purchase_date.timestamp()*1e3))
+            chart_data['balance'].append(float(purchase.customer_balance))
+        
+
+        combined_data = [
+            (chart_data['timestamp'][i], chart_data['deposit'][i], chart_data['purchase'][i], chart_data['balance'][i])
+            for i in range(len(chart_data['timestamp']))
+        ]
+
+        # Sort by timestamp
+        combined_data.sort(key=lambda x: x[0])
+
+        # Reconstruct the chart_data dictionary
+        chart_data = {
+            'timestamp': [item[0] for item in combined_data],
+            'deposit': [item[1] for item in combined_data],
+            'purchase': [item[2] for item in combined_data],
+            'balance': [item[3] for item in combined_data],
+        }
+
+        print(f"Chart data: {chart_data}")
+        
 
         return render(request, self.template_name, {
             'customer': customer,
@@ -49,8 +92,10 @@ class SingleCustomerView(View):
             'deposits': deposits,
             'purchases': purchases,
             'total_deposits': total_deposits,
-            'total_purchases': total_purchases
+            'total_purchases': total_purchases,
+            'chart_data': chart_data
         })
+   
 
     def post(self, request, card_number=None):
         """

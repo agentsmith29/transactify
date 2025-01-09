@@ -1,0 +1,40 @@
+{% extends "./index.html" %}
+{% load custom_filters %}
+{% load static_assets %}
+{% load static_icons %}
+{% block content %}
+    <h3>Customer's purchases</h3>
+    <table class="table table-bordered table-striped mt-3">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Product</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Unit Price</th>
+                <th scope="col">Revenue</th>
+                <th scope="col">Expense</th>
+                <th scope="col">Profit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in purchases_list %}
+            <tr>
+                <td>{{ purchase.purchase_date }}</td>
+                <td>{{ purchase.product.name }} ({{ purchase.quantity }})</td>
+                <td>
+                    <a href="{% url 'customer' purchase.customer.card_number %}">
+                      <div style="height:100%;width:100%">
+                        {{ purchase.customer.user.first_name }} {{ purchase.customer.user.last_name }}
+                      </div>
+                    </a>
+                  </td>
+                <td>€ {{ purchase.purchase_price }}</td>
+                <td>€ {{ purchase.revenue }}</td>
+                <td>€ {{ purchase.expenses }}</td>
+                <td>€ {{ purchase.profit }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>  
+{% endblock %}

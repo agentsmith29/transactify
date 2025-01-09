@@ -1,33 +1,114 @@
 {% extends "./index.html" %}
-
+{% load static_assets %}
 {% block content %}
-<div class="container-fluid" style="overflow-y: auto; height: 100vh;"> <!-- Ensures whole page is scrollable -->
+{% csrf_token %}
     <div class="row">
         <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <main class="col-lg-12 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">Customer Detail</h1>
             </div>
 
             <!-- Customer Info -->
-            <div class="row mb-4">
+            <h5>Customer Information</h5>
+            <div class="row sm-6">
                 <div class="col-md-6">
-                    <h5>Customer Information</h5>
-                    <ul class="list-group">
-                        <li class="list-group-item">Name: {{ customer.user.first_name }} {{ customer.user.last_name}}</li>
-                        <li class="list-group-item">Username: {{ customer.user.username }}</li>
-                        <li class="list-group-item">E-Mail: {{ customer.user.email }}</li>
-                        <li class="list-group-item">Balance: € {{ customer.balance }}</li>
-                        <li class="list-group-item">Total purchased: € {{ total_purchases }} ({{ customer.total_purchases }})</li>
-                        <li class="list-group-item">Total deposited: € {{ total_deposits }} ({{ customer.total_deposits }})</li>
-                        <li class="list-group-item">Issue Date: {{ customer.issued_at }}</li>
-                    </ul>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 class="header-title">Customer {{ customer.user.first_name }} {{ customer.user.last_name}}</h4>
+                        </div>
+                        <ul class="list-group">
+                            <li class="list-group-item">Username: {{ customer.user.username }}</li>
+                            <li class="list-group-item">E-Mail: {{ customer.user.email }}</li>
+                            <li class="list-group-item">Balance: € {{ customer.balance }}</li>
+                            <li class="list-group-item">Total purchased: € {{ total_purchases }} ({{ customer.total_purchases }})</li>
+                            <li class="list-group-item">Total deposited: € {{ total_deposits }} ({{ customer.total_deposits }})</li>
+                            <li class="list-group-item">Issue Date: {{ customer.issued_at }}</li>
+                        </ul>
+                    </div>
+
+                </div>
+                <div class="col-md-6">
+                    <div class="card-body">
+                        <div class="row sm-3">    
+                            <div class="col-sm-6">
+                                <a href="{% url 'customers' %}" class="card-link">
+                                    <div class="card widget-flat">
+                                    <div class="card-body">
+                                        <div class="float-end">
+                                            <i class="mdi mdi-account-multiple widget-icon"></i>
+                                        </div>
+                                        <h5 class="text-muted fw-normal mt-0" title="Number of Customers">Customers</h5>
+                                        <h3 class="mt-3 mb-3">---</h3>
+                                        <p class="mb-0 text-muted">
+                                            <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 0%</span>
+                                            <span class="text-nowrap">Total</span>
+                                        </p>
+                                    </div> <!-- end card-body-->
+                                    </div> <!-- end card-->
+                                </a>
+                            </div> <!-- end col-->
+                            <div class="col-sm-6">
+                                <a href="{% url 'products' %}" class="card-link">
+                                    <div class="card widget-flat">
+                                        <div class="card-body">
+                                            <div class="float-end">
+                                                <i class="mdi mdi-cart-plus widget-icon"></i>
+                                            </div>
+                                            <h5 class="text-muted fw-normal mt-0" title="Number of Orders">Products</h5>
+                                            <h3 class="mt-3 mb-3">---</h3>
+                                            <p class="mb-0 text-muted">
+                                                <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 1.08%</span>
+                                                <span class="text-nowrap">Total</span>
+                                            </p>
+                                        </div> <!-- end card-body-->
+                                    </div> <!-- end card-->
+                                </a>
+                            </div> <!-- end col-->
+                        </div>
+                        <div class="row sm-3"> 
+                            <div class="col-sm-6">
+                                <a href="{% url 'customers' %}" class="card-link">
+                                    <div class="card widget-flat">
+                                    <div class="card-body">
+                                        <div class="float-end">
+                                            <i class="mdi mdi-account-multiple widget-icon"></i>
+                                        </div>
+                                        <h5 class="text-muted fw-normal mt-0" title="Number of Customers">Customers</h5>
+                                        <h3 class="mt-3 mb-3">---</h3>
+                                        <p class="mb-0 text-muted">
+                                            <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 0%</span>
+                                            <span class="text-nowrap">Total</span>
+                                        </p>
+                                    </div> <!-- end card-body-->
+                                    </div> <!-- end card-->
+                                </a>
+                            </div> <!-- end col-->
+                            <div class="col-sm-6">
+                            <a href="{% url 'products' %}" class="card-link">
+                                <div class="card widget-flat">
+                                    <div class="card-body">
+                                        <div class="float-end">
+                                            <i class="mdi mdi-cart-plus widget-icon"></i>
+                                        </div>
+                                        <h5 class="text-muted fw-normal mt-0" title="Number of Orders">Products</h5>
+                                        <h3 class="mt-3 mb-3">---</h3>
+                                        <p class="mb-0 text-muted">
+                                            <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 1.08%</span>
+                                            <span class="text-nowrap">Total</span>
+                                        </p>
+                                    </div> <!-- end card-body-->
+                                </div> <!-- end card-->
+                            </a>
+                        </div> <!-- end col-->
+                    </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Deposit Form -->
             <div class="row mb-4">
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <h5>Update Balance</h5>
                     <form id="updateBalanceForm">
                         <div class="mb-3">
@@ -37,6 +118,54 @@
                         <button type="submit" class="btn btn-success">Add Deposit</button>
                     </form>
                 </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card card-h-100">
+                        <div class="d-flex card-header justify-content-between align-items-center">
+                            <h4 class="header-title">Balances</h4>
+                            <div class="dropdown">
+                                <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="mdi mdi-dots-vertical"></i>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end">
+                                    <!-- item-->
+                                    <a href="javascript:void(0);" class="dropdown-item">Sales Report</a>
+                                    <!-- item-->
+                                    <a href="javascript:void(0);" class="dropdown-item">Export Report</a>
+                                    <!-- item-->
+                                    <a href="javascript:void(0);" class="dropdown-item">Profit</a>
+                                    <!-- item-->
+                                    <a href="javascript:void(0);" class="dropdown-item">Action</a>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <div dir="ltr" class="p-3">
+                            <div class="time-filter d-flex justify-content-around mb-3">
+                                <button id="one_month" class="btn btn-sm btn-outline-primary">1 Month</button>
+                                <button id="six_months" class="btn btn-sm btn-outline-primary">6 Months</button>
+                                <button id="one_year" class="btn btn-sm btn-outline-primary">1 Year</button>
+                                <button id="all" class="btn btn-sm btn-outline-primary active">All</button>
+                            </div>
+                    
+                            <div id="balance-chart" class="apex-charts" style="min-height: 256px;"></div>
+                    
+                            <div class="mt-3">
+                                <input
+                                    id="zoom-slider"
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value="100"
+                                    class="form-range"
+                                    aria-label="Zoom Slider"
+                                />
+                            </div>
+                        </div>
+                    </div>                    
+                </div> <!-- end col -->
             </div>
 
             <!-- NFC Overlay -->
@@ -108,68 +237,39 @@
             </div>
         </main>
     </div>
-</div>
+{% endblock %}
 
-{% csrf_token %}
-<script>
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== "") {
-        const cookies = document.cookie.split(";");
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) === name + "=") {
-            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            break;
-            }
-        }
-        }
-        return cookieValue;
-    }
-    const CSRF_TOKEN = getCookie("csrftoken");
-
-    document.getElementById('updateBalanceForm').addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent form submission
-        // Retrieve CSRF token from the hidden input in the form
-        const csrftoken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-        const customerCardNumber = "{{ customer.card_number|default:'' }}";  // Ensure it’s not null
-        const customerDetailUrl = "{% url 'customer' 'placeholder' %}".replace('placeholder', customerCardNumber);
-
-
-        // Make a POST request
-        fetch(customerDetailUrl, {
-            method: 'POST',
-            mode: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                "X-CSRFTOKEN": CSRF_TOKEN,
-                'X-Requested-With': 'XMLHttpRequest' // Identify as AJAX request
-            },
-            body: JSON.stringify({
-                deposit_amount: document.getElementById('depositAmount').value
-            })
-        }).then(response => {
-            if (response.ok) {
-                console.log('Request successful');
-                // reaload the page
-                location.reload();
-                
-                return response.json();
-            } else {
-                console.error('Request failed:', response.status);
-                alert('Error occurred. Please try again.');
-            }
-        }).then(data => {
-            console.log('Response data:', data);
-        }).catch(error => {
-            console.error('Error:', error);
-        }).finally(() => {
-            console.log('Request completed');
+{% block scripts %}
+    <script src="{% static_assets 'js/pages/store.customer.js' %}"></script>
+    <!-- 3rd party -->
+    <script src="{% static_assets 'js/vendor/apexcharts.min.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const csrftoken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            const customerCardNumber = "{{ customer.card_number|default:'' }}"; // Ensure it’s not null
+            const customerDetailUrl = "{% url 'customer' 'placeholder' %}".replace('placeholder', customerCardNumber);
+        
+            // Initialize CustomerView with Django template variables
+            window.customerView = new CustomerView({
+                customerCardNumber: customerCardNumber,
+                customerDetailUrl: customerDetailUrl,
+                csrftoken: csrftoken,
+            });
+        
+            const balanceData = {{ chart_data.balance|safe }};
+            const depositData = {{ chart_data.deposit|safe }};
+            const purchasesData = {{ chart_data.purchase|safe }};
+            const categories = {{ chart_data.timestamp|safe }};
+            const chartElementId = 'balance-chart';
+        
+            window.customerViewChart = new CustomerViewChart({
+                chartElementId: chartElementId,
+                balanceData: balanceData,
+                depositData: depositData,
+                purchasesData: purchasesData,
+                categories: categories,
+                colors: ['#4caf50', '#f44336', '#2196f3'],
+            });
         });
-    });
-</script>
-
-
-
+    </script>
 {% endblock %}

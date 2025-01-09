@@ -12,13 +12,16 @@ import random
 from datetime import datetime, timedelta
 
 logger = logging.getLogger('Mocker')
-def generate_random_date(time_delta=30):
+def generate_random_date(time_delta=30, day_only=True):
     # Calculate the datetime range
     now = datetime.now()
     start_date = now - timedelta(days=time_delta)
     
-    # Generate a random date within the last 30 days
-    random_date = start_date + timedelta(seconds=random.randint(0, int((now - start_date).total_seconds())))
+    if day_only:
+        # Generate a random date within the last 30 days
+        random_date = start_date + timedelta(days=random.randint(0, int((now - start_date).days)))
+    else:# Generate a random date within the last 30 days
+        random_date = start_date + timedelta(seconds=random.randint(0, int((now - start_date).total_seconds())))
     
     # Set the random time to be within the range of 9 AM to 5 PM
     random_hour = random.randint(9, 16)  # 16 ensures the latest hour is 5 PM
@@ -176,7 +179,8 @@ def mock_restocks():
             quantity=random.randint(1, 10), 
             purchase_price=generate_random_number(1, 15), 
             logger=logger_mock_restocks)
-        product_restock.restocked_at = generate_random_date(30)
+        # Alter the date
+        product_restock.restock_date = generate_random_date(30)
         product_restock.save()
 
 def delete_mocked_purchases(username):

@@ -12,18 +12,18 @@ class StoreConfig(AppConfig):
 
         if os.environ.get('RUN_SERVER', 'false') == 'true':
             import store.StoreLogsDBHandler	  # Import your custom logging here
-            from store.mock_store_content import (mock_store_customers, mock_store_products, 
-                                                  mock_restocks, mock_customer_deposits, mock_purchases)
+            #from transactify_service.store.data_generators.mock_store_content import (mock_store_customers, mock_store_products, 
+            #                                      mock_restocks, mock_customer_deposits, mock_purchases)
+            from store.data_generators.add_historical_data import HistoricalData
 
             logger = store.StoreLogsDBHandler.setup_custom_logging('apps')
             try:
-                mock_store_customers()
-                mock_customer_deposits()
-
-                mock_store_products()
-                mock_restocks()
-                
-                mock_purchases()
+                #mock_store_customers()
+                #mock_customer_deposits()
+                #mock_store_products()
+                #mock_restocks()
+                #mock_purchases()
+                HistoricalData()
             except Exception as e:
                 logger.error(f"Failed to mock store content: {e}")
             # set the name of the store

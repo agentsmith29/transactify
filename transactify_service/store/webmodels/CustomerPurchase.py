@@ -6,7 +6,7 @@ from .ProductInventory import ProductInventory
 from decimal import Decimal
 
 import logging
-
+logger = logging.getLogger('CustomerPurchase')
 class CustomerPurchase(models.Model):
     """Represents a customer purchasing a product.
     Attributes:
@@ -42,16 +42,32 @@ class CustomerPurchase(models.Model):
     def get_all_purchases(product: StoreProduct):
         return CustomerPurchase.objects.filter(product=product)
     
-    def get_all_purchases_aggregated(product: StoreProduct):
-        return CustomerPurchase.objects.filter(product=product).aggregate(models.Sum('quantity'))['quantity__sum']
+    def total_purchases(product: StoreProduct, _logger: logging.Logger = None):
+        # get the sum of all purchases for a product
+        if not _logger:
+            _logger = logger
+        _logger.info(f"Calculating total purchases for product {product}")
+        total_purchases = CustomerPurchase.objects.filter(product=product).aggregate(models.Sum('quantity'))['quantity__sum']
+        _logger.info(f"Total purchases: {total_purchases}")
+        return total_purchases
     
+    def total_revenue(product: StoreProduct, _logger: logging.Logger =None):
+        # get the sum of all purchases for a product
+        if not _logger:
+            _logger = logger
+        _logger.info(f"Calculating total revenue for product {product}")
+        total_revenue = CustomerPurchase.objects.filter(product=product).aggregate(models.Sum('revenue'))['revenue__sum']
+        _logger.info(f"Total revenue: {total_revenue}")
+        return total_revenue
+    
+
     # function that is called, every time a new CustomerPurchase object is created
     def save(self, *args, **kwargs):
         logging.getLogger('store').info(f"[PURCHASE] New purchase: {self}")
         super().save(*args, **kwargs)
 
   
-    def calculate_revenue(self, logger=None):
+    def calculate_profit(self, logger=None):
         """Calculates revenue based on FIFO inventory usage."""
         if logger is None:
             logger = logging.getLogger('CustomerPurchase (self-initiliazed)')
@@ -82,7 +98,7 @@ class CustomerPurchase(models.Model):
 
         self.expenses = total_cost
         self.revenue = self.purchase_price * self.quantity
-        self.profit = (self.purchase_price * self.quantity) - self.expenses
+        self.profit = self.revenue - self.expenses
         logger.info(f"Revenue: {self.profit}, Expenses: {self.expenses}, Profit: {self.profit}")
         self.save()
 

@@ -61,9 +61,15 @@ class FinancialMetrics:
 
     def get_expenses(self, timespan: tuple[datetime, datetime] = None):
         """Get the total expenses within a given timespan or all."""
+        # expenses are purchase_price*quantity
         if timespan:
-            return ProductRestock.objects.filter(issued_at__range=timespan).aggregate(Sum('purchase_price'))['purchase_price__sum'] or 0
-        return ProductRestock.objects.aggregate(Sum('purchase_price'))['purchase_price__sum'] or 0
+            return ProductRestock.objects.filter(issued_at__range=timespan).aggregate(
+                total_cost=Sum(F('purchase_price') * F('quantity'))
+            )['total_cost'] or 0
+
+        return ProductRestock.objects.aggregate(
+            total_cost=Sum(F('purchase_price') * F('quantity'))
+        )['total_cost'] or 0
 
     def get_earnings(self, timespan: tuple[datetime, datetime] = None):
         """Get the total earnings within a given timespan or all."""
@@ -80,9 +86,9 @@ class FinancialMetrics:
             CustomerPurchase.objects.filter(purchase_date__range=[start_date, end_date])
             .annotate(day=F("purchase_date__date"))
             .values("day")
-            .annotate(total_revenue=Sum("revenue"), total_profit=Sum("profit"))
+            .annotate(total_revenue=Sum("revenue"), total_profit=Sum("profit"), total_cost=Sum("expenses"))
         )
-        print(f"Purchases: {list(purchases)}")
+        print(f"Purchases: {list(purchases)}\n\n")
 
         restocks = (
             ProductRestock.objects.filter(restock_date__range=[start_date, end_date])
@@ -90,7 +96,7 @@ class FinancialMetrics:
             .values("day")
             .annotate(total_cost=Sum("total_cost"))
         )
-        print(f"Restocks: {list(restocks)}")
+        print(f"Restocks: {list(restocks)}\n\n")
 
         results = {}
         for purchase in purchases:
@@ -98,19 +104,21 @@ class FinancialMetrics:
             results[day] = {
                 "revenue": float(purchase["total_revenue"]),
                 "profit": float(purchase["total_profit"]),
-                "cost": 0.0,
+                "cost": float(purchase["total_cost"]),
             }
 
-        for restock in restocks:
-            day = restock["day"]
-            if day in results:
-                results[day]["cost"] += float(restock["total_cost"])
-            else:
-                results[day] = {
-                    "revenue": 0.0,
-                    "profit": 0.0,
-                    "cost": float(restock["total_cost"]),
-                }
+
+        #for restock in restocks:
+        #    day = restock["day"]
+        #    if day in results:
+        #       results[day]["cost"] += float(restock["total_cost"])
+        #    else:
+        #        results[day] = {
+        #            "revenue": float(restock["total_cost"]),
+        #            "profit": 0.0,
+        #            "cost": float(restock["total_cost"]),
+        #        }
+        # revenue is cost 
 
         sorted_results = dict(sorted(results.items(), key=lambda x: x[0]))
 

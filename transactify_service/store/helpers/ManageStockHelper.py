@@ -24,13 +24,13 @@ import logging
 class StoreHelper:
 
     @staticmethod
-    def _get_stock_quantity(product: StoreProduct, logger: logging.Logger) -> int:
+    def get_stock_quantity(product: StoreProduct, logger: logging.Logger) -> int:
         """
         Calculate the remaining stock for a product.
         """
         try:
             quantity_stock = ProductRestock.get_all_restocks_aggregated(product=product) or 0
-            quantity_sold = CustomerPurchase.get_all_purchases_aggregated(product=product) or 0
+            quantity_sold = CustomerPurchase.total_purchases(product=product) or 0
             quantity_left = quantity_stock - quantity_sold
             logger.info(f"{product.name} stock calculation: Stock: {quantity_stock}, Sold: {quantity_sold}. Left: {quantity_left}")
             return quantity_left
@@ -61,19 +61,19 @@ class StoreHelper:
 
             try:
                 product = StoreProduct.objects.get(ean=ean)
-                logger.info(f"Product information: Name: {product.name}, Price: {product.resell_price}€, Total Price: {quantity * product.resell_price}€, Stock: {product.stock_quantity}")
+                logger.info(f"Product information: Name: {product.name}, Price: {product.resell_price}€, Total Price: {product.get_final_price}€, Stock: {product.stock_quantity}")
 
             except StoreProduct.DoesNotExist:
                 logger.error(f"Product with EAN {ean} not found.")
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_NOT_FOUND(ean))
 
-            required_balance = quantity * product.resell_price
+            required_balance = quantity * product.get_final_price
             if customer.balance < required_balance:
                 logger.warning(f"Insufficient balance for customer {card_number}.")
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_INSUFFICIENT_BALANCE(card_number, required_balance, customer.balance))
 
             try:
-                left_in_stock = StoreHelper._get_stock_quantity(product, logger)
+                left_in_stock = StoreHelper.get_stock_quantity(product, logger)
             except Exception as e:
                 logger.error(f"Error calculating stock quantity for product {product}: {e}."
                              f"\nTraceback: {traceback.format_exc()}")
@@ -86,7 +86,7 @@ class StoreHelper:
             try:
                 for i in range(quantity):
                     response, customer_purchase = StoreHelper._customer_add_purchase(
-                        customer=customer, amount=product.resell_price, quantity=1, product=product, logger=logger
+                        customer=customer, amount=product.get_final_price, quantity=1, product=product, logger=logger
                     )
                     if response.status_code != 200:  # Change No. #2: Ensure response tuple is properly unpacked.
                         return response
@@ -97,7 +97,9 @@ class StoreHelper:
 
             try:
                 old_stock_quantity = product.stock_quantity
-                product.stock_quantity = StoreHelper._get_stock_quantity(product, logger)
+                product.stock_quantity = StoreHelper.get_stock_quantity(product, logger)
+                product.total_orders = CustomerPurchase.total_purchases(product, logger)
+                product.total_revenue = CustomerPurchase.total_revenue(product, logger)
                 product.save()
                 if product.stock_quantity <= 0:
                     logger.warning(f"Product {product.name} is now out of stock.")
@@ -198,7 +200,7 @@ class StoreHelper:
             raise HelperException(str(e), HTTPResponses.HTTP_STATUS_RESTOCK_FAILED(e))
 
         try:
-            product.stock_quantity = StoreHelper._get_stock_quantity(product, logger)
+            product.stock_quantity = StoreHelper.get_stock_quantity(product, logger)
             product.save()
             logger.info(f"Restock successful. Updated stock for {product.name}: {product.stock_quantity}")
             return HTTPResponses.HTTP_STATUS_RESTOCK_SUCCESS(product.name), product_restock
@@ -254,19 +256,20 @@ class StoreHelper:
                          f"\nTraceback: {traceback.format_exc()}")
             raise HelperException(f"", HTTPResponses.HTTP_STATUS_CUSTOMER_CREATE_FAILED(username, e))
 
-        try:
-            response, deposit_entry = StoreHelper.customer_add_deposit(customer, balance, logger)  # Change No. #6: Ensure correct unpacking of return values.
-            #customer_balance = CustomerBalance.objects.get(customer=customer)
-            if response.status_code != 200:
-                return response
-            logger.info(f"Initial deposit logged for customer {username}: {customer.balance}.")
-        except Exception as e:
-            logger.error(f"Failed to log initial deposit for customer {username}: {e}")
-            raise HelperException(
-                f"Failed to log initial deposit for customer {username}: {e}", 
-                HTTPResponses.HTTP_STATUS_CUSTOMER_CREATE_FAILED(username, e))
-        customer.save()
-        logger.info(f"Customer record created for {username}.")
+        if balance > 0:
+            try:
+                response, deposit_entry = StoreHelper.customer_add_deposit(customer, balance, logger)  # Change No. #6: Ensure correct unpacking of return values.
+                #customer_balance = CustomerBalance.objects.get(customer=customer)
+                if response.status_code != 200:
+                    return response
+                logger.info(f"Initial deposit logged for customer {username}: {customer.balance}.")
+            except Exception as e:
+                logger.error(f"Failed to log initial deposit for customer {username}: {e}")
+                raise HelperException(
+                    f"Failed to log initial deposit for customer {username}: {e}", 
+                    HTTPResponses.HTTP_STATUS_CUSTOMER_CREATE_FAILED(username, e))
+            customer.save()
+            logger.info(f"Customer record created for {username}.")
         return HTTPResponses.HTTP_STATUS_CUSTOMER_CREATE_SUCCESS(username), customer
   
   	# =========================================================================================================
@@ -295,8 +298,6 @@ class StoreHelper:
         logger.info(f"Creating or retrieving product '{name}' with EAN '{ean}' (Resell Price: {resell_price})")
         try:
             product, created = StoreProduct.objects.get_or_create(ean=ean)
-            if created:
-                logger.info(f"New product created: {product}")
             product.name = name
             product.resell_price = resell_price
             product.discount = discount
@@ -338,6 +339,27 @@ class StoreHelper:
             raise HelperException(f"", HTTPResponses.HTTP_STATUS_UPDATE_BALANCE_FAILED(customer, e))
 
         try:
+            # id = models.AutoField(primary_key=True)
+            # product = models.ForeignKey(StoreProduct, on_delete=models.CASCADE)
+            # # The quantity of the product purchased
+            # quantity = models.PositiveIntegerField()
+            # # The total price the product was purchased for
+            # purchase_price = models.DecimalField(max_digits=10, decimal_places=2)
+
+            # # The total revenue generated by the purchase
+            # revenue = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+            # # The total expenses incurred by the purchase
+            # expenses = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+            # # The total revenue generated by the purchase
+            # profit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+            # # The customer who made the purchase
+            # customer = models.ForeignKey(Customer, on_delete=models.CASCADE,  db_constraint=False )
+            # # The customer's balance after the deposit
+            # customer_balance = models.DecimalField(max_digits=10, decimal_places=2)
+            # # The date the deposit was made
+            # purchase_date = models.DateTimeField(auto_now_add=True)
+
             purchase_entry = CustomerPurchase.objects.create(
                 product=product,
                 quantity=quantity,
@@ -345,7 +367,7 @@ class StoreHelper:
                 customer=customer,
                 customer_balance=customer.balance
             )
-            purchase_entry.calculate_revenue(logger)
+            purchase_entry.calculate_profit(logger)
             logger.info(f"Logged purchase for customer {customer}: {purchase_entry}.")
         except Exception as e:
             logger.error(f"Failed to log purchase for customer {customer}: {e}.\nTraceback: {traceback.format_exc()}")

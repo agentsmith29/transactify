@@ -59,6 +59,12 @@
                         <td>{{ product.stock_quantity }}</td> 
                         <td>
                             <!-- Edit Button -->
+                            <button type="button" class="btn btn-primary btn-sm"
+                                    onclick="location.href='{% url 'product' product.ean %}'"
+                                >
+                                    View
+                                </button>
+
                              <button type="button" class="btn btn-warning btn-sm"
                             onclick="manageProducts.openEditModal(
                                 '{{ product.ean }}', '{{ product.name }}', '{{ product.resell_price }}', '{{ product.discount}}'

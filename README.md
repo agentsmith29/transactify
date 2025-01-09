@@ -37,11 +37,29 @@ Enable the venv and change directory
 . .venv/bin/activate    # on linux, if not already activated
 cd ./transactify_service
 ```
+If you want to delete the database
+```bash
+export MAIN_DB="cashless_donknabberello_1"
+export PGPASSWORD="PASSWORD"
+export PGUSER="USER"
+export PGHOST="192.168.1.190"
+psql -h $PGHOST -U $PGUSER -p 5432 -d 'postgres' -c "DROP DATABASE IF EXISTS \"$MAIN_DB\";"
+psql -h $PGHOST  -U $PGUSER -p 5432 -d 'postgres' -c "CREATE DATABASE \"$MAIN_DB\" OWNER \"$PGUSER\";"
+```
 Run the migrations
 ```bash
+export "RUN_SERVER"="false"
 python manage.py makemigrations && python manage.py migrate
+export DJANGO_SUPERUSER_PASSWORD="ADMIN"
+export DJANGO_SUPERUSER_USERNAME="ADMIN"
+export DJANGO_SUPERUSER_EMAIL="$DJANGO_SUPERUSER_PASSWORD@$DJANGO_SUPERUSER_USERNAME.com"
+python manage.py createsuperuser --noinput
+export "RUN_SERVER"="true"
 ```
-Add the shutdown script ´:/transactify_service/scripts/shutdown.sh´ to be able to run without sudo
+Add the shutdown script 
+```pi ALL=(ALL) NOPASSWD: <fullpath>/transactify_service/scripts/shutdown.sh´ to be able to run without sudo
+```
+using
 ```bash
 sudo visudo
 ```
@@ -51,7 +69,12 @@ www-data ALL=(ALL) NOPASSWD: /home/pi/workspace/cashless/transactify_service/scr
 ```
 Run the server on the host
 ```bash
+export "RUN_SERVER"="true"
 daphne -b 0.0.0.0 -p 8880 transactify_service.asgi:application
+```
+### The all-in-in Script
+```bash
+./run_on_host.sh
 ```
 
 ## Running the tests
