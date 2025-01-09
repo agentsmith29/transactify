@@ -34,3 +34,47 @@ docker-compose -f docker-compose.tests.yaml up --build
 ```bash
 sudo /home/pi/workspace/cashless/.venv/bin/python neopixel_test.py
 ```
+
+# Host Sysstem Setuo
+We want to setup the host to allow certain things.
+
+## Enable magic SysRq
+```bash
+# See
+bitmask_2 	= 2		    # 0x2 - enable control of console logging level
+bitmask_4 	= 4		    # 0x4 - enable control of keyboard (SAK, unraw)
+bitmask_8 	= 8		    # 0x8 - enable debugging dumps of processes etc.
+bitmask_16 	= 16		# 0x10 - enable sync command
+bitmask_32 	= 32		# 0x20 - enable remount read-only
+bitmask_64 	= 64		# 0x40 - enable signalling of processes (term, kill, oom-kill)
+bitmask_128 = 128		# 0x80 - allow reboot/poweroff
+bitmask_256 = 256       # 0x100 - allow nicing of all RT tasks  allow nicing of all RT tasks
+bitmask=$bitmask_256
+
+echo $bitmask >/proc/sys/kernel/sysrq
+
+
+```
+
+## Enable a watchdog
+See https://medium.com/@arslion/enabling-watchdog-on-raspberry-pi-b7e574dcba6b
+```
+sudo apt-get install watchdog
+```
+
+# Host Setup
+## Enable a wifi restart script
+If you are running on wifi and the wifi connection drops, you can add a watchdog for it
+```bash
+sudo cp -r ./wifi_rebooter.sh /usr/local/bin/wifi_rebooter.sh && sudo chmod +x /usr/local/bin/wifi_rebooter.sh
+```
+add the following to crontab `*/5 *   * * *   root    /usr/local/bin/wifi_rebooter.sh` using `crontab -e`
+```bash
+crontab -e
+# Add: "*/5 *   * * *   root    /usr/local/bin/wifi_rebooter.sh" at the end of the file
+
+# Restart the cron service
+sudo systemctl restart cron.service
+# Check the status of the cron service
+sudo systemctl status cron.service  
+```
