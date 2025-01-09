@@ -24,7 +24,7 @@ class WebSocketHandler {
     // Default handler for onclose
     _defaultOnClose() {
         console.log("WebSocket connection closed");
-        window.toastManager.warning(
+        window.storeManager.toastManager.warning(
             "WebSocket connection closed",
             "WebSocket connection was closed or reset.",
             "",

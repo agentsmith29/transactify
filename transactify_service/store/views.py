@@ -1,10 +1,16 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from django.shortcuts import redirect
-from django.conf import settings
 
-from django.http import HttpResponse
+import os
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from django.http import HttpResponse, JsonResponse
 from django.template import loader
+
+from django.contrib.auth.models import User
+
+
+
 
 #@login_required
 def store_selection(request):

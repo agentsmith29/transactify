@@ -39,6 +39,7 @@
 
     <body class="loading" data-layout-color="light" data-leftbar-theme="dark" data-layout-mode="fluid" data-rightbar-onstart="true">
         <!-- Begin page -->
+        {% csrf_token %}
         <div class="wrapper">
             <!-- ========== Left Sidebar Start ========== -->
 
@@ -618,9 +619,16 @@
                     <div class="d-grid mt-4">
                         <button class="btn btn-primary" id="resetBtn">Reset to Default</button>
             
-                        <a href="https://themes.getbootstrap.com/product/hyper-responsive-admin-dashboard-template/"
-                            class="btn btn-danger mt-3" target="_blank"><i class="mdi mdi-basket me-1"></i> Purchase Now</a>
+                        <!--a href="https://themes.getbootstrap.com/product/hyper-responsive-admin-dashboard-template/"
+                            class="btn btn-danger mt-3" target="_blank"><i class="mdi mdi-basket me-1"></i> Purchase Now</a-->
                     </div>
+                    <h5 class="mt-4">System commands</h5>
+                    <div class="d-grid mt-4">
+                        <button class="btn btn-warning mt-3" id="shutdownBtn">Shutdown System</button>
+                        <button class="btn btn-danger mt-3" id="rebootBtn">Reboot System</button>
+            
+                    </div>
+
                 </div> <!-- end padding-->
 
             </div>
@@ -678,17 +686,32 @@
         <script src="{% static_assets 'js/app.min.js' %}"></script>
 
         <!-- custom js -->
-        <script src="{% static_assets 'js/store.js' %}"></script> 
-        <script src="{% static_assets 'js/websocket.js' %}"></script> 
+        <script src="{% static_assets 'js/toasts.js' %}"></script>
+        <script src="{% static_assets 'js/modals.js' %}"></script>
+        <script src="{% static_assets 'js/websockets.js' %}"></script>
+        <script src="{% static_assets 'js/store.js' %}"></script>
         <script>
-            const socket_address =  `{% ws_server %}/page/{{ request.resolver_match.url_name }}/`;
             document.addEventListener("DOMContentLoaded", () => {
-                window.toastManager = new ToastManager("{% static_icons 'svg/' %}");
-                window.modalManager = new ModalDialogManager('confirmationModal');
-                window.terminal_connection = new WebSocketHandler(socket_address, '{{ request.resolver_match.url_name }}');
-            });
-        </script>
+                const socket_address = `{% ws_server %}/page/{{ request.resolver_match.url_name }}/`;
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const resolverName = '{{ request.resolver_match.url_name }}';
+                const shutdownUrl= "{% url 'shutdown_system' %}";
+                const rebootUrl= "{% url 'reboot_system' %}";
 
+                // Initialize StoreManager with Django template variables
+                window.storeManager = new StoreManager({
+                    socketAddress: socket_address,
+                    csrfToken: csrfToken,
+                    resolverName: resolverName,
+                    toastImgBase: "{% static_icons 'svg/' %}",
+                    modalId: "confirmationModal",
+                    urls: {
+                        shutdownUrl: shutdownUrl,
+                        rebootUrl: rebootUrl
+                    }
+                });
+            });
+</script>
         {% block scripts %}
         <!-- demo app -->
             <!-- Include scripts -->

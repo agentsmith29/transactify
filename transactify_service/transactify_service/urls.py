@@ -39,6 +39,6 @@ urlpatterns = [
 
     path(f'{SERVICE_NAME}/', include("store.urls")),
     path(f'{SERVICE_NAME}/api/', include("api.urls")),
-
+    path(f'{SERVICE_NAME}/system/', include("system.urls")),
     path(f'{SERVICE_NAME}/health/', health_check),
 ]

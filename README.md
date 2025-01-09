@@ -9,7 +9,14 @@ PROJECT_HOST=192.168.1.190
 PROJECT_PORT=8000
 
 ```
-## First time running the project
+## Running
+Create the virtual environment
+```bash
+python -m venv .venv
+. .venv/bin/activate    # on linux
+```
+
+### First time running the project
 In each django application [`transactify_service`](./transactify_service/) and  [`transactify_terminal`](./transactify_terminal/) a entrypoint file is placed. Uncomment the following lines
 ```bash
 #chmod +x make_migrations.sh
@@ -19,10 +26,32 @@ chmod +x make_store_db_migration.sh
 ```
 which triggers the migration of the PostgreSQL Database. Please note, that a run of this script, also removes the whole database, thus make sure it is only run when using a fresh installation.
 
-## Running the project
+### Running the project
 To run this project, use the docker-compose file. All other things are setup automatically.
 ```bash
 docker-compose up --build
+```
+### Debugging: Directly running on the host (not recommended)
+Enable the venv and change directory
+```bash
+. .venv/bin/activate    # on linux, if not already activated
+cd ./transactify_service
+```
+Run the migrations
+```bash
+python manage.py makemigrations && python manage.py migrate
+```
+Add the shutdown script ´:/transactify_service/scripts/shutdown.sh´ to be able to run without sudo
+```bash
+sudo visudo
+```
+and add
+```txt
+www-data ALL=(ALL) NOPASSWD: /home/pi/workspace/cashless/transactify_service/scripts/shutdown.sh
+```
+Run the server on the host
+```bash
+daphne -b 0.0.0.0 -p 8880 transactify_service.asgi:application
 ```
 
 ## Running the tests
@@ -33,33 +62,6 @@ docker-compose -f docker-compose.tests.yaml up --build
 
 ```bash
 sudo /home/pi/workspace/cashless/.venv/bin/python neopixel_test.py
-```
-
-# Host Sysstem Setuo
-We want to setup the host to allow certain things.
-
-## Enable magic SysRq
-```bash
-# See
-bitmask_2 	= 2		    # 0x2 - enable control of console logging level
-bitmask_4 	= 4		    # 0x4 - enable control of keyboard (SAK, unraw)
-bitmask_8 	= 8		    # 0x8 - enable debugging dumps of processes etc.
-bitmask_16 	= 16		# 0x10 - enable sync command
-bitmask_32 	= 32		# 0x20 - enable remount read-only
-bitmask_64 	= 64		# 0x40 - enable signalling of processes (term, kill, oom-kill)
-bitmask_128 = 128		# 0x80 - allow reboot/poweroff
-bitmask_256 = 256       # 0x100 - allow nicing of all RT tasks  allow nicing of all RT tasks
-bitmask=$bitmask_256
-
-echo $bitmask >/proc/sys/kernel/sysrq
-
-
-```
-
-## Enable a watchdog
-See https://medium.com/@arslion/enabling-watchdog-on-raspberry-pi-b7e574dcba6b
-```
-sudo apt-get install watchdog
 ```
 
 # Host Setup
@@ -105,3 +107,17 @@ sudo systemctl restart watchdog
 sudo systemctl status watchdog
 ```
 Sometimes, when the config has changed, you need to restart it again.
+
+## Add magic Linux Magic System Request Key Hacks
+Take from [kernel.org: Linux Magic System Request Key Hacks](https://www.kernel.org/doc/html/v4.11/admin-guide/sysrq.html)
+It is a ‘magical’ key combo you can hit which the kernel will respond to regardless of whatever else it is doing, unless it is completely locked up.
+1. Enable the magic system keys
+
+```bash
+sudo chmod +x ./host_scripts/sysrq/enable_sysrq.sh && sudo ./host_scripts/sysrq/enable_sysrq.sh
+```
+Try it using
+``` bash
+echo h > /proc/sysrq-trigger            # Just prints help message
+dmesg | tail -n 1 | grep sysrq
+```

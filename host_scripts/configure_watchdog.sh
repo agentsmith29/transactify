@@ -64,5 +64,6 @@ enable_watchdog_service_on_boot() {
 set_watchdog_conf "max-load-1" "24"
 set_watchdog_conf "min-memory" "1"
 set_watchdog_conf "watchdog-device" "/dev/watchdog"
+set_watchdog_conf "watchdog-timeout" "15"
 # Add watchdog on boot (apparently it already runs...)
 # enable_watchdog_service_on_boot
