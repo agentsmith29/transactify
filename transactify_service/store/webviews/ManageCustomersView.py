@@ -29,6 +29,7 @@ from django.utils.decorators import method_decorator
 from store import StoreLogsDBHandler
 
 from transactify_service.HttpResponses import HTTPResponses
+from django.utils.safestring import mark_safe
 
 
 #from ..apps import hwcontroller
@@ -49,6 +50,7 @@ class ManageCustomersView(View):
     def get(self, request):
         """Handle GET requests to display all customers."""
         customers = self.get_all_customers()
+        # add the balance chart_data to the context
         return render(request, self.template_name, {"customers": customers})
     
     async def fetch_nfc_data(self):

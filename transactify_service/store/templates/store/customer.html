@@ -1,186 +1,191 @@
 {% extends "./index.html" %}
 {% load static_assets %}
+{% load static_images %}
+
 {% block content %}
-{% csrf_token %}
+<div class="container-fluid">
+    
+    <!-- start page title -->
     <div class="row">
-        <!-- Main Content -->
-        <main class="col-lg-12 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Customer Detail</h1>
-            </div>
-
-            <!-- Customer Info -->
-            <h5>Customer Information</h5>
-            <div class="row sm-6">
-                <div class="col-md-6">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h4 class="header-title">Customer {{ customer.user.first_name }} {{ customer.user.last_name}}</h4>
-                        </div>
-                        <ul class="list-group">
-                            <li class="list-group-item">Username: {{ customer.user.username }}</li>
-                            <li class="list-group-item">E-Mail: {{ customer.user.email }}</li>
-                            <li class="list-group-item">Balance: € {{ customer.balance }}</li>
-                            <li class="list-group-item">Total purchased: € {{ total_purchases }} ({{ customer.total_purchases }})</li>
-                            <li class="list-group-item">Total deposited: € {{ total_deposits }} ({{ customer.total_deposits }})</li>
-                            <li class="list-group-item">Issue Date: {{ customer.issued_at }}</li>
-                        </ul>
-                    </div>
-
+        <div class="col-12">
+            <div class="page-title-box">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="javascript: void(0);">Hyper</a></li>
+                        <li class="breadcrumb-item"><a href="javascript: void(0);">Pages</a></li>
+                        <li class="breadcrumb-item active">Profile</li>
+                    </ol>
                 </div>
-                <div class="col-md-6">
-                    <div class="card-body">
-                        <div class="row sm-3">    
-                            <div class="col-sm-6">
-                                <a href="{% url 'customers' %}" class="card-link">
-                                    <div class="card widget-flat">
-                                    <div class="card-body">
-                                        <div class="float-end">
-                                            <i class="mdi mdi-account-multiple widget-icon"></i>
-                                        </div>
-                                        <h5 class="text-muted fw-normal mt-0" title="Number of Customers">Customers</h5>
-                                        <h3 class="mt-3 mb-3">---</h3>
-                                        <p class="mb-0 text-muted">
-                                            <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 0%</span>
-                                            <span class="text-nowrap">Total</span>
-                                        </p>
-                                    </div> <!-- end card-body-->
-                                    </div> <!-- end card-->
-                                </a>
-                            </div> <!-- end col-->
-                            <div class="col-sm-6">
-                                <a href="{% url 'products' %}" class="card-link">
-                                    <div class="card widget-flat">
-                                        <div class="card-body">
-                                            <div class="float-end">
-                                                <i class="mdi mdi-cart-plus widget-icon"></i>
-                                            </div>
-                                            <h5 class="text-muted fw-normal mt-0" title="Number of Orders">Products</h5>
-                                            <h3 class="mt-3 mb-3">---</h3>
-                                            <p class="mb-0 text-muted">
-                                                <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 1.08%</span>
-                                                <span class="text-nowrap">Total</span>
-                                            </p>
-                                        </div> <!-- end card-body-->
-                                    </div> <!-- end card-->
-                                </a>
-                            </div> <!-- end col-->
-                        </div>
-                        <div class="row sm-3"> 
-                            <div class="col-sm-6">
-                                <a href="{% url 'customers' %}" class="card-link">
-                                    <div class="card widget-flat">
-                                    <div class="card-body">
-                                        <div class="float-end">
-                                            <i class="mdi mdi-account-multiple widget-icon"></i>
-                                        </div>
-                                        <h5 class="text-muted fw-normal mt-0" title="Number of Customers">Customers</h5>
-                                        <h3 class="mt-3 mb-3">---</h3>
-                                        <p class="mb-0 text-muted">
-                                            <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 0%</span>
-                                            <span class="text-nowrap">Total</span>
-                                        </p>
-                                    </div> <!-- end card-body-->
-                                    </div> <!-- end card-->
-                                </a>
-                            </div> <!-- end col-->
-                            <div class="col-sm-6">
-                            <a href="{% url 'products' %}" class="card-link">
-                                <div class="card widget-flat">
-                                    <div class="card-body">
-                                        <div class="float-end">
-                                            <i class="mdi mdi-cart-plus widget-icon"></i>
-                                        </div>
-                                        <h5 class="text-muted fw-normal mt-0" title="Number of Orders">Products</h5>
-                                        <h3 class="mt-3 mb-3">---</h3>
-                                        <p class="mb-0 text-muted">
-                                            <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 1.08%</span>
-                                            <span class="text-nowrap">Total</span>
-                                        </p>
-                                    </div> <!-- end card-body-->
-                                </div> <!-- end card-->
-                            </a>
-                        </div> <!-- end col-->
-                    </div>
-                    </div>
-                </div>
+                <h4 class="page-title">Profile</h4>
             </div>
+        </div>
+    </div>
+    <!-- end page title -->
 
-            <!-- Deposit Form -->
-            <div class="row mb-4">
-                <div class="col-md-12">
-                    <h5>Update Balance</h5>
-                    <form id="updateBalanceForm">
-                        <div class="mb-3">
-                            <label for="depositAmount" class="form-label">Amount</label>
-                            <input type="number" class="form-control" id="depositAmount" step="0.01" required>
-                        </div>
-                        <button type="submit" class="btn btn-success">Add Deposit</button>
-                    </form>
-                </div>
-            </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <!-- Profile -->
+            <div class="card bg-primary">
+                <div class="card-body profile-user-box">
+                    <div class="row">
+                        <div class="col-sm-8">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <div class="avatar-lg">
+                                        <img src="{% static_images 'users/avatar-2.jpg' %}" alt="" class="rounded-circle img-thumbnail">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div>
+                                        <h4 class="mt-1 mb-1 text-white">{{ customer.user.first_name }} {{ customer.user.last_name }}</h4>
+                                        <p class="font-13 text-white-50"> Authorised Brand Seller</p>
 
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card card-h-100">
-                        <div class="d-flex card-header justify-content-between align-items-center">
-                            <h4 class="header-title">Balances</h4>
-                            <div class="dropdown">
-                                <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="mdi mdi-dots-vertical"></i>
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-end">
-                                    <!-- item-->
-                                    <a href="javascript:void(0);" class="dropdown-item">Sales Report</a>
-                                    <!-- item-->
-                                    <a href="javascript:void(0);" class="dropdown-item">Export Report</a>
-                                    <!-- item-->
-                                    <a href="javascript:void(0);" class="dropdown-item">Profit</a>
-                                    <!-- item-->
-                                    <a href="javascript:void(0);" class="dropdown-item">Action</a>
+                                        <ul class="mb-0 list-inline text-light">
+                                            <li class="list-inline-item me-3">
+                                                <h5 class="mb-1 text-white">&euro; {{ customer.balance }}</h5>
+                                                <p class="mb-0 font-13 text-white-50">Total Balance</p>
+                                            </li>
+                                            <li class="list-inline-item">
+                                                <h5 class="mb-1 text-white">{{ customer.total_purchases }}</h5>
+                                                <p class="mb-0 font-13 text-white-50">Total Purchases</p>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    
-                        <div dir="ltr" class="p-3">
-                            <div class="time-filter d-flex justify-content-around mb-3">
-                                <button id="one_month" class="btn btn-sm btn-outline-primary">1 Month</button>
-                                <button id="six_months" class="btn btn-sm btn-outline-primary">6 Months</button>
-                                <button id="one_year" class="btn btn-sm btn-outline-primary">1 Year</button>
-                                <button id="all" class="btn btn-sm btn-outline-primary active">All</button>
-                            </div>
-                    
-                            <div id="balance-chart" class="apex-charts" style="min-height: 256px;"></div>
-                    
-                            <div class="mt-3">
-                                <input
-                                    id="zoom-slider"
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value="100"
-                                    class="form-range"
-                                    aria-label="Zoom Slider"
-                                />
-                            </div>
-                        </div>
-                    </div>                    
-                </div> <!-- end col -->
-            </div>
+                        </div> <!-- end col-->
 
-            <!-- NFC Overlay -->
-            <div id="nfcOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 9999; color: white; text-align: center; padding-top: 20%;">
-                <div>
-                    <img src="https://icons.getbootstrap.com/assets/icons/rss.svg" alt="NFC Scan" style="width: 150px;">
-                    <p>Processing your deposit...</p>
+                        <div class="col-sm-4">
+                            <div class="text-center mt-sm-0 mt-3 text-sm-end">
+                                <button type="button" class="btn btn-light">
+                                    <i class="mdi mdi-account-edit me-1"></i> Edit Profile
+                                </button>
+                            </div>
+                        </div> <!-- end col-->
+                    </div> <!-- end row -->
+
+                </div> <!-- end card-body/ profile-user-box-->
+            </div><!--end profile/ card -->
+        </div> <!-- end col-->
+    </div>
+    <div class="row">
+        <div class="col-sm-4">
+            <div class="card tilebox-one">
+                <div class="card-body">
+                    <i class="dripicons-basket float-end text-muted"></i>
+                    <h6 class="text-muted text-uppercase mt-0">Deposits</h6>
+                    <h2 class="m-b-20">&euro; {{ total_deposits_amount}}</h2>
+                    </span> <span class="text-muted">{{ customer.total_deposits }} deposits made</span><br>
+                    {% if deposit_change_percent > 0 %}
+                        <span class="badge bg-success">{{ deposit_change_percent }}%  </span> <span class="text-muted">last month</span>
+                    {% elif deposit_change_percent == 0 %}
+                        <span class="badge bg-primary">{{ deposit_change_percent }}%  </span> <span class="text-muted">last month</span>
+                    {% else %}
+                        <span class="badge bg-danger">{{ deposit_change_percent }}%  </span> <span class="text-muted">last month</span>
+                    {% endif %}
+                </div> <!-- end card-body-->
+            </div> <!--end card-->
+        </div><!-- end col -->
+
+
+
+        <div class="col-sm-4">
+            <div class="card tilebox-one">
+                <div class="card-body">
+                    <i class="dripicons-box float-end text-muted"></i>
+                    <h6 class="text-muted text-uppercase mt-0">Purchases</h6>
+                    <h2 class="m-b-20">&euro; {{ total_purchases_amount }}</h2>
+                    <span class="text-muted">{{ customer.total_purchases }} purchases made</span><br>
+                    {% if purchase_change_percent > 0 %}
+                    <span class="badge bg-success">{{ purchase_change_percent }}%  </span> <span class="text-muted">last month</span>
+                    {% elif purchase_change_percent == 0 %}
+                        <span class="badge bg-primary">{{ purchase_change_percent }}%  </span> <span class="text-muted">last month</span>
+                    {% else %}
+                        <span class="badge bg-danger">{{ purchase_change_percent }}%  </span> <span class="text-muted">last month</span>
+                    {% endif %}
+                </div> <!-- end card-body-->
+            </div> <!--end card-->
+        </div><!-- end col -->
+        <div class="col-sm-4">
+            <div class="card tilebox-one">
+                <div class="card-body">
+                    <i class="dripicons-basket float-end text-muted"></i>
+                    <h6 class="text-muted text-uppercase mt-0">Store Profit</h6>
+                    <h2 class="m-b-20">&euro; {{ store_profit}}</h2>
+                    </span> <span class="text-muted">generated by the user</span><br>
+                    {% if deposit_change_percent > 0 %}
+                        <span class="badge bg-success">{{ store_profit_change_percent }}%  </span> <span class="text-muted">last month</span>
+                    {% elif deposit_change_percent == 0 %}
+                        <span class="badge bg-primary">{{ store_profit_change_percent }}%  </span> <span class="text-muted">last month</span>
+                    {% else %}
+                        <span class="badge bg-danger">{{ store_profit_change_percent }}%  </span> <span class="text-muted">last month</span>
+                    {% endif %}
+                </div> <!-- end card-body-->
+            </div> <!--end card-->
+        </div><!-- end col -->
+    </div>
+
+
+    <div class="row">
+        <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h5>Update Balance</h5>
+                <form id="updateBalanceForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="depositAmount" class="form-label">Amount</label>
+                        <input type="number" class="form-control" id="depositAmount" step="0.01" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Add Deposit</button>
+                </form>
+            </div>
+        </div>
+        </div>  
+    </div>
+    <!-- end row -->
+
+    <div class="row">
+        <div class="col-xl-4">
+            <!-- Personal-Information -->
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mt-0 mb-3">Customer Information</h4>
+                    <ul class="list-group">
+                        <li class="list-group-item">Username: {{ customer.user.username }}</li>
+                        <li class="list-group-item">E-Mail: {{ customer.user.email }}</li>
+                        <li class="list-group-item">Total Purchased: &euro; {{ customer.total_purchases }}</li>
+                        <li class="list-group-item">Total Deposited: &euro; {{ customer.total_deposits }}</li>
+                        <li class="list-group-item">Issue Date: {{ customer.issued_at }}</li>
+                    </ul>
                 </div>
             </div>
+            <!-- Personal-Information -->
+        </div> <!-- end col-->
+
+        <div class="col-xl-8">
+            <!-- Chart-->
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">Balance History</h4>
+                    <div dir="ltr">
+                        <div id="balance-chart" style="height: 260px;" class="apex-charts"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Chart-->
+
+
+            <!-- end row -->
+
+            <!-- Deposit Form -->
+
 
             <!-- Deposits Table -->
-            <div class="row mb-4">
-                <div class="col-md-12">
-                    <h5>Deposit History</h5>
-                    <div class="table-responsive" style="max-height: calc(5 * 3rem); overflow-y: auto;"> <!-- Fixed height for 5 rows -->
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">Deposit History</h4>
+                    <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
@@ -193,7 +198,7 @@
                                 {% for deposit in deposits %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
-                                    <td>€ {{ deposit.amount }}</td>
+                                    <td>&euro; {{ deposit.amount }}</td>
                                     <td>{{ deposit.deposit_date|date:"Y-m-d H:i" }}</td>
                                 </tr>
                                 {% endfor %}
@@ -202,12 +207,12 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Purchases Table -->
-            <div class="row">
-                <div class="col-md-12">
-                    <h5>Purchase History</h5>
-                    <div class="table-responsive" style="max-height: calc(5 * 3rem); overflow-y: auto;"> <!-- Fixed height for 5 rows -->
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">Purchase History</h4>
+                    <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
@@ -222,11 +227,11 @@
                             <tbody>
                                 {% for purchase in purchases %}
                                 <tr>
-                                    <td>{{ forloop.counter }}</td> 
+                                    <td>{{ forloop.counter }}</td>
                                     <td>{{ purchase.product }}</td>
                                     <td>{{ purchase.quantity }}</td>
-                                    <td>€ {{ purchase.purchase_price }}</td>
-                                    <td>€ {{ purchase.customer_balance }}</td>
+                                    <td>&euro; {{ purchase.purchase_price }}</td>
+                                    <td>&euro; {{ purchase.customer_balance }}</td>
                                     <td>{{ purchase.purchase_date|date:"Y-m-d H:i" }}</td>
                                 </tr>
                                 {% endfor %}
@@ -235,41 +240,32 @@
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
     </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
-    <script src="{% static_assets 'js/pages/store.customer.js' %}"></script>
-    <!-- 3rd party -->
-    <script src="{% static_assets 'js/vendor/apexcharts.min.js' %}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const csrftoken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-            const customerCardNumber = "{{ customer.card_number|default:'' }}"; // Ensure it’s not null
-            const customerDetailUrl = "{% url 'customer' 'placeholder' %}".replace('placeholder', customerCardNumber);
-        
-            // Initialize CustomerView with Django template variables
-            window.customerView = new CustomerView({
-                customerCardNumber: customerCardNumber,
-                customerDetailUrl: customerDetailUrl,
-                csrftoken: csrftoken,
-            });
-        
-            const balanceData = {{ chart_data.balance|safe }};
-            const depositData = {{ chart_data.deposit|safe }};
-            const purchasesData = {{ chart_data.purchase|safe }};
-            const categories = {{ chart_data.timestamp|safe }};
-            const chartElementId = 'balance-chart';
-        
-            window.customerViewChart = new CustomerViewChart({
-                chartElementId: chartElementId,
-                balanceData: balanceData,
-                depositData: depositData,
-                purchasesData: purchasesData,
-                categories: categories,
-                colors: ['#4caf50', '#f44336', '#2196f3'],
-            });
-        });
-    </script>
+<script src="{% static_assets 'js/pages/store.customer.js' %}"></script>
+<script src="{% static_assets 'js/vendor/apexcharts.min.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const csrftoken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    const customerCardNumber = "{{ customer.card_number|default:'' }}";
+
+    const balanceData = {{ customer.chart_data.balance|safe }};
+    const depositData = {{ customer.chart_data.deposit|safe }};
+    const purchasesData = {{ customer.chart_data.purchase|safe }};
+    const categories = {{ customer.chart_data.timestamp|safe }};
+
+    window.customerViewChart = new CustomerViewChart({
+        chartElementId: 'balance-chart',
+        balanceData: balanceData,
+        depositData: depositData,
+        purchasesData: purchasesData,
+        categories: categories,
+        colors: ['#4caf50', '#f44336', '#2196f3'],
+    });
+});
+</script>
 {% endblock %}

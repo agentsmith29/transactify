@@ -161,11 +161,11 @@ class StoreHelper:
             raise HelperException(f"", HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_FAILED(customer, e))
 
         try:
-            total_deposit = customer.get_all_deposits_aggregated()
-            total_purchases = customer.get_all_purchases_aggregated()
+            total_deposits = customer.get_total_deposit_amount()
+            total_purchases = customer.get_total_purchase_amount()
 
-            if Decimal(total_deposit) - Decimal(total_purchases) != Decimal(customer.balance):  # Change No. #4: Replace float comparisons with Decimal.
-                logger.error(f"Balance mismatch for customer {customer}. Total Deposits: {total_deposit}, Total Purchases: {total_purchases}, Balance: {customer.balance}")
+            if Decimal(total_deposits) - Decimal(total_purchases) != Decimal(customer.balance):  # Change No. #4: Replace float comparisons with Decimal.
+                logger.error(f"Balance mismatch for customer {customer}. Total Deposits: {total_deposits}, Total Purchases: {total_purchases}, Balance: {customer.balance}")
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_BALANCE_MISMATCH(customer))
         except Exception as e:
             logger.error(f"Failed to validate balance for customer {customer}: {e}."
@@ -376,8 +376,8 @@ class StoreHelper:
             raise HelperException(f"", HTTPResponses.HTTP_STATUS_PURCHASE_FAILED(customer, e))
 
         try:
-            total_deposit = customer.get_all_deposits_aggregated()
-            total_purchases = customer.get_all_purchases_aggregated()
+            total_deposit = customer.get_total_deposit_amount()
+            total_purchases = customer.get_total_purchase_amount()
 
             if Decimal(total_deposit) - Decimal(total_purchases) != Decimal(customer.balance):  # Change No. #8: Replace float comparisons with Decimal.
                 logger.error(f"Balance mismatch after purchase for customer {customer}. Total Deposits: {total_deposit}, Total Purchases: {total_purchases}, Balance: {customer.balance}")

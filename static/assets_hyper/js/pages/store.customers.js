@@ -2,15 +2,13 @@
     "use strict";
 
     // CSRF Token Handling
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== "") {
             const cookies = document.cookie.split(";");
             for (let i = 0; i < cookies.length; i++) {
                 const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === name + "=") {
+                if (cookie.startsWith(name + "=")) {
                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
                 }
@@ -20,99 +18,221 @@
     }
     const CSRF_TOKEN = getCookie("csrftoken");
 
-    // Form Submission Handler
-    const addCustomerForm = document.getElementById("addCustomerForm");
-    if (addCustomerForm) {
-        addCustomerForm.addEventListener("submit", function (event) {
-            event.preventDefault(); // Prevent form submission
+    // CustomersView class
+    function CustomersView(config) {
+        // Initialize components with configuration
+        this.toastManager = window.storeManager.toastManager;
+        this.modalManager = window.storeManager.modalManager;
+        this.webSocketHandler = window.storeManager.webSocketHandler;
 
-            const overlay = document.getElementById("nfcOverlay");
-            overlay.style.display = "block"; // Show NFC overlay
+        this.csrftoken = config.csrftoken;
 
-            const csrftoken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-            console.log("CSRF Token:", csrftoken);
+        // Bind WebSocket handlers
+        this.initWebSocketHandlers();
 
-            fetch("{% url 'customers' %}", {
-                method: "POST",
-                mode: "same-origin",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFTOKEN": CSRF_TOKEN,
-                    "X-Requested-With": "XMLHttpRequest"
-                },
-                body: JSON.stringify({
-                    first_name: document.getElementById("first_name").value,
-                    last_name: document.getElementById("last_name").value,
-                    email: document.getElementById("email").value,
-                    balance: document.getElementById("balance").value
-                })
-            })
-                .then(response => {
-                    if (response.ok) {
-                        console.log("Request successful");
-                        location.reload();
-                        return response.json();
-                    } else {
-                        console.error("Request failed:", response.status);
-                        alert("Error occurred. Please try again.");
-                    }
-                })
-                .then(data => {
-                    console.log("Response data:", data);
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                })
-                .finally(() => {
-                    overlay.style.display = "none"; // Hide NFC overlay
-                });
-        });
+        // Bind form submission handler
+        this.initFormActions();
     }
 
+    CustomersView.prototype.initWebSocketHandlers = function () {
+        const webSocket = this.webSocketHandler;
 
-    window.terminal_connection.onopen = function () {
-        console.log(`WebSocket connection established for page: ${webpage}`);
-        window.toastManager.warning("WebSocket connection closed", "WebSocket connection was closed or resetted.", "", false);
+        webSocket.onopen = () => {
+            console.log("WebSocket connection established");
+        };
+
+        webSocket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.message) {
+                    console.log("Message:", data.message);
+                    this.toastManager.info("Card detected", data.message, "", true);
+                }
+
+                if (data.barcode) {
+                    const eanField = document.getElementById("ean");
+                    if (eanField) {
+                        eanField.value = data.barcode;
+                    } else {
+                        console.error("EAN field not found in the DOM");
+                    }
+                }
+            } catch (error) {
+                console.error("Error parsing WebSocket message:", error);
+            }
+        };
+
+        webSocket.onclose = () => {
+            console.log("WebSocket connection closed");
+            this.toastManager.warning("WebSocket connection closed", "WebSocket was reset.", "", false);
+        };
+
+        webSocket.onerror = (error) => {
+            console.error("WebSocket error:", error);
+            this.toastManager.error("WebSocket error", "WebSocket encountered an error.", "", false);
+        };
     };
 
-    socket.onmessage = function (event) {
-        console.log("Message received from server:", event.data);
+    CustomersView.prototype.initFormActions = function () {
+        const addCustomerForm = document.getElementById("addCustomerForm");
+        if (addCustomerForm) {
+            addCustomerForm.addEventListener("submit", (event) => {
+                event.preventDefault(); // Prevent default submission
 
-        try {
-            const data = JSON.parse(event.data);
-            if (data.message) {
-                console.log("Message:", data.message);
-                console.log("card_id:", data.card_id);
+                const overlay = document.getElementById("nfcOverlay");
+                overlay.style.display = "block"; // Show NFC overlay
 
-                const toastMessage = document.getElementById("toastMessage");
-                toastMessage.textContent = data.message;
-                const toast = new bootstrap.Toast(document.getElementById("barcodeToast"));
-                toast.show();
-            }
-
-            if (data.barcode) {
-                console.log("Barcode:", data.card_id);
-
-                const eanField = document.getElementById("ean");
-                if (eanField) {
-                    eanField.value = data.barcode;
-                } else {
-                    console.error("EAN field not found in the DOM");
-                }
-            }
-        } catch (error) {
-            console.error("Error parsing WebSocket message:", error);
+                fetch("{% url 'customers' %}", {
+                    method: "POST",
+                    mode: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFTOKEN": CSRF_TOKEN,
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                    body: JSON.stringify({
+                        first_name: document.getElementById("first_name").value,
+                        last_name: document.getElementById("last_name").value,
+                        email: document.getElementById("email").value,
+                        balance: document.getElementById("balance").value,
+                    }),
+                })
+                    .then((response) => {
+                        if (response.ok) {
+                            console.log("Customer added successfully");
+                            location.reload();
+                        } else {
+                            console.error("Error adding customer:", response.status);
+                            alert("Failed to add customer. Try again.");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Fetch error:", error);
+                    })
+                    .finally(() => {
+                        overlay.style.display = "none"; // Hide NFC overlay
+                    });
+            });
         }
     };
 
-    window.terminal_connection.onclose = function () {
-        console.log("WebSocket connection closed");
-        toastManager.warning("WebSocket connection closed", "WebSocket connection was closed or resetted.", "", false);
-    
-    };
+    // CustomersViewChart class for dynamic sparkline charts
+    class CustomersViewChart {
+        constructor(element, data) {
+            this.element = element;
+            this.data = data.balance;
+            this.timestamp = data.timestamp;
+            this.initChart();
+        }
 
-    window.terminal_connection.onerror = function (error) {
-        console.error("WebSocket error:", error);
-        window.toastManager.error("WebSocket error", "WebSocket error.", "", false);
-    };
-})();
+        initChart() {
+            const daysToDisplay = 7; // Configurable number of days
+            const now = new Date().getTime(); // Current timestamp in milliseconds
+            const cutoff = now - daysToDisplay * 24 * 60 * 60 * 1000; // Timestamp for the cutoff date
+        
+            // Filter the data to include only the last `daysToDisplay` days
+            const filteredData = this.data.filter((point, index) => {
+                const timestamp = this.timestamp[index];
+                return timestamp >= cutoff;
+            });
+        
+            const filteredTimestamps = this.timestamp.filter(
+                (timestamp) => timestamp >= cutoff
+            );
+        
+            // If no data exists, add two points with value 0 at the beginning and end
+            if (filteredData.length === 0) {
+                // get the last datapoint
+                const last_data = this.data[this.data.length - 1];
+                filteredData.push(last_data, last_data);
+                filteredTimestamps.push(cutoff, now);
+            }
+            else if (filteredData.length === 1) {
+                // Add a zero point at the beginning and end if there is data
+                const last_data = this.data[this.data.length - 1];
+                filteredData.push(last_data);
+                filteredTimestamps.push(now);
+            }
+            /*else {
+                // Add a zero point at the beginning and end if there is data
+                filteredData.unshift(0);
+                filteredData.push(0);
+                filteredTimestamps.unshift(cutoff);
+                filteredTimestamps.push(now);
+            }
+        */
+            const options = {
+                series: [
+                    {
+                        name: "Balance",
+                        data: filteredData,
+                    },
+                ],
+                chart: {
+                    type: "area",
+                    width: 80,
+                    height: 35,
+                    sparkline: {
+                        enabled: true,
+                    },
+                },
+                stroke: {
+                    width: 2,
+                    curve: "smooth",
+                },
+                xaxis: {
+                    type: "datetime",
+                    categories: filteredTimestamps,
+                },
+                colors: ["#4caf50"],
+                tooltip: {
+                    enabled: true,
+                },
+                // mouse hover
+                fill: {
+                    type: "gradient",
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.9,
+                        stops: [0, 100],
+                    },
+                },
+
+            };
+        
+            const chart = new ApexCharts(this.element, options);
+            chart.render();
+        }
+        
+        
+    }
+
+    // Initialize sparkline charts for all customers
+    function initSparklineCharts() {
+        const sparkCharts = document.querySelectorAll(".spark-chart");
+        console.log("Sparkline charts found:", sparkCharts.length);
+    
+        sparkCharts.forEach((chart) => {
+            const dataset = chart.getAttribute("data-dataset");
+            if (dataset) {
+                try {
+                    // Decode the escaped JSON string
+                    const decodedDataset = dataset.replace(/\\u0022/g, '"'); // Decode escaped double quotes
+                    const data = JSON.parse(decodedDataset); // Parse the JSON data
+                    new CustomersViewChart(chart, data);
+                } catch (error) {
+                    console.error("Error parsing dataset for sparkline chart:", error, dataset);
+                }
+            } else {
+                console.warn("No dataset found for spark-chart element:", chart);
+            }
+        });
+    }
+    
+    
+
+    // Export CustomersView and initSparklineCharts
+    window.CustomersView = CustomersView;
+    window.initSparklineCharts = initSparklineCharts;
+})(window.jQuery);

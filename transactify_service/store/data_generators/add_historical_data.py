@@ -43,6 +43,7 @@ class HistoricalData():
     CONST_ZZM_Apfelchips="4099200143286"
 
     def __init__(self):
+        debug_offset_date = timedelta(days=0)
         self.logger = logging.getLogger('HistData')    
         self.username = "anonymous"
         self.first_name = "Anon"
@@ -72,7 +73,7 @@ class HistoricalData():
             Product('Asia-Snack Shogun Mix', self.CONST_Asia_Snack_Shogun_Mix, 150, 2.0),
             Product('ZZM Apfelchips', self.CONST_ZZM_Apfelchips, 100, 3.7)
         ]
-        self.date = datetime.strptime('27.04.2024', '%d.%m.%Y')
+        self.date = datetime.strptime('27.04.2024', '%d.%m.%Y') + debug_offset_date
         # Create the user
         self.add_anonymous_customer()
 
@@ -85,8 +86,8 @@ class HistoricalData():
         # Alesto Studentenfutter Classic	20333737	2	 € 1,99 
         # Alesto Nussmix mit Makadamia	2005672	2	 € 2,59 
         # Alesto Nuts Royal	250047238	2	 € 2,65 
-        self.date = datetime.strptime('28.04.2024', '%d.%m.%Y')
-        self.date_end = datetime.strptime('01.10.2024', '%d.%m.%Y')
+        self.date = datetime.strptime('28.04.2024', '%d.%m.%Y') + debug_offset_date
+        self.date_end = datetime.strptime('01.10.2024', '%d.%m.%Y') + debug_offset_date
         self.add_stock(self.CONST_Alesto_Cruspies_überzogene_Erdnüsse_Paprika, 2, 0.99)
         self.add_stock(self.CONST_Alesto_Erdnüsse_pikant_gewürzt, 2, 0.89)
         self.add_stock(self.CONST_Alesto_Cashew_Erdnuss_Mix__Honig_Salz_, 2, 1.99)
@@ -105,7 +106,7 @@ class HistoricalData():
         # SnackFun Macadamia	20333737	3	 € 2,79 
         # SnackFun Erdnüsse	20333737	2	 € 2,69 
         self.date = self.date_end
-        self.date_end = datetime.strptime('11.10.2024', '%d.%m.%Y')
+        self.date_end = datetime.strptime('11.10.2024', '%d.%m.%Y') + debug_offset_date
         self.add_stock(self.CONST_Alesto_Studentenfutter_Classic, 1, 1.99)
         self.add_stock(self.CONST_Alesto_Nussmix_mit_Makadamia, 2, 2.59)
         self.add_stock(self.CONST_Alesto_Nuts_Royal, 4, 2.65)
@@ -130,7 +131,7 @@ class HistoricalData():
         # Asia-Snack Shogun Mix	20333737	1	 € 1,49 
         # ZZM Apfelchips	4099200143286	1	 € 2,99 
         self.date = self.date_end
-        self.date_end = datetime.strptime('06.11.2024', '%d.%m.%Y')
+        self.date_end = datetime.strptime('06.11.2024', '%d.%m.%Y') + debug_offset_date
         self.add_stock(self.CONST_Alesto_Studentenfutter_Classic, 4, 1.99)
         self.add_stock(self.CONST_Alesto_Nuts_Royal, 2, 2.65)
         self.add_stock(self.CONST_Alesto_Nussmix_mit_Pistazie, 2, 2.59)
@@ -154,7 +155,7 @@ class HistoricalData():
         # SnackFun Teigumantelte Erdnüsse	409920000442	4	 € 0,99 
         # SnackFun Teigumantelte Erdnüsse (Wasabi)	4047247108225	1	 € 0,99 
         self.date = self.date_end
-        self.date_end = datetime.strptime('11.11.2024', '%d.%m.%Y')
+        self.date_end = datetime.strptime('11.11.2024', '%d.%m.%Y') + debug_offset_date
         self.add_stock(self.CONST_Alesto_Erdnüsse_pikant_gewürzt, 4, 0.89)
         self.add_stock(self.CONST_Alesto_Studentenfutter_Classic, 3, 1.99)
         self.add_stock(self.CONST_Alesto_Nussmix_mit_Makadamia, 2, 2.59)
