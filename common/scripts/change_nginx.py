@@ -24,7 +24,7 @@ def replace_placeholders(file_nginx_conf, config: Config):
     # Extract required values from config
     service_name = config.webservice.SERVICE_NAME
     django_web_port = config.webservice.SERVICE_WEB_PORT
-    hostname = config.container.HOSTNAME
+    hostname = config.container.CONTAINER_NAME
 
     if not service_name or not django_web_port or not hostname:
         raise ValueError("Error: SERVICE_NAME, DJANGO_WEB_PORT, and HOSTNAME must be set in the configuration.")
@@ -67,9 +67,7 @@ if __name__ == "__main__":
 
     try:
         replace_placeholders(file_nginx_conf, config)
-        # print the updated config
-        with open(config_file_path, 'r') as file:
-            print(file.read())
+
     except (FileNotFoundError, ValueError) as e:
         print(e)
         sys.exit(1)

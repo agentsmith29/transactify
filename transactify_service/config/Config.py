@@ -1,12 +1,14 @@
 import socket
 import sys
 import os
-from ConfigParser import ConfigParser
+
+_filepwd = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(f'{_filepwd}/../../common/src')
+
+from ConfigParser.ConfigParser import ConfigParser
 from ConfigParser.BaseConfigFields import BaseConfigField
 from ConfigParser.DockerSocketHelper import DockerSocketHelper
 
-
-import os
 class DatabaseConfig(BaseConfigField):
     def __init__(self, *args, **kwargs):
         super().__init__(field_name="database", *args, **kwargs)
@@ -75,10 +77,8 @@ class DjangoConfig(BaseConfigField):
                                                                 lambda_apply_func=lambda url: self.wrap_url(url, f"http")))
 
 class Config(ConfigParser):
-
-  
-    def __init__(self, config_file: str):
-        super().__init__(config_file)
+    def __init__(self, config_file: str, *args, **kwargs):
+        super().__init__(config_file, *args, **kwargs)
 
         self.database: DatabaseConfig = self.load(DatabaseConfig)
         self.webservice: WebService = self.load(WebService)
@@ -89,4 +89,4 @@ class Config(ConfigParser):
 
 
 if __name__ == "__main__":
-    print(Config.from_command_line())
+    print(Config.from_command_line(Config))

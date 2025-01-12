@@ -83,6 +83,7 @@ if [ -z "$DB_RESET" ]; then
 fi
 
 # if statement to check if REMIGRATE is set to true
+echo "Database reset is set to $DB_RESET"
 chmod +x $SH_RESET_DATABSE_SCRIPT
 if [ "$DB_RESET" = "true" ]; then
     echo "Resetting the database using $SH_RESET_DATABSE_SCRIPT... also remigrating the database..."

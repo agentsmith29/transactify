@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 import json
-from .webmodels import Store
+from .webmodels.Store  import Store
 
 
 from .apps import hwcontroller
@@ -28,8 +28,11 @@ def oled_display(request):
     """
     return render(request, 'hwcontroller/view_oled.html', {'current_image': hwcontroller.view_controller.current_view.oled_image_base64})
 
+@csrf_exempt
 def register_store(request):
-    config = request.POST.get('config')
+    # get the json data
+    config = json.loads(request.body)
+
     name = config['name']
     address = config['address']
     docker_container = config['docker_container']

@@ -1,7 +1,7 @@
 from django import template
 from django.templatetags.static import static
 from django.conf import settings
-from config.ConfigParser import ConfigParser as Config
+from config.Config import Config as Config
 
 register = template.Library()
 

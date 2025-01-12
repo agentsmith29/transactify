@@ -2,7 +2,7 @@ from django import template
 from django.conf import settings
 from django.template.defaulttags import register
 from store.templatetags.static2 import static2 as static
-from config.ConfigParser import ConfigParser as Config
+from config.Config import Config as Config
 
 register = template.Library()
 

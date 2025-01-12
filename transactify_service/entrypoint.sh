@@ -10,9 +10,8 @@ source /app/entrypoint_template.sh
 #export PYTHONUNBUFFERED=1
 # Step 7: Start the server
 export RUN_SERVER="true"
+export INIT_DATA=0
 echo "Starting the server..."
-DJANGO_WEB_PORT=$(python /transactify_terminal/config/Config.py ./app/configs/store_config.yaml --getvar "webservice.SERVICE_WEB_HOST")
-echo $DJANGO_WEB_PORT
-exit 1
+DJANGO_WEB_PORT=$(python ./config/Config.py ./configs/store_config.yaml --getvar "webservice.SERVICE_WEB_PORT")
 daphne -b 0.0.0.0 -p ${DJANGO_WEB_PORT} transactify_service.asgi:application 
 exit 0
