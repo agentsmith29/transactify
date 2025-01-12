@@ -27,7 +27,8 @@ RUN pip install --upgrade pip
 COPY ./requirements.txt /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
-COPY ./scripts /app/scripts
+COPY ./common /common
+COPY .env /.env
 COPY ./static /app/staticfiles
 COPY ./entrypoint_template.sh /app/entrypoint_template.sh
 RUN chmod +x /app/entrypoint_template.sh

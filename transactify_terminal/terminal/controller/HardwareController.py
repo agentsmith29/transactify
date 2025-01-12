@@ -7,8 +7,9 @@ from django.http import JsonResponse
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.dispatch import Signal
+RUN_SERVER = bool(os.getenv('RUN_SERVER', 'false'))
 
-if os.getenv('INIT_HARDWARE', '0') == '1':
+if RUN_SERVER:
     from .HardwareInterface import HardwareInterface
     from .Oled.OLEDViewController import OLEDViewController
 
@@ -28,10 +29,13 @@ class HardwareController():
     init_counter = 0
 
     def __init__(self, *args, **kwargs):
-        
-        if os.getenv('INIT_HARDWARE', '0') == '0':
+    
+        if not RUN_SERVER:
+           print(f"{bool(os.getenv('RUN_SERVER', 'false'))}: Not running server. Continuing HardwareController init.")  
            return
-
+        else:
+            print(f"{bool(os.getenv('RUN_SERVER', 'false'))}: Running server with RUN_SERVER=False. Exiting.")
+            
 
         logger = logging.getLogger('store')
         logger.info(f"HardwareController initilized. {HardwareController.init_counter} Number of initializations.")

@@ -6,7 +6,7 @@ from functools import wraps
 from typing import Optional, Any
 import re
 from .capture_assigned_var import capture_assigned_var
-
+import os
 
 class BaseConfigField:
     def __init__(self, data: Dict[str, Any], field_name: str, logger: logging.Logger):
@@ -131,6 +131,8 @@ class BaseConfigField:
             self.print(f"{_value}")
             reg_field = getattr(self, member_attr)
             self.logger.debug(f"Replaced: {member_attr} = {reg_field}")
+            # set it as global variable
+            os.environ[member_attr] = str(reg_field)
         self.finalize_initialization()
 
     # =================================================================================================================

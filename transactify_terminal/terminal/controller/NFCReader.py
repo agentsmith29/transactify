@@ -30,6 +30,7 @@ class NFCReader:
 
         # Start the NFC reading thread
         self.start_thread()
+        self.logger.info("[NFC] NFC Reader initialized.")
 
     def start_thread(self):
         """Start the NFC reading thread."""

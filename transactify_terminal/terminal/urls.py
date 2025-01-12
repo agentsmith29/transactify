@@ -13,4 +13,5 @@ urlpatterns = [
     # APIs
     #path('notify/barcode/', notify_barcode_read, name='notify_barcode'),
     path('api/read/nfc-blocking/', API_ReadNFCBlocking.as_view(), name='read_nfc_blocking'),
+    path('api/register_store/', views.register_store, name='register_store'),
 ]

@@ -12,6 +12,49 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import logging
+import logging.config
+from rich.logging import RichHandler
+
+from config import CONFIG
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {'rich': {'datefmt': '[%X]', 'format':'[%(name)s] %(message)s'}},
+    'handlers': {
+        'store_logs_db': {
+            'level': 'DEBUG',
+            'class': 'transactify_terminal.LogDBHandler.LogDBHandler',
+        },
+        'richconsole': {
+            'level': 'DEBUG',
+            'class': 'rich.logging.RichHandler',
+            'formatter': 'rich',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'rich',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'root': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+    
+}
+logging.config.dictConfig(LOGGING)
+logging.info("Logging configured.")
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,10 +74,15 @@ HOSTNAME = os.getenv('HOSTNAME', 'localhost')
 CONTAINER_NAME = os.getenv('CONTAINER_NAME', 'store_db')
 
 ALLOWED_HOSTS = [
-    STORE_NAME, HOSTNAME, CONTAINER_NAME, DJANGO_WEB_HOST,
+    CONFIG.container.HOSTNAME,
+    CONFIG.container.CONTAINER_NAME,
+    #
+    CONFIG.webservice.SERVICE_NAME,
+    CONFIG.webservice.SERVICE_WEB_HOST,
+    #
     'localhost', '127.0.0.1'
 ] 
-print(f"Allowed hosts: {ALLOWED_HOSTS}.".replace('[','').replace(']',''))
+logging.info(f"Allowed hosts: {ALLOWED_HOSTS}.".replace('[','').replace(']',''))
 
 
 # Application definition
@@ -70,8 +118,8 @@ CHANNEL_LAYERS = {
 
 ROOT_URLCONF = 'transactify_terminal.urls'
 
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, '/app/static')
+STATIC_URL = CONFIG.django.STATIC_URL
+STATIC_ROOT = CONFIG.django.STATIC_ROOT
 
 TEMPLATES = [
     {
@@ -94,15 +142,14 @@ WSGI_APPLICATION = 'transactify_terminal.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': CONTAINER_NAME,
-        'USER': os.getenv('DJANGO_DB_USER', 'default_user'),
-        'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', 'default_password'),
-        'HOST': os.getenv('DJANGO_DB_HOST', 'localhost'),
-        'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
+        'NAME': CONFIG.database.NAME,
+        'USER': CONFIG.database.USER,
+        'PASSWORD': CONFIG.database.PASSWORD,
+        'HOST': CONFIG.database.HOST,
+        'PORT': CONFIG.database.PORT,
     },
     # 'USER': {
     #     'ENGINE': 'django.db.backends.postgresql',
@@ -113,6 +160,8 @@ DATABASES = {
     #     'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
     # },
 }
+
+print(f"Database: {DATABASES}.")
 
 
 # Password validation
@@ -155,17 +204,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Logging settings
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-        },
-    }
-}
-import logging.config
-logging.config.dictConfig(LOGGING)

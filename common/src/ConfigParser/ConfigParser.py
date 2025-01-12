@@ -36,17 +36,17 @@ class FinalizeMeta(type):
 
 class ConfigParser(metaclass=FinalizeMeta):
 
-    def __init__(self, config_file: str):
-        self.logger = self._init_logger()
+    def __init__(self, config_file: str, disable_logs=False):
+        self.logger = self._init_logger(disable_logs)
         self._str_repr = ""
         self.config_file = pathlib.Path(config_file)
         if not self.config_file.exists():
-            raise FileNotFoundError(f"Config file {self.config_file} not found.")
+            raise FileNotFoundError(f"Config file {self.config_file} not found. Looked for {self.config_file.absolute()}")
         self.env = self._load_environment()
         #self._load_config()
         self._str_repr = ""
 
-    def _init_logger(self, level=logging.INFO) -> logging.Logger:
+    def _init_logger(self, disable_logs, level=logging.INFO, ) -> logging.Logger:
         logger = logging.getLogger(__name__)
         logger.setLevel(logging.DEBUG)  # Set the desired log level
 
@@ -59,6 +59,12 @@ class ConfigParser(metaclass=FinalizeMeta):
         root_logger = logging.getLogger()
         root_logger.handlers.clear()
         root_logger.addHandler(rich_handler)
+
+        if disable_logs:
+            root_logger.setLevel(logging.CRITICAL)
+            logger.setLevel(logging.CRITICAL)
+            root_logger.disabled = True
+            logger.disabled = True
 
         return logger
 
@@ -103,5 +109,52 @@ class ConfigParser(metaclass=FinalizeMeta):
         _kwargs = {**_kwargs, **kwargs}
         return cfg(**_kwargs)
 
+  
+    
+    def get_variable(self, var_path: str) -> Optional[Any]:
+        keys = var_path.split(".")
+        data = self.config_data['content']
+        try:
+            for key in keys:
+                data = data[key]
+            return data
+        except KeyError:
+            self.logger.error(f"Variable '{var_path}' not found in configuration.")
+            return None
+
     def __str__(self) -> str:
         return f"\n{self._str_repr}"
+        
+    @staticmethod
+    def from_command_line(config):
+        """
+        Parse command-line arguments and retrieve configuration values.
+        Usage: python Config.py <config_file> --getvar "key"
+        """
+        import argparse
+
+        # disaple all loggins and outputs
+        logging.basicConfig(level=logging.CRITICAL)
+
+        parser = argparse.ArgumentParser(description="ConfigParser Command Line Utility")
+        parser.add_argument("config_file", type=str, help="Path to the configuration file.")
+        parser.add_argument("--getvar", type=str, help="Dot-separated key to fetch from the configuration.")
+
+        args = parser.parse_args()
+
+        config_file = args.config_file
+        key = args.getvar
+
+        if not config_file:
+            raise ValueError("Configuration file path is required.")
+
+        config = config(config_file, disable_logs=True)
+
+        if key:
+            keys = key.split(".")
+            value = config
+            for k in keys:
+                value = getattr(value, k, None)
+            return value
+        return None
+

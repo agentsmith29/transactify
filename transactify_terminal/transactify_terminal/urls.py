@@ -21,7 +21,7 @@ from django.conf import settings
 from transactify_terminal.views import health_check
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path(settings.SERVICE_NAME + 'admin/', admin.site.urls),
     path(settings.SERVICE_NAME + "/", include('terminal.urls')),
     path(f'{settings.STORE_NAME}/health/', health_check),
 ]

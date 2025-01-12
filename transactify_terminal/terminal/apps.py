@@ -9,8 +9,11 @@ class TerminalConfig(AppConfig):
     def ready(self):
         logger = logging.getLogger('hwc')  # Create a new logger
         # get the current ip and port of django server
-        #try:
+        try:
 
-        from .controller.HardwareController import HardwareController
-        global hwcontroller
-        hwcontroller = HardwareController()
+            from .controller.HardwareController import HardwareController
+            global hwcontroller
+            hwcontroller = HardwareController()
+        except Exception as e:
+            logger.error(f"Failed to initialize hardware controller: {e}")
+            os._exit(1)

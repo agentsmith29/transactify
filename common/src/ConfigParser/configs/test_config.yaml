@@ -1,4 +1,4 @@
-ENV: ../../.env  # Path to the .env file for global environment variable resolution
+ENV: ../../../../.env  # Path to the .env file for global environment variable resolution
 
 database:
   DB_RESET: True  # Deletes and recreates the database (dangerous)
@@ -11,7 +11,7 @@ database:
   DB_NAME: cashless_donknabberello_1
   
 webservice:
-  SERVICE_NAME: "donknabberello"
+  SERVICE_NAME: "terminal1"
   SERVICE_WEB_HOST: "${ENV.PROJECT_HOST}"
   SERVICE_WEB_PORT: "${ENV.PROJECT_PORT}"
   
@@ -19,11 +19,6 @@ admin:
   ADMIN_USER: "admin"
   ADMIN_PASSWORD: "admin"
   ADMIN_EMAIL: "admin@admin.com"
-
-terminal:
-  TERMINAL_SERVICE: 192.168.1.190 # IP or docker container
-  TERMINAL_SERVICE_URL: "${ENV.PROJECT_HOST}:8881/${TERMINAL_SERVICE}"
-  TERMINAL_WEBSOCKET_URL: "${TERMINAL_SERVICE_URL}/ws"
 
 # Other configurations
 django:

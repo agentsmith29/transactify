@@ -1,4 +1,4 @@
 {
     // add the path ./common/src to the include path for python
-    "python.analysis.extraPaths": ["./common/src"]
+    "python.analysis.extraPaths": ["./common/src", "./transactify_terminal/config"]
 }

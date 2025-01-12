@@ -27,17 +27,20 @@ RUN pip install --upgrade pip
 COPY ./requirements.txt /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
-COPY ./scripts /app/scripts
+
+COPY .env /.env
 COPY ./static /app/staticfiles
 COPY ./entrypoint_template.sh /app/entrypoint_template.sh
 RUN chmod +x /app/entrypoint_template.sh
-
+COPY ./common /common
 # Expose the application port
 EXPOSE 8000
+
 
 # ----------------- NEW CODE -----------------
 
 COPY ./transactify_terminal /app/
+
 
 
 RUN chmod +x /app/entrypoint.sh 

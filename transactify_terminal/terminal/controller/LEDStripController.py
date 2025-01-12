@@ -27,16 +27,19 @@ class LEDStripController():
         self.LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
         self.LED_INVERT = False    # True to invert the signal (when using NPN transistor level shift)
         self.LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
+        try:
+            # Create NeoPixel object with appropriate configuration.
+            self.strip = PixelStrip(self.LED_COUNT, self.LED_PIN, self.LED_FREQ_HZ, self.LED_DMA, self.LED_INVERT, self.LED_BRIGHTNESS, self.LED_CHANNEL)
+            self.strip.begin()
 
-        # Create NeoPixel object with appropriate configuration.
-        self.strip = PixelStrip(self.LED_COUNT, self.LED_PIN, self.LED_FREQ_HZ, self.LED_DMA, self.LED_INVERT, self.LED_BRIGHTNESS, self.LED_CHANNEL)
-        self.strip.begin()
+            self.break_loop = False
+            print(f"LEDStripeController initialized with {self.LED_COUNT} LEDs on GPIO {self.LED_PIN}")
+            self.animation_thread: threading.Thread = None
 
-        self.break_loop = False
-        print(f"LEDStripeController initialized with {self.LED_COUNT} LEDs on GPIO {self.LED_PIN}")
-        self.animation_thread: threading.Thread = None
-
-        self.animate(self._testing_animation)
+            self.animate(self._testing_animation)
+        except Exception as e:
+            print(f"Error initializing LEDStripeController: {e}")
+            return  
 
 
     def animate(self, animation_function: callable):

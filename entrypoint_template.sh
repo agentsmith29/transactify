@@ -14,17 +14,19 @@ PYTHON_EXEC=python
 MANAGE_PY="$PYTHON_EXEC manage.py"
 
 # Directories
+export DIR_COMMON="/common"
 export DIR_STATIC="/app/static"
-export DIR_SCRIPTS="/app/scripts"
-export DIR_CONFIG="/app/configs"
+export DIR_SCRIPTS="${DIR_COMMON}/scripts"
+export DIR_NGINX="${DIR_COMMON}/nginx"
 export DIR_SHARED_CONFIG="/etc/nginx/conf.d"
 
 # Files 
-export FILE_NGINX_CONF="$DIR_CONFIG/nginx.template.conf"
+export FILE_NGINX_CONF="$DIR_NGINX/templates/nginx.template.conf"
 export FILE_NGINX_CONF_STORE="$DIR_SHARED_CONFIG/nginx.${CONTAINER_NAME}.conf"
 
 # Scripts
 export SH_CHANGE_NGINX="$DIR_SCRIPTS/change_nginx.sh"
+export PY_CHANGE_NGINX="$DIR_SCRIPTS/change_nginx.py"
 export SH_MAKE_STORE_MIGRATION="$DIR_SCRIPTS/db_migration.sh"
 export SH_RESET_DATABSE_SCRIPT="$DIR_SCRIPTS/reset_database.sh"
 
@@ -43,8 +45,8 @@ if [ ! -d "$DIR_SCRIPTS" ]; then
     exit 1
 fi
 
-if [ ! -d "$DIR_CONFIG" ]; then
-    echo "Error: $DIR_CONFIG does not exist."
+if [ ! -d "$DIR_NGINX" ]; then
+    echo "Error: $DIR_NGINX does not exist."
     exit 1
 fi
 
@@ -108,7 +110,10 @@ fi
 # Collect static files
 # ========================================
 echo "Collecting static files..."
-rm -rf  $DIR_STATIC/*
+rm -rf  $DIR_STATIC/* || {
+    echo "ERROR: Failed remove files in $DIR_STATIC"
+}
+
 echo "Copying staticfiles to  $DIR_STATIC..."
 cp -r /app/staticfiles/* $DIR_STATIC/ || {
     echo "ERROR: Failed copy staticfiles to $DIR_STATIC"
@@ -128,7 +133,7 @@ chmod +x $SH_CHANGE_NGINX || {
     exit 1
 }
 
-$SH_CHANGE_NGINX $FILE_NGINX_CONF || {
+python $PY_CHANGE_NGINX $FILE_NGINX_CONF || {
     echo "ERROR: Failed to change the port in the nginx configuration file $FILE_NGINX_CONF."
     exit 1
 }
