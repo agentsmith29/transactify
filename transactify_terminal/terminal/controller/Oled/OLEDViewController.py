@@ -32,6 +32,7 @@ import threading
 from ..ConfParser import Store
 from ...api_endpoints.StoreProduct import StoreProduct
 from luma.oled.device import ssd1322 as OLED
+#from luma.lcd.device import ili9341 as OLED
 
 from ..LEDStripController import LEDStripController
 

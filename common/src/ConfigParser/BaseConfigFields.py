@@ -5,7 +5,7 @@ import inspect
 from functools import wraps
 from typing import Optional, Any
 import re
-
+from .capture_assigned_var import capture_assigned_var
 
 
 class BaseConfigField:
@@ -39,38 +39,7 @@ class BaseConfigField:
                 _data_flat[key] = value
         return _data_flat
 
-    def get_assignment(func):
-        """
-        Decorator to capture the outer variable that has been assigned to.
-        """
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            # Inspect the stack to get the name of the outer variable being assigned
-            frame = inspect.currentframe().f_back
-            try:
-                # Extract the source code of the calling frame
-                calling_code = inspect.getframeinfo(frame).code_context
-                if not calling_code:
-                    raise ValueError("Unable to extract source code context.")
-
-                # Get the line where the function is called
-                assignment_line = calling_code[0].strip()
-
-                # Parse the outer variable name from the assignment statement
-                if "=" in assignment_line:
-                    outer_var = assignment_line.split("=")[0].strip()
-                    kwargs["assigned_to"] = outer_var
-                else:
-                    raise ValueError("Function call is not part of an assignment statement.")
-            except Exception as e:
-                raise RuntimeError(f"Failed to determine outer variable: {e}")
-
-            # Call the original function with the modified kwargs
-            return func(*args, **kwargs)
-
-        return wrapper
-
-    @get_assignment
+    @capture_assigned_var()
     def assign_from_config(self, key: str, default: Optional[str] = None, required: Optional[bool] = None,
                            lambda_apply_func: callable = None,
                            assigned_to: str = None) -> Any:
@@ -102,7 +71,7 @@ class BaseConfigField:
         
         return _value
 
-    @get_assignment
+    @capture_assigned_var()
     def assign_direct(self, value: Any, assigned_to: str = None) -> Any:
         assigned_to = assigned_to.replace("self.", "")
         return self._assign(key=assigned_to, value=value, assigned_to=assigned_to)

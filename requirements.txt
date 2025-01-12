@@ -1,9 +1,12 @@
 Django>=5.0.0
 # GPIOs
 luma.oled
+luma.lcd
 evdev
 # For the LED Stripe
 rpi_ws281x
+
+pn532pi
 
 # Django
 django-bootstrap5   # Frontend

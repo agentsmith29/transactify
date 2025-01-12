@@ -16,8 +16,8 @@ class KeyPad():
         self.logger = logging.getLogger('store')
         self.logger.info(f"KeyPad initialization.")
         # Define GPIO pin mappings based on the schematic
-        self.columns = [19, 13, 6, 5]  # COL4, COL3, COL2, COL1
-        self.rows = [22, 27, 17, 26]   # ROW4, ROW3, ROW2, ROW1
+        self.columns = [26, 19, 13, 6]  # COL4, COL3, COL2, COL1
+        self.rows = [5, 16, 20, 21]   # ROW4, ROW3, ROW2, ROW1
         self.logger.debug(f"KeyPad using GPIOS {self.columns} and {self.rows}")
 
         # Define the keypad layout based on the schematic
