@@ -7,14 +7,20 @@ from django.http import JsonResponse
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.dispatch import Signal
-RUN_SERVER = bool(os.getenv('RUN_SERVER', 'false'))
-
+def check_run_server():
+    _rs = os.getenv('RUN_SERVER', "False").lower()
+    if _rs == "true" or _rs == "1":
+        return True
+    return False
+    
+RUN_SERVER = check_run_server()
 if RUN_SERVER:
+    print(f"************* {RUN_SERVER}: Running server with RUN_SERVER=True. Exiting. *************")
     from .HardwareInterface import HardwareInterface
     from .Oled.OLEDViewController import OLEDViewController
 
 from .ConfParser import parse_services_config_from_yaml
-from .ConfParser import Store
+from terminal.webmodels.Store import Store
 
 from ..api_endpoints.StoreProduct import StoreProduct
 from ..api_endpoints.Customer import Customer
@@ -56,7 +62,7 @@ class HardwareController():
         
 
         #self.hwif.keypad.signals.key_pressed.connect(self.on_key_pressed)
-        self.store_bases = parse_services_config_from_yaml('./terminal.conf')
+        self.store_bases = list(Store.objects.all().order_by('terminal_button'))
 
         self.view_controller = OLEDViewController(self.hwif.oled,
                                                   self.hwif.barcode_reader.signals.barcode_read,
@@ -82,7 +88,7 @@ class HardwareController():
             exit(1)
         elif len(self.store_bases) == 1:
             self.view_controller.request_view(self.view_controller.PAGE_MAIN, 
-                                              store_name=self.store_bases[0].name, display_back=False, )
+                                              store=self.store_bases[0], display_back=False, )
         else:
             self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION, 
                                               stores=self.store_bases)

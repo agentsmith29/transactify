@@ -2,18 +2,18 @@ ENV: ../../.env  # Path to the .env file for global environment variable resolut
 
 database:
   DB_RESET: false  # Deletes and recreates the database (dangerous)
-  REMIGRATE: true  # Remigrates the database
+  REMIGRATE: false  # Remigrates the database
   
   DB_HOST: "${ENV.PROJECT_HOST}"                       # Database server (docker image name)
   DB_PORT: "${ENV.DB_PORT}"               # Database port
   DB_USER: "${ENV.DB_USER}"
   DB_PASSWORD: "${ENV.DB_PASSWORD}"
-  DB_NAME: cashless_donknabberello_1
+  DB_NAME: cashless_terminal1_1
   
 webservice:
   SERVICE_NAME: "terminal1"
   SERVICE_WEB_HOST: "${ENV.PROJECT_HOST}"
-  SERVICE_WEB_PORT: "${ENV.PROJECT_PORT}"
+  SERVICE_WEB_PORT: 8881 #"${ENV.PROJECT_PORT}"
   
 admin:
   ADMIN_USER: "admin"

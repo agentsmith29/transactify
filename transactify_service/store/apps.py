@@ -7,63 +7,82 @@ import asyncio
 import websockets
 import json
 
-def push_store_config_to_terminal():
-    # Store configuration data
-    push_store_conf = {
-        "name": "Don Knabberello",
-        "address": "donknabberello:8000/donknabberello",
-        "docker_container": "donknabberello",
-        "terminal_button": "A"
-    }
-    store_conf: Config  = settings.CONFIG
-    # WebSocket URL for the terminal
-    ws_url = f"{store_conf.terminal.TERMINAL_WEBSOCKET_URL}/register_store"
+class PersistentWebSocket:
+    def __init__(self, ws_url, store_config):
+        self.ws_url = ws_url
+        self.store_config = store_config
+        self.keep_running = True
 
-    async def push_store_config():
-        try:
-            print(f"Connecting to terminal at: {ws_url}")
-            # Connect to the terminal WebSocket server
-            async with websockets.connect(ws_url) as websocket:
-                # Send the store configuration as JSON
-                await websocket.send(json.dumps(push_store_conf))
-                print(f"Sent store config to terminal: {push_store_conf}")
+    async def connect_and_listen(self):
+        """
+        Establish and maintain a WebSocket connection.
+        """
+        while self.keep_running:
+            try:
+                # Connect to the WebSocket server
+                print(f"Connecting to {self.ws_url}")
+                async with websockets.connect(self.ws_url) as websocket:
+                    # Send the store configuration
+                    await websocket.send(json.dumps(self.store_config))
+                    print(f"Sent store config to terminal: {self.store_config}")
 
-                # Wait for a response
-                response = await websocket.recv()
-                print(f"Response from terminal: {response}")
+                    # Listen for messages
+                    while self.keep_running:
+                        response = await websocket.recv()
+                        print(f"Message from terminal: {response}")
+            except Exception as e:
+                print(f"WebSocket connection failed: {e}")
+                print("Retrying in 5 seconds...")
+                await asyncio.sleep(5)  # Wait before retrying
 
-        except Exception as e:
-            print(f"Error communicating with terminal: {e}")
+    def stop(self):
+        """
+        Stop the WebSocket connection loop.
+        """
+        self.keep_running = False
 
-    # Run the asyncio event loop
-    asyncio.get_event_loop().run_until_complete(push_store_config())
 
 class StoreConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'store'
 
     def ready(self):
-        # setup the logger
-        StoreConfig.store_name = os.getenv('SERVICE_NAME')
+        # Set the store name from environment variables
+        StoreConfig.store_name = os.getenv('SERVICE_NAME', 'Default Store Name')
 
         if os.environ.get('RUN_SERVER', 'false') == 'true':
-            import store.StoreLogsDBHandler	  # Import your custom logging here
-            #from transactify_service.store.data_generators.mock_store_content import (mock_store_customers, mock_store_products, 
-            #                                      mock_restocks, mock_customer_deposits, mock_purchases)
+            import store.StoreLogsDBHandler  # Import your custom logging here
             from store.data_generators.add_historical_data import HistoricalData
 
+            # Set up custom logging
             logger = store.StoreLogsDBHandler.setup_custom_logging('apps')
 
         if os.environ.get('INIT_DATA', '0') == '1':
             try:
                 HistoricalData()
             except Exception as e:
-                    logger.error(f"Failed to mock store content: {e}")
-        
-        # set the name of the store
-        print(f"Push store name to terminal: {StoreConfig.store_name}")
-        # post it to the terminal using the websocket
-        push_store_config_to_terminal()
-        
+                logger.error(f"Failed to mock store content: {e}")
 
-        
+        # WebSocket configuration
+        print(f"Push store name to terminal: {StoreConfig.store_name}")
+        store_conf: Config = settings.CONFIG
+        ws_url = f"{store_conf.terminal.TERMINAL_WEBSOCKET_URL}/register_store"
+        push_store_conf = {
+            "name": StoreConfig.store_name,
+            "address": "donknabberello:8000/donknabberello",
+            "docker_container": "donknabberello",
+            "terminal_button": "A",
+        }
+
+        # Start the persistent WebSocket connection
+        self.websocket = PersistentWebSocket(ws_url, push_store_conf)
+        loop = asyncio.get_event_loop()
+        loop.create_task(self.websocket.connect_and_listen())
+        loop.run_forever()
+
+    def shutdown(self):
+        """
+        Clean up on Django server shutdown.
+        """
+        if hasattr(self, 'websocket'):
+            self.websocket.stop()

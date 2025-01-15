@@ -1,3 +1,6 @@
+
+
+
 export MAIN_DB="cashless_donknabberello_1"
 export PGPASSWORD="PASSWORD"
 export PGUSER="USER"
@@ -14,4 +17,5 @@ psql -h $PGHOST  -U $PGUSER -p 5432 -d 'postgres' -c "CREATE DATABASE \"$MAIN_DB
 python manage.py makemigrations && python manage.py migrate
 python manage.py createsuperuser --noinput
 export "RUN_SERVER"="true"
+export  "INIT_DATA"=1
 daphne -b 0.0.0.0 -p 8880 transactify_service.asgi:application

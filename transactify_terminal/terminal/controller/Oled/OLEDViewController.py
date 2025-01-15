@@ -29,7 +29,7 @@ import os
 import threading
 
 
-from ..ConfParser import Store
+from terminal.webmodels.Store import Store
 from ...api_endpoints.StoreProduct import StoreProduct
 from luma.oled.device import ssd1322 as OLED
 #from luma.lcd.device import ili9341 as OLED
@@ -103,7 +103,7 @@ class OLEDViewController():
         self._screensaver_timeout = OLEDViewController.OLED_SCREEN_SAVER_TIMEOUT
         self._screensaver_time_left = self._screensaver_timeout 
 
-        self._init_screensaver_thread()
+        #self._init_screensaver_thread()
 
         sig_on_barcode_read.connect(self.on_barcode_read)
         sig_on_nfc_read.connect(self.on_nfc_read)

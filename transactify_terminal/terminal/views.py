@@ -28,20 +28,3 @@ def oled_display(request):
     """
     return render(request, 'hwcontroller/view_oled.html', {'current_image': hwcontroller.view_controller.current_view.oled_image_base64})
 
-@csrf_exempt
-def register_store(request):
-    # get the json data
-    config = json.loads(request.body)
-
-    name = config['name']
-    address = config['address']
-    docker_container = config['docker_container']
-    terminal_button = config['terminal_button']
-
-    # Create or update the store
-    store, created = Store.objects.update_or_create(
-        service_name=name,
-        name=name,
-        defaults={'address': address, 'docker_container': docker_container, 'terminal_button': terminal_button}
-    )
-    print(f"I registered a store: {store}")

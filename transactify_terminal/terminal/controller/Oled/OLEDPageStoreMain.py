@@ -3,7 +3,8 @@ from django.dispatch import Signal
 from .OLEDPage import OLEDPage
 import os
 
-from ..ConfParser import Store
+#from ..ConfParser import Store
+from terminal.webmodels.Store import Store
 
 
 class OLEDPageStoreMain(OLEDPage):

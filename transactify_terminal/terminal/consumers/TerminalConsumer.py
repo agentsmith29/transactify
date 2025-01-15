@@ -1,31 +1,149 @@
 import json
+import uuid
 from channels.generic.websocket import AsyncWebsocketConsumer
+from asgiref.sync import sync_to_async
+from django.dispatch import Signal
+from django.utils import timezone
+
+class WebsocketSignals:
+    on_connect = Signal()
+    on_disconnect = Signal()
+
 
 class TerminalConsumer(AsyncWebsocketConsumer):
+    signals = WebsocketSignals()
+
     async def connect(self):
+        """
+        Handle a new WebSocket connection.
+        """
+        self.uid = str(uuid.uuid4())  # Generate a unique connection UID
+        print(f"WebSocket connection established. UID: {self.uid}")
         await self.accept()
-        print("WebSocket connection established")
+
+        # Reset all connections on server restart
+        await self.reset_all_connections()
+
+        # Register the new connection
+        client_ip, client_port = self.scope["client"]
+        await self.register_connection(self.uid, client_ip, client_port)
 
     async def disconnect(self, close_code):
-        print(f"WebSocket connection closed with code {close_code}")
+        """
+        Handle WebSocket disconnection.
+        """
+        print(f"WebSocket connection closed. UID: {self.uid}")
+        await self.set_connection_inactive(self.uid)
 
     async def receive(self, text_data):
+        """
+        Handle incoming WebSocket messages.
+        """
         try:
             data = json.loads(text_data)
-            print(f"Received data from store: {data}")
+            print(f"Received data: {data}")
+            name = data.get("name")
+            address = data.get("address")
+            docker_container = data.get("docker_container")
+            terminal_button = data.get("terminal_button")
+            await self.register_store(docker_container, name, address, docker_container, terminal_button)
 
-            # Process the incoming data (store config)
-            store_name = data.get("name", "Unknown")
-            store_address = data.get("address", "Unknown")
-            print(f"Store Name: {store_name}, Address: {store_address}")
-
-            # Respond back to the client
-            response = {
-                "status": "success",
-                "message": f"Received config for store: {store_name}"
-            }
+            response = {"status": "success", "message": "Message received."}
             await self.send(text_data=json.dumps(response))
-
-        except json.JSONDecodeError as e:
-            print(f"Invalid JSON received: {text_data}")
+        except json.JSONDecodeError:
             await self.send(text_data=json.dumps({"status": "error", "message": "Invalid JSON"}))
+
+    # --- Connection Utilities ---
+
+    @sync_to_async
+    def register_store(self, service_name, name, address, docker_container, terminal_button):
+        """
+        Register a new store in the database.
+        """
+        from terminal.webmodels import Store
+        from terminal.webmodels import StoreConnection
+
+        # check if the store is already registered
+        if Store.objects.filter(service_name=service_name).exists():
+            print(f"Store {service_name} already registered.")
+            store = Store.objects.get(service_name=service_name)
+            store.name = name
+            store.web_address = address
+            store.docker_container = docker_container
+            store.terminal_button = terminal_button
+            store.is_connected = True
+            store.save()
+        else:
+            # Register the store
+            store, created = Store.objects.update_or_create(
+                service_name=service_name,
+                name=name,
+                web_address=address,
+                docker_container=docker_container,
+                terminal_button=terminal_button,
+                is_connected=True,
+            )
+        store_connection = StoreConnection.objects.get(uid=self.uid)
+        store_connection.store = store
+        store_connection.save()
+
+        # Emit a signal for the new store
+        self.signals.on_connect.send(sender=self, store=store)
+        print(f"Store {store.name} registered.")
+
+
+    @sync_to_async
+    def register_connection(self, uid, ip, port):
+        """
+        Register a new WebSocket connection in the database.
+        """
+        from terminal.webmodels import Store, StoreConnection
+
+        # Register the connection
+        StoreConnection.objects.update_or_create(
+            uid=uid,
+            defaults={
+                "store": None,
+                "is_active": True,
+                "ip_address": ip,
+                "port": port,
+            },
+        )
+
+        # Emit a signal for the new connection
+
+    @sync_to_async
+    def set_connection_inactive(self, uid):
+        """
+        Mark a WebSocket connection as inactive.
+        """
+        from terminal.webmodels import StoreConnection
+        from terminal.webmodels import Store
+
+        try:
+            connection = StoreConnection.objects.get(uid=uid)
+            # get all associated stors and set the connection to inactive
+
+            connection.store.is_connected = False
+            connection.store.save()    
+
+            connection.is_active = False
+            connection.disconnected_at = timezone.now()
+            connection.save()
+
+            # Emit a disconnect signal
+            self.signals.on_disconnect.send(sender=self, connection=connection)
+            print(f"Connection {uid} marked as inactive.")
+        except StoreConnection.DoesNotExist:
+            print(f"Connection {uid} not found.")
+
+    @sync_to_async
+    def reset_all_connections(self):
+        """
+        Reset all connections to inactive on server restart.
+        """
+        from terminal.webmodels import Store, StoreConnection
+
+        StoreConnection.objects.filter(is_active=True).update(is_active=False, disconnected_at=timezone.now())
+        Store.objects.filter(is_connected=True).update(is_connected=False)
+        print("All connections reset on server restart.")
