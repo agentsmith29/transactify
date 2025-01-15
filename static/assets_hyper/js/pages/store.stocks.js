@@ -1,5 +1,5 @@
 class ManageStock {
-    constructor(pageName, page_url) {
+    constructor(page_url) {
         this.page_url = page_url
         this.initSocket();
     }
@@ -33,7 +33,13 @@ class ManageStock {
         // purchase_price: <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="0.01" required=""></input>
         // value change event
         document.getElementById('purchase_price').addEventListener('input', this.updateResellPrice.bind(this));
+        // Attach events for logic expression and toggle input method
+        document.getElementById('logic_expression').addEventListener('input', this.calculateFromExpression.bind(this));
+        document.getElementById('logic_expression').addEventListener('input', this.updateResellPrice.bind(this));
+        document.getElementById('use_direct_price').addEventListener('click', () => this.toggleInputMethod('direct'));
+        document.getElementById('use_logic_expression').addEventListener('click', () => this.toggleInputMethod('expression'));
         
+  
     }
 
     async submitStockForm() {
@@ -123,15 +129,15 @@ class ManageStock {
             document.getElementById('resell_price').textContent = `€ ${parseFloat(resellPrice).toFixed(2)}`;
             document.getElementById('product-card-title').textContent = product.name;
             const stockBadge = document.getElementById('product-card-badge')
-            if (product.quantity > 2) {
+            if (product.stock_quantity > 2) {
                 stockBadge.textContent = 'In Stock';
-                stockBadge.className = 'badge bg-success-lighten';
-            } else if (product.quantity > 0) {
+                stockBadge.className = 'badge bg-success';
+            } else if (product.stock_quantity > 0) {
                 stockBadge.textContent = 'Low Stock';
-                stockBadge.className = 'badge bg-warning-lighten';
+                stockBadge.className = 'badge bg-warning';
             } else {
                 stockBadge.textContent = 'Out of Stock';
-                stockBadge.className = 'badge bg-danger-lighten';
+                stockBadge.className = 'badge bg-danger';
             }
             //  purchase_price: <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="0.01" required=""></input>
             cost =  parseFloat(document.getElementById('purchase_price').value);
@@ -146,9 +152,34 @@ class ManageStock {
             console.error("Product not found for the selected EAN");
         }
     }
+
+    toggleInputMethod(method) {
+        const logicExpressionField = document.getElementById('logic_expression');
+        const purchasePriceField = document.getElementById('purchase_price');
+
+        if (method === 'direct') {
+            logicExpressionField.disabled = true;
+            purchasePriceField.disabled = false;
+        } else if (method === 'expression') {
+            logicExpressionField.disabled = false;
+            purchasePriceField.disabled = true;
+        }
+    }
+
+    calculateFromExpression() {
+        const logicExpressionField = document.getElementById('logic_expression');
+        const quantityField = document.getElementById('quantity');
+        const purchasePriceField = document.getElementById('purchase_price');
+
+        try {
+            const expressionResult = eval(logicExpressionField.value); // Evaluate the expression
+            const quantity = parseFloat(quantityField.value) || 1; // Avoid division by zero
+            purchasePriceField.value = (expressionResult).toFixed(2); // Calculate price per unit
+        } catch (error) {
+            console.error("Invalid logic expression", error);
+        }
+    }
     
-
-
 
 }
 

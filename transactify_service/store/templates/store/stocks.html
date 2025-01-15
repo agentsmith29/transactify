@@ -27,12 +27,37 @@
                     <label for="quantity">Stock Quantity</label>
                     <input type="number" class="form-control" id="quantity" name="quantity" required>
                 </div>
-                <!-- Add a new input field for the unit price -->
-                <div class="form-group">
-                    <label for="purchase_price">Unit (paid) Price</label>
-                    <small id="purchase_price_help" class="form-text text-muted">Price paid for the product.</small>
-                    <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="0.01" required>
-                </div>
+
+                
+                                <!-- Radio buttons to toggle between logic expression and direct entry -->
+                                <div class="form-group">
+                                    <label for="purchase_price">Unit (paid) Price</label>
+                                    <small id="purchase_price_help" class="form-text text-muted">Price paid for the product.</small>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="price_input_method" id="use_direct_price" value="direct" checked onclick="manage_stock.toggleInputMethod('direct')">
+                                        <label class="form-check-label" for="use_direct_price">
+                                            Direct Entry
+                                        </label>
+                                        <!-- Add a new input field for the unit price -->
+                                        <div class="form-group">
+                                            <small id="purchase_price_help" class="form-text text-muted">Enter the unit price directly.</small>
+                                            <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="0.01" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="price_input_method" id="use_logic_expression" value="expression" onclick="manage_stock.toggleInputMethod('expression')">
+                                        <label class="form-check-label" for="use_logic_expression">
+                                            Logic Expression
+                                        </label>
+                                        <div class="form-group">
+                                            <small id="logic_expression_help" class="form-text text-muted">Enter a mathematical expression (e.g., 27.54-3.43).</small>
+                                            <input type="text" class="form-control" id="logic_expression" name="logic_expression" oninput="manage_stock.calculateFromExpression()" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                
+                                
+
                 <div class="mt-4">
                 <div class="d-flex">
                     <button type="button" class="btn btn-primary" onclick="manage_stock.submitStockForm()">Add Stock</button>
