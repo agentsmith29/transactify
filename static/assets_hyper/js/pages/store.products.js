@@ -5,7 +5,7 @@ class ManageProducts {
     }
 
     initSocket() {
-        window.terminal_connection.onmessage = (event) => {
+        window.storeManager.webSocketHandler.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
                 console.log("Message received from server:", data);
@@ -17,7 +17,7 @@ class ManageProducts {
                     } else {
                         console.error("EAN field not found.");
                     }
-                    window.toastManager.info("Barcode recieved", `New scanned barcode: ${data.barcode}`, "", false);
+                    window.storeManager.toastManager.info("Barcode recieved", `New scanned barcode: ${data.barcode}`, "", false);
                 }
             } catch (error) {
                 console.error("Error processing WebSocket message:", error);
@@ -50,20 +50,20 @@ class ManageProducts {
         .then(data => {
             if (data.success && data.code == 103 ) {
                 //location.reload();
-                window.toastManager.success('Product added successfully', data.message, "", true);
+                window.storeManager.toastManager.success('Product added successfully', data.message, "", true);
             } 
             else if (data.success && data.code == 104) {
-                window.toastManager.info('Product updated successfully', data.message, "", true);
+                window.storeManager.toastManager.info('Product updated successfully', data.message, "", true);
             }
             else {
                 //window.toastManager.error(title, message, submessage)
-                window.toastManager.error("Product add failed", data.message, "Please try again.", false);
+                window.storeManager.toastManager.error("Product add failed", data.message, "Please try again.", false);
             }
         })
         .catch(error => {
             console.error('Error adding product:', error);
             // Toast message with error
-            window.toastManager.error("Failed to add product", error, "Please try again.", false);
+            window.storeManager.toastManager.error("Failed to add product", error, "Please try again.", false);
         });
     }
 
@@ -82,15 +82,15 @@ class ManageProducts {
         .then(data => {
             if (data.success) {
                 //location.reload();
-                window.toastManager.success(`Product ${ean} deleted successfully`, data.message, "", true);
+                window.storeManager.toastManager.success(`Product ${ean} deleted successfully`, data.message, "", true);
                 
             } else {
-                window.toastManager.error("Failed to deleted product", data.message, "Please try again.", false);
+                window.storeManager.toastManager.error("Failed to deleted product", data.message, "Please try again.", false);
             }
         })
         .catch(error => {
             console.error('Error deleting product:', error);
-            window.toastManager.error("Failed to deleted product", error, "Please try again.", false);
+            window.storeManager.toastManager.error("Failed to deleted product", error, "Please try again.", false);
         });
     }
 
@@ -116,14 +116,14 @@ class ManageProducts {
         .then(data => {
             if (data.success) {
                 //location.reload();
-                window.toastManager.success(`Product updated successfully`, data.message, "", true); 
+                window.storeManager.toastManager.success(`Product updated successfully`, data.message, "", true); 
             } else {
-                window.toastManager.error("Failed to deleted product", data.message, "Please try again.", false);
+                window.storeManager.toastManager.error("Failed to deleted product", data.message, "Please try again.", false);
             }
         })
         .catch(error => {
             console.error('Error updating product:', error);
-            window.toastManager.error("Failed to update product", error, "Please try again.", false);
+            window.storeManager.toastManager.error("Failed to update product", error, "Please try again.", false);
         });
     }
 

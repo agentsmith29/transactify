@@ -6,40 +6,7 @@ from django.conf import settings
 import asyncio
 import websockets
 import json
-
-class PersistentWebSocket:
-    def __init__(self, ws_url, store_config):
-        self.ws_url = ws_url
-        self.store_config = store_config
-        self.keep_running = True
-
-    async def connect_and_listen(self):
-        """
-        Establish and maintain a WebSocket connection.
-        """
-        while self.keep_running:
-            try:
-                # Connect to the WebSocket server
-                print(f"Connecting to {self.ws_url}")
-                async with websockets.connect(self.ws_url) as websocket:
-                    # Send the store configuration
-                    await websocket.send(json.dumps(self.store_config))
-                    print(f"Sent store config to terminal: {self.store_config}")
-
-                    # Listen for messages
-                    while self.keep_running:
-                        response = await websocket.recv()
-                        print(f"Message from terminal: {response}")
-            except Exception as e:
-                print(f"WebSocket connection failed: {e}")
-                print("Retrying in 5 seconds...")
-                await asyncio.sleep(5)  # Wait before retrying
-
-    def stop(self):
-        """
-        Stop the WebSocket connection loop.
-        """
-        self.keep_running = False
+from .websocket import PersistentWebSocket
 
 
 class StoreConfig(AppConfig):
@@ -68,17 +35,15 @@ class StoreConfig(AppConfig):
         store_conf: Config = settings.CONFIG
         ws_url = f"{store_conf.terminal.TERMINAL_WEBSOCKET_URL}/register_store"
         push_store_conf = {
-            "name": StoreConfig.store_name,
-            "address": "donknabberello:8000/donknabberello",
-            "docker_container": "donknabberello",
-            "terminal_button": "A",
+            "name": store_conf.webservice.SERVICE_NAME,
+            "address": store_conf.webservice.SERVICE_URL,
+            "docker_container": store_conf.container.CONTAINER_NAME,
+            "terminal_button": store_conf.terminal.TERMINAL_SELECTION_BUTTONS,
         }
 
         # Start the persistent WebSocket connection
         self.websocket = PersistentWebSocket(ws_url, push_store_conf)
-        loop = asyncio.get_event_loop()
-        loop.create_task(self.websocket.connect_and_listen())
-        loop.run_forever()
+        self.websocket.start()
 
     def shutdown(self):
         """

@@ -17,7 +17,7 @@ class ManageStock {
                     } else {
                         console.error("EAN field not found.");
                     }
-                    window.toastManager.info("Barcode recieved", `New scanned barcode: ${data.barcode}`, "", false);
+                    window.storeManager.toastManager.info("Barcode recieved", `New scanned barcode: ${data.barcode}`, "", false);
                 }
             } catch (error) {
                 console.error("Error processing WebSocket message:", error);
@@ -44,7 +44,7 @@ class ManageStock {
         for (const field of requiredFields) {
             const inputElement = form.querySelector(`[name="${field}"]`);
             if (!inputElement || !inputElement.value) {
-                window.toastManager.error("Missing required field", `Please fill in the ${field.replace('_', ' ')}`, "Required fields cannot be empty.", false);
+                window.storeManager.toastManager.error("Missing required field", `Please fill in the ${field.replace('_', ' ')}`, "Required fields cannot be empty.", false);
                 return;
             }
         }
@@ -97,14 +97,14 @@ class ManageStock {
             })
             .then(data => {
                 if (data.success && data.code === 116) {
-                    window.toastManager.success('Stock added successfully', data.message, "", true);
+                    window.storeManager.toastManager.success('Stock added successfully', data.message, "", true);
                 } else {
-                    window.toastManager.error("Stock update failed", data.message, "Please try again.", false);
+                    window.storeManager.toastManager.error("Stock update failed", data.message, "Please try again.", false);
                 }
             })
             .catch(error => {
                 console.error("Failed to update stock", error);
-                window.toastManager.error("Failed to update stock", error, "Please try again.", false);
+                window.storeManager.toastManager.error("Failed to update stock", error, "Please try again.", false);
             });
     }
 

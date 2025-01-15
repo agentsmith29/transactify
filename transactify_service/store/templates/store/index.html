@@ -695,6 +695,7 @@
         <script src="{% static_assets 'js/store.js' %}"></script>
         <script>
             document.addEventListener("DOMContentLoaded", () => {
+                
                 const socket_address = `{% ws_server %}/page/{{ request.resolver_match.url_name }}/`;
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
                 const resolverName = '{{ request.resolver_match.url_name }}';
@@ -713,6 +714,7 @@
                         rebootUrl: rebootUrl
                     }
                 });
+                displayToastAfterReload();
             });
         </script>
         {% block scripts %}

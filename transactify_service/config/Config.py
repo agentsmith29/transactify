@@ -26,6 +26,7 @@ class WebService(BaseConfigField):
         self.SERVICE_NAME = self.assign_from_config("SERVICE_NAME")
         self.SERVICE_WEB_PORT = self.assign_from_config("SERVICE_WEB_PORT")
         self.SERVICE_WEB_HOST = self.assign_from_config("SERVICE_WEB_HOST")
+        self.SERVICE_URL = self.assign_direct(f"http://{self.SERVICE_WEB_HOST}:{self.SERVICE_WEB_PORT}/{self.SERVICE_NAME}")
 
 class AdminConfig(BaseConfigField):
     def __init__(self, *args, **kwargs):
@@ -50,6 +51,7 @@ class TerminalConfig(BaseConfigField):
                                                             lambda_apply_func=lambda url: self.wrap_url(url, f"http"))
         self.TERMINAL_WEBSOCKET_URL = self.assign_from_config("TERMINAL_WEBSOCKET_URL", 
                                                                 lambda_apply_func=lambda url: self.wrap_url(url, f"ws"))
+        self.TERMINAL_SELECTION_BUTTONS = self.assign_from_config("TERMINAL_SELECTION_BUTTONS", "A")
 
 class ContainerConfig(BaseConfigField):
     def __init__(self, *args, **kwargs):

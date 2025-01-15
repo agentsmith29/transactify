@@ -3,7 +3,7 @@ from django.http import JsonResponse
 
 import traceback
 
-from ..controller.ConfParser import Store
+from terminal.webmodels.Store import Store
 from decimal import Decimal
 from ..api_endpoints.Customer import Customer
 
@@ -35,8 +35,8 @@ class StoreProduct:
         for store in stores:
             try:
                 # Construct the API URL
-                api_url = f"http://{store.address}/api/products/{ean}/?format=json"
-
+                api_url = f"{store.web_address}/api/products/{ean}/?format=json"
+                print(f"Fetching product from {api_url}")
                 # Fetch product details
                 response = requests.get(api_url)
                 response.raise_for_status()  # Raise an exception for HTTP errors

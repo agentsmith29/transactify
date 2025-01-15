@@ -17,10 +17,10 @@ class DockerSocketHelper():
     
     def container_name(self, hostname: str) -> Optional[str]:
         _name = self._get_container_info(hostname, "Name")
-        return None if _name is None else _name.lstrip("/")
+        return 'host' if _name is None else _name.lstrip("/")
     
     def container_id(self, hostname: str) -> Optional[str]:
-        return self._get_container_info(hostname, "Id")
+        return 'host' if self._get_container_info(hostname, "Id") is None else self._get_container_info(hostname, "Id")
 
     # =================================================================================================================
     # Docker compose service methods

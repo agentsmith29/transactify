@@ -62,7 +62,7 @@ class HardwareController():
         
 
         #self.hwif.keypad.signals.key_pressed.connect(self.on_key_pressed)
-        self.store_bases = list(Store.objects.all().order_by('terminal_button'))
+        self.store_bases = list(Store.objects.filter(is_connected=True).order_by('terminal_button'))
 
         self.view_controller = OLEDViewController(self.hwif.oled,
                                                   self.hwif.barcode_reader.signals.barcode_read,
@@ -167,6 +167,14 @@ class HardwareController():
 
         self.send_barcode_to_page(
             "page_products",
+            {
+                "type": "page_message",
+                "message": f"New scanned barcode: {barcode}",
+                "barcode": barcode,
+            }
+        )
+        self.send_barcode_to_page(
+            "page_stocks",
             {
                 "type": "page_message",
                 "message": f"New scanned barcode: {barcode}",
