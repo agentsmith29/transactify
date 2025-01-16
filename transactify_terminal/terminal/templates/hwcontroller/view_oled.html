@@ -1,4 +1,4 @@
-{% extends "./sidebar/sidebar.html" %}
+{% extends "./index.html" %}
 
 {% block content %}
     <head>
@@ -22,7 +22,9 @@
     </div>
 
 
+    {% endblock %}
 
+    {% block scripts %}
     <script>
         const displayElement = document.getElementById('display');
 

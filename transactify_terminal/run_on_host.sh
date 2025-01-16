@@ -16,4 +16,5 @@ export RUN_SERVER="false" # To avoid code being run during migration
 #python manage.py migrate
 #python manage.py createsuperuser --noinput
 export RUN_SERVER="true"
+export RUN_SERVER="true"
 daphne -b 0.0.0.0 -p 8881 transactify_terminal.asgi:application

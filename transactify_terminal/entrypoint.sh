@@ -12,5 +12,5 @@ python /app/static/tools/convert_svg_png.py
 export INIT_HARDWARE=1
 echo "Starting the Django development server..."
 DJANGO_WEB_PORT=$(python ./config/Config.py $TERMINAL_CONFIG_FILE --getvar "webservice.SERVICE_WEB_PORT")
-daphne -b 0.0.0.0 -p ${DJANGO_WEB_PORT} transactify_terminal.asgi:application 
+DAPHNE_DEBUG=1 daphne -b 0.0.0.0 -p ${DJANGO_WEB_PORT} transactify_terminal.asgi:application 
 exit 0

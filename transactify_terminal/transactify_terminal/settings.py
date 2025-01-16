@@ -19,6 +19,7 @@ from rich.logging import RichHandler
 from config import CONFIG
 
 
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

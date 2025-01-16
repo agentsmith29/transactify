@@ -7,7 +7,8 @@ from luma.oled.device import ssd1322 as OLED
 from .KeyPad import KeyPad
 
 from .BarcodeScanner import BarcodeScanner
-from .NFCReader import NFCReader
+from .NFC.MFRC522 import MFRC522 as NFCReader
+from .NFC.PN532 import PN532 as PN532
 from .LEDStripController import LEDStripController
 
 class HardwareSignals():
@@ -31,6 +32,7 @@ class HardwareInterface():
 
         # Multithreading 
         self._nfc_reader = NFCReader()
+        self._nfc_reader2 = PN532()
         self._barcode_reader = BarcodeScanner()
         
     # property and setters

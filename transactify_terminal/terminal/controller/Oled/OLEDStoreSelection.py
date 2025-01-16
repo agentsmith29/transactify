@@ -17,6 +17,7 @@ class OLEDStoreSelection(OLEDPage):
         OLEDStoreSelection.name: str = str(self.__class__.__name__) 
 
     def view(self, *args, **kwargs):
+
         image, draw = self._post_init()
 
         # Header Section
@@ -34,10 +35,15 @@ class OLEDStoreSelection(OLEDPage):
         # ------------- Body ----------------
         # Content Section: Display Name, Surname, and Balance
         content_y_start = header_height + 5
-        draw.text((30, content_y_start), f"Select the Store", font=self.font_small, fill=(255,255,255))
-        for i, store in enumerate(self.stores):
-            draw.text((30, content_y_start + 10 + i*10), f"{store.terminal_button}: {store.name}", font=self.font_small, fill=(255,255,255))
-       
+
+        
+        if len(self.stores) == 0:
+            draw.text((30, content_y_start), f"No stores found", font=self.font_small, fill=(255,255,255))
+        else:
+            draw.text((30, content_y_start), f"Select the Store", font=self.font_small, fill=(255,255,255))
+            for i, store in enumerate(self.stores):
+                draw.text((30, content_y_start + 10 + i*10), f"{store.terminal_button}: {store.name}", font=self.font_small, fill=(255,255,255))
+
         # Update the OLED display
         self.send_to_display(image)
         # ------------- Body ----------------
@@ -89,11 +95,16 @@ class OLEDStoreSelection(OLEDPage):
         elif len(customer_entries) > 1:
             self.display_message_overlay("Multiple store entries. Please use select the store to display the balance.")
 
-
     def on_barcode_read(self, sender, barcode, **kwargs):
         self._on_barcode_read_request_products_view(view_controller=self.view_controller, 
                                                stores=self.stores,
                                                barcode=barcode) 
+        
+    def on_websocket_connect(self, sender, **kwargs):
+        self.view()
+    
+    def on_websocket_disconnect(self, sender, **kwargs):
+        self.view()
     
 
          

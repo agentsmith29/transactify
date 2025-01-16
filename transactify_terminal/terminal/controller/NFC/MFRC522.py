@@ -1,32 +1,20 @@
 import threading
-from .mfrc522 import SimpleMFRC522, MFRC522
+from ..mfrc522 import SimpleMFRC522
+from ..mfrc522 import MFRC522 as MFRC522_lib
 from django.dispatch import Signal
 import time
 
 import logging
-
-class NFCReaderSignals:
-    tag_read = Signal()
-    tag_reading_status  = Signal()
-    tag_connected = Signal()
-    tag_disconnected = Signal()
+from .NFCBase import NFCBase
 
 
-class NFCReader:
-    def __init__(self):
+class MFRC522(NFCBase):
+    def __init__(self, *args, **kwargs):
         """
         Initialize the NFCReader with signals for read and write actions.
         """
-        self.logger = logging.getLogger('store')
-        self.logger.info(f"[NFC] NFC Reader initialization.")
-
-        self.signals = NFCReaderSignals()
-
-        self._reader = MFRC522()
-        #self._reader = SimpleMFRC522()
-
-        self.reading = True  # Control flag for reading process
-        self.nfc_thread = None  # Placeholder for the thread instance
+        super().__init__(*args, **kwargs)
+        self._reader = MFRC522_lib()
 
         # Start the NFC reading thread
         self.start_thread()
@@ -50,7 +38,7 @@ class NFCReader:
         self.logger.info("[NFC] NFC thread stopped.")
         print("Endless thread stopped.")
 
-    def read(self, reader: MFRC522, trailer_block, key, block_addrs):
+    def read(self, reader: MFRC522_lib, trailer_block, key, block_addrs):
         
         (status, TagType) = reader.Request(self._reader.PICC_REQIDL)
         # print(f"Status: {status}, TagType: {TagType}")
@@ -95,24 +83,6 @@ class NFCReader:
             n = n * 256 + uid[i]
         return n
     
-    def run(self):
-        """Continuously read NFC tags unless the process is paused."""
-        while self.reading:
-        #try:
-            trailer_block = 11
-            key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
-            block_addrs = [8,9,10]
-            id, text = self.read(self._reader, trailer_block, key, block_addrs)
-            if id is None:
-                continue
-            #id, text = self._reader.read()
-            self.logger.debug("[NFC] Card {id}. Content: {text}")
-            if self.signals.tag_read:
-                self.signals.tag_read.send(sender=None, id=id, text=text)  # Emit the read signal
-                time.sleep(5)
-        #except Exception as e:
-        #    print(f"Error during read: {e}")
-
     def write(self, text):
         """
         Temporarily stop reading to write to an NFC tag, then restart reading.
@@ -163,3 +133,23 @@ class NFCReader:
         finally:
             self.logger.info("Resuming reading process.")
             self.start_thread()  # Restart the thread
+
+
+    def run(self):
+        """Continuously read NFC tags unless the process is paused."""
+        while self.reading:
+        #try:
+            trailer_block = 11
+            key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+            block_addrs = [8,9,10]
+            id, text = self.read(self._reader, trailer_block, key, block_addrs)
+            if id is None:
+                continue
+            #id, text = self._reader.read()
+            self.logger.debug("[NFC] Card {id}. Content: {text}")
+            if self.signals.tag_read:
+                self.signals.tag_read.send(sender=None, id=id, text=text)  # Emit the read signal
+                time.sleep(5)
+        #except Exception as e:
+        #    print(f"Error during read: {e}")
+

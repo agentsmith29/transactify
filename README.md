@@ -196,3 +196,18 @@ docker-compose -f docker-compose.tests.yaml up --build
 ```bash
 sudo /home/pi/workspace/cashless/.venv/bin/python neopixel_test.py
 ```
+
+# Development
+
+
+I managed to debug the issue using the following command:
+
+```gdb --args python manage.py migrate```
+
+Inside gdb, I ran the program to trace the error:
+
+```(gdb) run```
+
+The root cause turned out to be related to conda dependencies. I resolved the problem by updating all packages with this command:
+
+```conda update --all```

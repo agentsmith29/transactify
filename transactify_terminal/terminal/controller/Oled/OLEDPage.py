@@ -24,7 +24,7 @@ from random import randint
 from luma.core.render import canvas
 
 from terminal.controller.LEDStripController import LEDStripController
-
+from terminal.webmodels.Store import Store
 
 class OLEDPage():
     name: str = "OLEDPage"
@@ -33,9 +33,11 @@ class OLEDPage():
     BTN_BACK = "E"
     
     def __init__(self, oled, 
-                 stores: list[Store],
                  sig_abort_view: Signal, sig_request_view: Signal,
                  sig_on_barcode_read: Signal, sig_on_nfc_read: Signal, sig_on_btn_pressed: Signal,
+                 #
+                 sign_on_websocket_connect: Signal, sign_on_websocket_disconnect: Signal,
+                 #
                  view_controller,
                  ledstrip: LEDStripController,
                  locked = False, overwritable = True):
@@ -47,7 +49,12 @@ class OLEDPage():
         self._signal_on_nfc_read = sig_on_nfc_read
         self._signal_on_btn_pressed = sig_on_btn_pressed
 
-        self.stores: list[Store] = stores
+        self._signal_on_websocket_connect = sign_on_websocket_connect
+        self._signal_on_websocket_disconnect = sign_on_websocket_disconnect
+
+        
+
+        self.stores: list[Store] = list(Store.objects.filter(is_connected=True).order_by('terminal_button'))
         
         self.view_controller: OLEDViewController = view_controller
 
@@ -81,6 +88,10 @@ class OLEDPage():
         self._signal_on_barcode_read.connect(self._sig_on_barcode_read)
         self._signal_on_nfc_read.connect(self._sig_on_nfc_read)
         self._signal_on_btn_pressed.connect(self._sig_on_btn_pressed)
+
+        self._signal_on_websocket_connect.connect(self._sig_on_websocket_connect)
+        self._signal_on_websocket_disconnect.connect(self._sig_on_websocket_disconnect)
+        
         self.break_loop = False
         self.is_active = False
 
@@ -377,6 +388,16 @@ class OLEDPage():
         if self.is_active:
             self.on_btn_pressed(sender, btn, **kwargs)
 
+    def _sig_on_websocket_connect(self, sender, **kwargs):
+        self.stores: list[Store] = list(Store.objects.filter(is_connected=True).order_by('terminal_button'))
+        if self.is_active:
+            self.on_websocket_connect(sender, **kwargs)
+
+    def _sig_on_websocket_disconnect(self, sender, **kwargs):
+        self.stores: list[Store] = list(Store.objects.filter(is_connected=True).order_by('terminal_button'))
+        if self.is_active:
+            self.on_websocket_disconnect(sender, **kwargs)
+
     # Need to be implemented by the subclass
     @abstractmethod
     def on_barcode_read(self, sender, barcode, **kwargs):
@@ -388,6 +409,14 @@ class OLEDPage():
 
     @abstractmethod
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):
+        pass
+
+    @abstractmethod
+    def on_websocket_connect(self, sender, **kwargs):
+        pass    
+
+    @abstractmethod
+    def on_websocket_disconnect(self, sender, **kwargs):
         pass
 
     # =================================================================================================================

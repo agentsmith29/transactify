@@ -47,7 +47,8 @@ class OLEDViewController():
                  sig_on_barcode_read: Signal,
                  sig_on_nfc_read: Signal,
                  sig_on_btn_pressed: Signal,
-                 stores: list[Store],
+                 sign_on_websocket_connect: Signal,
+                 sign_on_websocket_disconnect: Signal,
                  ledstrip: LEDStripController):
         
         self.sig_abort_page = Signal()
@@ -59,7 +60,7 @@ class OLEDViewController():
         self.signals = OLEDViewControllerSignals()
 
         kwargs = {
-            "oled": oled, 'stores': stores,
+            "oled": oled,
             'view_controller': self,
             "sig_abort_view": self.sig_abort_page,
             "sig_request_view": self.sig_request_view,
@@ -67,6 +68,9 @@ class OLEDViewController():
             "sig_on_barcode_read": sig_on_barcode_read,
             "sig_on_nfc_read": sig_on_nfc_read,
             "sig_on_btn_pressed": sig_on_btn_pressed,
+            #
+            "sign_on_websocket_connect": sign_on_websocket_connect,
+            "sign_on_websocket_disconnect": sign_on_websocket_disconnect,
             "ledstrip": ledstrip
         }
 

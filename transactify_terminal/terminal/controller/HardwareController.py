@@ -28,8 +28,7 @@ from ..api_endpoints.Customer import Customer
 from requests.models import Response
 
 import os
-
-
+from terminal.consumers.TerminalConsumer import WebsocketSignals
 
 class HardwareController():
     init_counter = 0
@@ -62,38 +61,39 @@ class HardwareController():
         
 
         #self.hwif.keypad.signals.key_pressed.connect(self.on_key_pressed)
-        self.store_bases = list(Store.objects.filter(is_connected=True).order_by('terminal_button'))
+        #self.store_bases = list(Store.objects.filter(is_connected=True).order_by('terminal_button'))
+
+        WebsocketSignals.on_connect.connect(self.on_websocket_connect)
+        WebsocketSignals.on_disconnect.connect(self.on_websocket_disconnect)
 
         self.view_controller = OLEDViewController(self.hwif.oled,
                                                   self.hwif.barcode_reader.signals.barcode_read,
                                                   self.hwif.nfc_reader.signals.tag_read,
                                                   self.hwif.keypad.signals.key_pressed,
                                                   #
-                                                  stores=self.store_bases,
+                                                  WebsocketSignals.on_connect,
+                                                  WebsocketSignals.on_disconnect,
+                                                  #
                                                   ledstrip=self.hwif.ledstrip)
         
         self.view_controller.signals.view_changed.connect(self.on_view_changed)
 
        
-        
+
 
         # Stores the current selection
         self.selected_store = None
         self.current_products = None
 
-        print(f"Store bases: {self.store_bases}")
+        #print(f"Store bases: {self.store_bases}")
 
-        if len(self.store_bases) == 0:
-            print("No store bases found. Exiting.")
-            exit(1)
-        elif len(self.store_bases) == 1:
-            self.view_controller.request_view(self.view_controller.PAGE_MAIN, 
-                                              store=self.store_bases[0], display_back=False, )
-        else:
-            self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION, 
-                                              stores=self.store_bases)
-        
-    
+        #if len(self.store_bases) == 1:
+        #    self.view_controller.request_view(self.view_controller.PAGE_MAIN, 
+        #                                      store=self.store_bases[0], display_back=False)
+        #else:
+        self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)
+
+
     def on_nfc_reading_status(self, sender, status, **kwargs):
         self.view_controller.current_view.display_nfc_overlay(status)
     
@@ -102,69 +102,11 @@ class HardwareController():
     # =================================================================================================================
     def on_view_changed(self, sender, view, **kwargs):
         pass
-        # self.oled_current_image = view.oled_image
-       
-
+ 
     def on_key_pressed(self, sender, col, row, btn, **kwargs):
         pass
-    #     if self.view.current_view == self.view.PAGE_STORE_SELECTION:
-    #         # Go to the main view if a store is selected
-    #         for store in self.store_bases:
-    #             if store.terminal_button == btn:
-    #                 self.selected_store = store
-    #                 self.view.request_view(self.view.PAGE_MAIN, store_name=self.selected_store.name, display_back=True)
-    #     elif self.view.current_view == self.view.PAGE_MAIN or self.view.current_view == self.view.PAGE_PRODUCT:
-    #         # Return to store selection, if there are multiple stores
-    #         if btn == "D" and len(self.store_bases) > 1:
-    #             self.view.request_view(self.view.PAGE_STORE_SELECTION, stores=self.store_bases)
-    #     elif self.view.current_view == "view_start_product_management":
-    #         if self.view.button_A_for_release and btn == "A":
-    #             self.view.request_view(self.view.view_main)
-    #     elif self.view.current_view.locked and btn != "A":
-    #         self.view.current_view.display_lock_overlay()
-    #     #elif self.view.current_view.locked and btn == "A":
-    #     #    self.view.request_view(self.view.PAGE_MAIN, unlock=True)
-    #     elif self.view.current_view.overwritable and btn == "A":
-    #         self.view.request_view(self.view.PAGE_MAIN, unlock=True)
-    #     elif self.view.current_view == self.view.PAGE_PRODUCT and btn == "A":
-    #         self.view.request_view(self.view.PAGE_MAIN, unlock=True)
-    #     else:
-    #         print(f"Key pressed: {col}, {row}, {btn}")
     
     def on_barcode_read(self, sender, barcode, **kwargs):
-    #     print(f"Barcode read: {barcode}")
-    #     if self.view.current_view == self.view.PAGE_MAIN or self.current_view == self.view.PAGE_PRODUCT:
-    #         try:
-    #             self.current_product = StoreProduct.get_from_api(self.store_bases, barcode)
-    #             self.selected_store = self.current_product.store
-    #             print(f"json: {self.current_products}")
-    #             if self.current_product:
-    #                 self.view.request_view(self.view.PAGE_PRODUCT, product=self.current_product)
-    #                 #self.current_products = product
-    #             else:
-    #                 print(f"Product not found: {barcode}")
-    #                 self.view.request_view(self.view.PAGE_PRODUCT_UNKNW, ean=barcode)
-    #                 #self.view.request_view(self.view.view_unknown_product, barcode)
-    #         except Exception as e:
-    #             print(f"Error fetching product: {e}")
-    #             self.current_product = None
-    #             self.selected_store = None
-    #     elif self.view.current_view == self.view.PAGE_STORE_SELECTION:
-    #         self.current_product = StoreProduct.get_from_api(self.store_bases, barcode)
-    #         self.selected_store = self.current_product.store
-    #         print(f"json: {self.current_products}")
-    #         if self.current_product:
-    #             self.view.request_view(self.view.PAGE_PRODUCT, product=self.current_product)
-    #             #self.current_products = product
-    #         else:
-    #             print(f"Product not found: {barcode}")
-    #             self.view.request_view(self.view.PAGE_PRODUCT_UNKNW, ean=barcode, 
-    #                                    next_view=self.view.PAGE_STORE_SELECTION, stores=self.store_bases)
-    #             #self.view.request_view(self.view.view_unknown_product, barcode)
-    #     else:
-    #         print(f"Barcode read, but no view to handle it: {self.current_view}")
-    #         self.selected_store = None
-
         self.send_barcode_to_page(
             "page_products",
             {
@@ -181,75 +123,6 @@ class HardwareController():
                 "barcode": barcode,
             }
         )
-    #     # self.view_price(barcode)
-    #     # self.view_main()
-        
-    # def on_nfc_read(self, sender, id, text, **kwargs):
-    #     print(f"NFC read {id}: {text}")
-    #     if self.view.current_view == self.view.PAGE_MAIN:
-    #         customer  = Customer.get_from_api(self.selected_store, id)
-    #         if customer:
-    #             self.view.request_view(self.view.PAGE_CUSTOMER, customer=customer)
-    #         else:
-    #              self.view.request_view(self.view.PAGE_CUSTOMER_UNKNW, id=id)
-    #     elif self.view.current_view == self.view.PAGE_PRODUCT:
-    #         # Request the webpage from the current store
-    #         customer = Customer.get_from_api(self.current_product.store, id)
-    #         print(f"Customer: {customer}")
-    #         self.current_nfc = id
-    #         # Iterate through the current products and create a simulated HTTP POST request
-    #         #for p in self.current_products:
-    #         try:# Call the make_sale function
-    #             status: Response = self.current_product.customer_purchase(customer, quantity=1)
-    #             print(f"Got Response: {status}")
-    #             # make a post to MakePurchase
-    #             if status.status_code == 210:
-    #                 # extract message and code
-    #                 message = status.json().get("message")
-    #                 code = int(status.json().get("code"))
-    #                 print("Sold product!")
-    #                 #print(response.status_code, response.content)
-    #                 self.view.request_view(self.view.PAGE_PURCHASE_SUCC, 
-    #                                        customer=customer, 
-    #                                        product=self.current_product,
-    #                                        next_view=self.view.PAGE_MAIN,
-    #                                        store_name=self.selected_store.name,
-    #                                        display_back=True)
-    #             else:
-    #                 error = status.json().get("error")
-    #                 code = int(status.json().get("code"))
-    #                 if code == 10:
-    #                     self.view.request_view(self.view.PAGE_CUSTOMER_UNKNW, id=id)
-    #                 elif code == 200:
-    #                     print("Insufficient stock")
-    #                     self.view.request_view(self.view.PAGE_INSUFF_STOCK, 
-    #                                         product=self.view.PAGE_PRODUCT.product)
-    #                 else:
-    #                     print(f"Unknown return code: {status.status_code}")
-    #                     self.view.request_view(self.view.PAGE_ERROR, 
-    #                                            error_title="error", error_message=error,
-    #                                         next_view=self.view.PAGE_MAIN,
-    #                                         store_name=self.selected_store.name,
-    #                                         display_back=True)
-                    
-    #         except Exception as e:
-    #             print(f"Error during sale: {e}")
-    #             #self.view_purchase_failed()
-
-    #     elif self.current_view == "view_start_card_management":
-    #         self.send_message_to_page(
-    #             "page_view_customers",
-    #             {
-    #                 "type": "page_message",
-    #                 "message": f"New scanned card: {id}",
-    #                 "card_id": id,
-    #                 "text": text,
-
-    #             }
-    #         )
-    
-
-
 
     def get_target_urls(self):
         """Fetch target URLs from an environment variable."""
@@ -257,6 +130,11 @@ class HardwareController():
         urls = os.getenv('TARGET_SERVICES', '')  # Example: 'http://service1:8000, http://service2:8000'
         return [url.strip() for url in urls.split(',') if url.strip()]
     
+    def on_websocket_connect(self, sender, **kwargs):
+       pass
+    
+    def on_websocket_disconnect(self, sender, **kwargs):
+        pass
     # =================================================================================================================
     # Websocket posters
     # =================================================================================================================

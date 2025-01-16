@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 import logging
 import os
+import traceback
 
 class TerminalConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
@@ -16,4 +17,5 @@ class TerminalConfig(AppConfig):
             hwcontroller = HardwareController()
         except Exception as e:
             logger.error(f"Failed to initialize hardware controller: {e}")
+            traceback.print_exc()
             os._exit(1)
