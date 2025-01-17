@@ -1,7 +1,12 @@
+
+"use strict";
+
 class ManageStock {
     constructor(page_url) {
-        this.page_url = page_url
+        this.page_url = page_url;
         this.initSocket();
+        this.initEventListeners();
+        this.initDataTables();
     }
 
     initSocket() {
@@ -17,7 +22,7 @@ class ManageStock {
                     } else {
                         console.error("EAN field not found.");
                     }
-                    window.storeManager.toastManager.info("Barcode recieved", `New scanned barcode: ${data.barcode}`, "", false);
+                    window.storeManager.toastManager.info("Barcode received", `New scanned barcode: ${data.barcode}`, "", false);
                 }
             } catch (error) {
                 console.error("Error processing WebSocket message:", error);
@@ -39,7 +44,41 @@ class ManageStock {
         document.getElementById('use_direct_price').addEventListener('click', () => this.toggleInputMethod('direct'));
         document.getElementById('use_logic_expression').addEventListener('click', () => this.toggleInputMethod('expression'));
         
-  
+    
+    }
+
+    initDataTables() {
+        // Initialize DataTable for products
+        $("#products-datatable").DataTable({
+            language: {
+                paginate: { previous: "<i class='mdi mdi-chevron-left'>", next: "<i class='mdi mdi-chevron-right'>" },
+                info: "Showing products _START_ to _END_ of _TOTAL_",
+                lengthMenu: 'Display <select class="form-select form-select-sm ms-1 me-1"><option value="10">10</option><option value="20">20</option><option value="-1">All</option></select> products',
+            },
+            columnDefs: [{ targets: -1, className: "dt-body-right" }],
+            pageLength: 10,
+            order: [[1, "asc"]],
+            drawCallback: function () {
+                $(".dataTables_paginate > .pagination").addClass("pagination-rounded"),
+                    $("#products-datatable_length label").addClass("form-label");
+            },
+        });
+
+        // Initialize DataTable for restocks
+        $("#restocks-datatable").DataTable({
+            language: {
+                paginate: { previous: "<i class='mdi mdi-chevron-left'>", next: "<i class='mdi mdi-chevron-right'>" },
+                info: "Showing restocks _START_ to _END_ of _TOTAL_",
+                lengthMenu: 'Display <select class="form-select form-select-sm ms-1 me-1"><option value="10">10</option><option value="20">20</option><option value="-1">All</option></select> restocks',
+            },
+            columnDefs: [{ targets: -1, className: "dt-body-right" }],
+            pageLength: 10,
+            order: [[1, "asc"]],
+            drawCallback: function () {
+                $(".dataTables_paginate > .pagination").addClass("pagination-rounded"),
+                    $("#restocks-datatable_length label").addClass("form-label");
+            },
+        });
     }
 
     async submitStockForm() {
@@ -57,8 +96,8 @@ class ManageStock {
 
         const formData = new FormData(form);
         const resell_price = parseFloat(formData.get('resell_price'));
-        const purchase_price =  parseFloat(formData.get('purchase_price'));
-        console.log("Resell price: "+ resell_price + " Purchase price: " + purchase_price);
+        const purchase_price = parseFloat(formData.get('purchase_price'));
+        console.log("Resell price: " + resell_price + " Purchase price: " + purchase_price);
 
         if (resell_price < purchase_price) {
             modalManager.display(
@@ -72,15 +111,6 @@ class ManageStock {
             return;
         }
         this.proceedWithStockForm(formData);
-    }
-
-    restockProduct(ean) {
-        const eanDropdown = document.getElementById('ean');
-        eanDropdown.value = ean;
-        this.updateResellPrice();
-
-        // Scroll to the add stock form for user to input details
-        document.getElementById('addStockForm').scrollIntoView({ behavior: 'smooth' });
     }
 
     proceedWithStockForm(formData) {
@@ -118,17 +148,17 @@ class ManageStock {
         console.log("Updating resell price...");
         const eanDropdown = document.getElementById('ean');
         const selectedEan = eanDropdown.value; // Get the selected EAN
-    
+
         // Find the product in the products array using the selected EAN
         const product = window.products.find(prod => prod.ean === selectedEan);
-    
+
         if (product) {
             const resellPrice = product.resell_price;
-    
+
             // Update resell price, cost, and profit fields
             document.getElementById('resell_price').textContent = `€ ${parseFloat(resellPrice).toFixed(2)}`;
             document.getElementById('product-card-title').textContent = product.name;
-            const stockBadge = document.getElementById('product-card-badge')
+            const stockBadge = document.getElementById('product-card-badge');
             if (product.stock_quantity > 2) {
                 stockBadge.textContent = 'In Stock';
                 stockBadge.className = 'badge bg-success';
@@ -139,15 +169,11 @@ class ManageStock {
                 stockBadge.textContent = 'Out of Stock';
                 stockBadge.className = 'badge bg-danger';
             }
-            //  purchase_price: <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="0.01" required=""></input>
-            cost =  parseFloat(document.getElementById('purchase_price').value);
-            // check if cost is not empty, otherwise assign 0
-            if (isNaN(cost)) {
-                cost = 0
-            }
-            profit = resellPrice - cost
-            document.getElementById('cost').textContent = `€ ${parseFloat(cost).toFixed(2)}`;
-            document.getElementById('profit').textContent = `€ ${parseFloat(profit).toFixed(2)}`;
+
+            const cost = parseFloat(document.getElementById('purchase_price').value) || 0;
+            const profit = resellPrice - cost;
+            document.getElementById('cost').textContent = `€ ${cost.toFixed(2)}`;
+            document.getElementById('profit').textContent = `€ ${profit.toFixed(2)}`;
         } else {
             console.error("Product not found for the selected EAN");
         }
@@ -179,7 +205,8 @@ class ManageStock {
             console.error("Invalid logic expression", error);
         }
     }
-    
-
 }
+
+// export
+window.ManageStock = ManageStock; // Make it globally accessible
 

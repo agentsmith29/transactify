@@ -58,7 +58,7 @@ class HardwareController():
         self.hwif.barcode_reader.signals.barcode_read.connect(self.on_barcode_read)
         #self.hwif.nfc_reader.signals.tag_read.connect(self.on_nfc_read)
         self.hwif.nfc_reader.signals.tag_reading_status.connect(self.on_nfc_reading_status)
-        
+        self.hwif.nfc_reader.signals.nfc_tag_id_read.connect(self.on_nfc_tag_id_read)
 
         #self.hwif.keypad.signals.key_pressed.connect(self.on_key_pressed)
         #self.store_bases = list(Store.objects.filter(is_connected=True).order_by('terminal_button'))
@@ -107,7 +107,7 @@ class HardwareController():
         pass
     
     def on_barcode_read(self, sender, barcode, **kwargs):
-        self.send_barcode_to_page(
+        self.send_data_to_page(
             "page_products",
             {
                 "type": "page_message",
@@ -115,7 +115,7 @@ class HardwareController():
                 "barcode": barcode,
             }
         )
-        self.send_barcode_to_page(
+        self.send_data_to_page(
             "page_stocks",
             {
                 "type": "page_message",
@@ -123,6 +123,18 @@ class HardwareController():
                 "barcode": barcode,
             }
         )
+
+    def on_nfc_tag_id_read(self, sender, id, **kwargs):
+        print(f"*******+ New scanned NFC Tag: {id}")
+        self.send_data_to_page(
+            "page_customers",
+            {
+                "type": "page_message",
+                "message": f"New scanned NFC Tag: {id}",
+                "card_number": id,
+            }
+        )
+
 
     def get_target_urls(self):
         """Fetch target URLs from an environment variable."""
@@ -166,14 +178,13 @@ class HardwareController():
         #await loop.run_in_executor(None, self.reader.write, text)
         self.hwif.nfc_reader.write(text)
 
-    def send_barcode_to_page(self, page, payload):
+    def send_data_to_page(self, page, payload):
         print(f"Sending barcode to page: {page}")
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             page, 
             payload,
         )
-    
     def __del__(*args, **kwargs):
         print("HardwareController deleted.")
 

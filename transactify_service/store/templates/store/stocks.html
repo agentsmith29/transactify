@@ -27,12 +27,33 @@
                     <label for="quantity">Stock Quantity</label>
                     <input type="number" class="form-control" id="quantity" name="quantity" required>
                 </div>
-                <!-- Add a new input field for the unit price -->
-                <div class="form-group">
-                    <label for="purchase_price">Unit (paid) Price</label>
-                    <small id="purchase_price_help" class="form-text text-muted">Price paid for the product.</small>
-                    <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="0.01" required>
-                </div>
+
+                                                <!-- Radio buttons to toggle between logic expression and direct entry -->
+                                                <div class="form-group">
+                                                    <label for="purchase_price">Unit (paid) Price</label>
+                                                    <small id="purchase_price_help" class="form-text text-muted">Price paid for the product.</small>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="price_input_method" id="use_direct_price" value="direct" checked onclick="manage_stock.toggleInputMethod('direct')">
+                                                        <label class="form-check-label" for="use_direct_price">
+                                                            Direct Entry
+                                                        </label>
+                                                        <!-- Add a new input field for the unit price -->
+                                                        <div class="form-group">
+                                                            <small id="purchase_price_help" class="form-text text-muted">Enter the unit price directly.</small>
+                                                            <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="0.01" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="price_input_method" id="use_logic_expression" value="expression" onclick="manage_stock.toggleInputMethod('expression')">
+                                                        <label class="form-check-label" for="use_logic_expression">
+                                                            Logic Expression
+                                                        </label>
+                                                        <div class="form-group">
+                                                            <small id="logic_expression_help" class="form-text text-muted">Enter a mathematical expression (e.g., 27.54-3.43).</small>
+                                                            <input type="text" class="form-control" id="logic_expression" name="logic_expression" oninput="manage_stock.calculateFromExpression()" disabled>
+                                                        </div>
+                                                    </div>
+                                                </div>
                 <div class="mt-4">
                 <div class="d-flex">
                     <button type="button" class="btn btn-primary" onclick="manage_stock.submitStockForm()">Add Stock</button>
@@ -86,87 +107,71 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <div class="row mb-2">
-                        <div class="col-xl-8">
-                            <form class="row gy-2 gx-2 align-items-center justify-content-xl-start justify-content-between">
-                                <div class="col-auto">
-                                    <label for="search-input" class="visually-hidden">Search</label>
-                                    <input type="search_restock" class="form-control" id="search-input" placeholder="Search...">
-                                </div>
-                            </form>
-                        </div>
-                        <div class="col-xl-4">
-                            <div class="text-xl-end mt-xl-0 mt-2">
-                                <!-- <button type="button" class="btn btn-danger mb-2 me-2">
-                                    <i class="mdi mdi-basket me-1"></i> Add New Purchase
-                                </button> -->
-                                <!-- <button type="button" class="btn btn-light mb-2">Export</button> -->
-                            </div>
-                        </div>
+                    <div id="products-datatable_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer">
+                        <table id="products-datatable" class="table table-centered table-nowrap mb-0 product-list-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>EAN</th>
+                                    <th>Name</th>
+                                    <th>Resell Price (€)</th>
+                                    <th>Status</th>
+                                    <th>Stock Quantity</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in products %}
+                                <tr>
+                                    <td>{{ product.ean }}</td>
+                                    <td>
+                                        <a href="{% url 'product' product.ean %}" class="text-body fw-bold">
+                                            {{ product.name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if product.discount == 0 %}
+                                            {{ product.final_price }}
+                                        {% else %}
+                                            <del>{{ product.resell_price }}</del>
+                                            <b><span style="color: red;">{{ product.final_price }}</span> (-{{ product.discount|multiply:100 }}%)</b>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if product.stock_quantity > 0 %}
+                                            {{ product.stock_quantity }}
+                                        {% else %}
+                                            <b><span style="color: red;">{{ product.stock_quantity }}</span></b>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if product.stock_quantity > 2 %}
+                                        <span class="badge bg-success">In Stock</span>
+                                        {% elif product.stock_quantity > 0 %}
+                                        <span class="badge bg-warning">Low Stock</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Out of Stock</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="manage_stock.restockProduct('{{ product.ean }}')">
+                                            <i class="mdi mdi-plus"></i> Restock
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No products available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-            <table class="table table-centered table-nowrap mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>EAN</th>
-                        <th>Name</th>
-                        <th>Resell Price (€)</th>
-                        <th>Status</th>
-                        <th>Stock Quantity</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for product in products %}
-                    <tr>
-                        <td>{{ product.ean }}</td>
-                        <td>
-                            <a href="{% url 'product' product.ean %}" class="text-body fw-bold">
-                                {{ product.name }}
-                            </td>
-                        <td>
-                            {% if product.discount == 0 %}
-                                {{ product.final_price }}</td>
-                            {% else %}
-                                    <del>{{ product.resell_price }}</del> 
-                                    <b><span style="color: red;">{{ product.final_price }}</span> (-{{ product.discount|multiply:100 }}%)</b>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if product.stock_quantity > 0 %}
-                                {{ product.stock_quantity }}
-                            {% else %}
-                                <b><span style="color: red;">{{ product.stock_quantity }}</span></b>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if product.stock_quantity > 2 %}
-                            <span class="badge bg-success">In Stock</span>
-                            {% elif product.stock_quantity > 0 %}
-                            <span class="badge bg-warning">Low Stock</span>
-                            {% else %}
-                            <span class="badge bg-danger">Out of Stock</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <!-- button for restocking -->
-                            <button type="button" class="btn btn-sm btn-primary" onclick="manage_stock.restockProduct('{{ product.ean }}')">
-                                <i class="mdi mdi-plus"></i> Restock
-                        </td>  
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center">No products available.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
-        </div>
-    </div>
-</div>
     </div>
 </main>
+
 
 
 <main class="col-lg-12 ms-sm-auto col-lg-10 px-md-4">
@@ -178,43 +183,24 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <div class="row mb-2">
-                        <div class="col-xl-8">
-                            <form class="row gy-2 gx-2 align-items-center justify-content-xl-start justify-content-between">
-                                <div class="col-auto">
-                                    <label for="search-input" class="visually-hidden">Search</label>
-                                    <input type="search_restock" class="form-control" id="search-input" placeholder="Search...">
-                                </div>
-                            </form>
-                        </div>
-                        <div class="col-xl-4">
-                            <div class="text-xl-end mt-xl-0 mt-2">
-                                <!-- <button type="button" class="btn btn-danger mb-2 me-2">
-                                    <i class="mdi mdi-basket me-1"></i> Add New Purchase
-                                </button> -->
-                                <button type="button" class="btn btn-light mb-2">Export</button>
-                            </div>
-                        </div>
-                    </div>
-    
-                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                        <table class="table table-centered table-nowrap mb-0">
-                            <thead class="table-light" style="position: sticky; top: 0; z-index: 1;"></thead>
+                    <div id="restocks-datatable_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer">
+                        <table id="restocks-datatable" class="table table-centered table-nowrap mb-0 product-list-table">
+                            <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
                                 <tr>
-                                    <th>ID</th>
+                                    <!-- <th>ID</th> -->
                                     <th>Product</th>
                                     <th>Quantity</th>
-                                    <th>Cash Movement</th>
+                                    <th>Cash</th>
                                     <th>Purchase Date</th>
-                                    <th>Unit Price (€)</th>
-                                    <th>Total Cost (€)</th>
+                                    <th>Price (€)</th>
+                                    <th>Cost (€)</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for restock in restocks %}
                                 <tr>
-                                    <td><a href="#" class="text-body fw-bold">#{{ restock.id }}</a> </td>
+                                    <!-- <td><a href="#" class="text-body fw-bold">#{{ restock.id }}</a> </td> -->
                                     <td>{{ restock.product.name }}</td>
                                     <td>{{ restock.quantity }}</td>
                                     <td>
@@ -247,12 +233,25 @@
 
 {% block scripts %}
     {{ block.super }} 
+    
     <script src="{% static_assets 'js/pages/store.stocks.js' %}"></script>
+            <!-- bundle -->
+    <script src="{% static_assets 'js/vendor.min.js' %}"></script>
+    <script src="{% static_assets 'js/app.min.js' %}"></script>
+
+    <!-- third party js -->
+    <script src="{% static_assets 'js/vendor/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static_assets 'js/vendor/dataTables.bootstrap5.js' %}"></script>
+    <script src="{% static_assets 'js/vendor/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static_assets 'js/vendor/responsive.bootstrap5.min.js' %}"></script>
+    <script src="{% static_assets 'js/vendor/dataTables.checkboxes.min.js' %}"></script>
+
+
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             window.manage_stock = new ManageStock("{% url 'stocks' %}");
-            manage_stock.updateResellPrice();
-            manage_stock.initEventListeners();
+            window.manage_stock.updateResellPrice();
+            window.manage_stock.initEventListeners();
         });
         window.products = [
             {% for product in products %}

@@ -65,6 +65,24 @@ class CustomerPurchase(models.Model):
         _logger.info(f"Total revenue: {total_revenue}")
         return total_revenue
     
+    def total_profit(product: StoreProduct, _logger: logging.Logger =None):
+        # get the sum of all purchases for a product
+        if not _logger:
+            _logger = logger
+        _logger.info(f"Calculating total profit for product {product}")
+        total_profit = CustomerPurchase.objects.filter(product=product).aggregate(models.Sum('profit'))['profit__sum']
+        _logger.info(f"Total profit: {total_profit}")
+        return total_profit
+    
+    def total_expenses(product: StoreProduct, _logger: logging.Logger =None):
+        # get the sum of all purchases for a product
+        if not _logger:
+            _logger = logger
+        _logger.info(f"Calculating total expenses for product {product}")
+        total_expenses = CustomerPurchase.objects.filter(product=product).aggregate(models.Sum('expenses'))['expenses__sum']
+        _logger.info(f"Total expenses: {total_expenses}")
+        return total_expenses
+    
 
     # function that is called, every time a new CustomerPurchase object is created
     def save(self, *args, **kwargs):

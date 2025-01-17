@@ -307,5 +307,6 @@ class Summary(View):
             'purchases_list': purchases,
             'restocks_list': restock,
             'chart_financial_data': finm.get_financial_data(timespan_end, timespan_start),
+            'top_selling_products': StoreProduct.get_top_selling_products(5)
         }
         return render(request, self.template_name, context)

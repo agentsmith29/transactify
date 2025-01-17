@@ -37,6 +37,25 @@ class StoreProduct(models.Model):
         self.final_price = self.get_final_price
         super().save(*args, **kwargs)
 
+    def get_top_selling_products(limit: int) -> Iterable['StoreProduct']:
+        """Return the top selling products"""
+        from store.webmodels.CustomerPurchase import CustomerPurchase
+        store_product = StoreProduct.objects.order_by('-total_orders')[:limit]
+        top_selling_products = []
+        for product in store_product:
+            purchases = CustomerPurchase.get_all_purchases(product)
+            top_selling_products.append({
+                'name': product.name,
+                'price': product.final_price,
+                'last_purchase': purchases[0].purchase_date,
+                'total_orders': product.total_orders,
+                'total_revenue': product.total_revenue,
+                'total_profit':  CustomerPurchase.total_profit(product)
+            })
+        return top_selling_products
+    
+
+
     def __str__(self):
         return f"{self.name} ({self.ean}) [{self.stock_quantity}]"
 
