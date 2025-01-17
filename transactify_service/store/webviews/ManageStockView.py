@@ -67,6 +67,7 @@ class ManageStockView(View):
         context = {
             'products': StoreProduct.objects.all(),
             'purchases': CustomerPurchase.objects.all(),
-            'restocks': ProductRestock.objects.all()
+            'restocks': ProductRestock.objects.all(),
+            
         }
         return render(request, self.template_name, context)

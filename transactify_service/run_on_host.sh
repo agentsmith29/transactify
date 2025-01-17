@@ -9,7 +9,7 @@ export DJANGO_SUPERUSER_PASSWORD="admin"
 export DJANGO_SUPERUSER_USERNAME="admin"
 export DJANGO_SUPERUSER_EMAIL="$DJANGO_SUPERUSER_PASSWORD@$DJANGO_SUPERUSER_USERNAME.com"
 
-export  "INIT_DATA"=1
+export  "INIT_DATA"=0
 if [ "$INIT_DATA" = "1" ]; then
     echo "Initializing data..."
     export "RUN_SERVER"="false"

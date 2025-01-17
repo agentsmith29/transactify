@@ -13,9 +13,7 @@ from ..webmodels.ProductRestock import ProductRestock
 from django.contrib.auth.models import User, Group
 
 from store.webmodels.StoreCash import StoreCash
-from store.webmodels.StoreCashWithdraw import StoreCashWithdraw
-from store.webmodels.StoreCashCashout import StoreCashCashout
-from store.webmodels.StoreCashDeposit import StoreCashDeposit
+from store.webmodels.StoreCashMovement import StoreCashMovement
 
 #from store.helpers.ManageCustomerHelper import ManageCustomerHelper
 from rest_framework.response import Response
@@ -189,6 +187,8 @@ class StoreHelper:
         """
         logger.info(f"Restocking product with EAN {ean}, Quantity: {quantity}, Purchase Price: {purchase_price}")
 
+
+
         try:
             product = StoreProduct.objects.get(ean=ean)
         except StoreProduct.DoesNotExist:
@@ -196,36 +196,38 @@ class StoreHelper:
             raise HelperException(str(e), HTTPResponses.HTTP_STATUS_PRODUCT_NOT_FOUND(ean))
 
         try:
+            total_cost=purchase_price * quantity
+            if used_store_equity:
+                # Create a new StoreCashWithdraw record
+                try:
+                    cash_movement = StoreCashMovement.objects.create(amount=total_cost,
+                                                                    user=auth_user)
+                    cash_movement.withdraw()
+                except Exception as e:
+                    logger.error(f"Error during restocking. Cannot create StoreCashWithdraw. Error: {e}.\nTraceback: {traceback.format_exc()}")
+                    raise HelperException(str(e), HTTPResponses.HTTP_STATUS_RESTOCK_FAILED(e))
+            else:
+                # Create a new StoreCashDeposit record
+                try:
+                    cash_movement = StoreCashMovement.objects.create(amount=total_cost,
+                                                                user=auth_user)
+                    cash_movement.deposit()
+                except Exception as e:
+                    logger.error(f"Error during restocking. Cannot create StoreCashDeposit. Error: {e}.\nTraceback: {traceback.format_exc()}")
+                    raise HelperException(str(e), HTTPResponses.HTTP_STATUS_RESTOCK_FAILED(e))
+            
             product_restock = ProductRestock.objects.create(
                 product=product, # Product is wrong
                 quantity=quantity,
                 purchase_price=purchase_price,
-                total_cost=purchase_price * quantity
+                total_cost=total_cost,
+                cash_movement_type=cash_movement
             )
         except Exception as e:
             logger.error(f"Error during restocking. Cannot create ProductRestock. Error: {e}.\nTraceback: {traceback.format_exc()}")
             raise HelperException(str(e), HTTPResponses.HTTP_STATUS_RESTOCK_FAILED(e))
 
-        if used_store_equity:
-            # Create a new StoreCashWithdraw record
-            try:
-                cash_withdraw = StoreCashWithdraw.objects.create(amount=product_restock.total_cost,
-                                                                 product_restock=product_restock,
-                                                                 user=auth_user)
-                cash_withdraw.save()
-            except Exception as e:
-                logger.error(f"Error during restocking. Cannot create StoreCashWithdraw. Error: {e}.\nTraceback: {traceback.format_exc()}")
-                raise HelperException(str(e), HTTPResponses.HTTP_STATUS_RESTOCK_FAILED(e))
-        else:
-            # Create a new StoreCashDeposit record
-            try:
-                cash_deposit = StoreCashDeposit.objects.create(amount=product_restock.total_cost,
-                                                               product_restock=product_restock,
-                                                               user=auth_user)
-                cash_deposit.save()
-            except Exception as e:
-                logger.error(f"Error during restocking. Cannot create StoreCashDeposit. Error: {e}.\nTraceback: {traceback.format_exc()}")
-                raise HelperException(str(e), HTTPResponses.HTTP_STATUS_RESTOCK_FAILED(e))
+        
             
             
         try:

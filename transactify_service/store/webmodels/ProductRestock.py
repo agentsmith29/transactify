@@ -1,6 +1,9 @@
 from django.db import models
 from .StoreProduct import StoreProduct
+from .StoreCashMovement import StoreCashMovement
 
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 class ProductRestock(models.Model):
     """Represents re
@@ -20,6 +23,9 @@ class ProductRestock(models.Model):
     purchase_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_cost = models.DecimalField(max_digits=10, decimal_places=2)
     restock_date = models.DateTimeField(auto_now_add=True)
+   
+    cash_movement_type = models.ForeignKey(StoreCashMovement, on_delete=models.CASCADE, null=True)
+
 
     def get_all_restocks(product: StoreProduct):
         return ProductRestock.objects.filter(product=product)
