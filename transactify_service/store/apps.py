@@ -24,11 +24,11 @@ class StoreConfig(AppConfig):
             # Set up custom logging
             logger = store.StoreLogsDBHandler.setup_custom_logging('apps')
 
-        if os.environ.get('INIT_DATA', '0') == '1':
-            try:
-                HistoricalData()
-            except Exception as e:
-                logger.error(f"Failed to mock store content: {e}")
+            if os.environ.get('INIT_DATA', '0') == '1':
+                try:
+                    HistoricalData()
+                except Exception as e:
+                    print(f"Failed to mock store content: {e}")
 
         # WebSocket configuration
         print(f"Push store name to terminal: {StoreConfig.store_name}")

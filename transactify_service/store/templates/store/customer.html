@@ -38,7 +38,15 @@
                                 <div class="col">
                                     <div>
                                         <h4 class="mt-1 mb-1 text-white">{{ customer.user.first_name }} {{ customer.user.last_name }}</h4>
-                                        <p class="font-13 text-white-50"> Authorised Brand Seller</p>
+                                        <p class="font-13 text-white-50"> 
+                                            {% for group in customer.user.groups.all %} 
+                                                {{ group }}
+                                                {% if not forloop.last %} :
+                                                    ,
+                                                {% endif %}
+                                            {% endfor %}
+                                        </p>
+                                            
 
                                         <ul class="mb-0 list-inline text-light">
                                             <li class="list-inline-item me-3">

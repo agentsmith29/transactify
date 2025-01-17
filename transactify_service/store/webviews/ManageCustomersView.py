@@ -3,132 +3,141 @@ import json
 import requests
 import traceback
 from datetime import datetime
-
-from store.webmodels.Customer import Customer
-
 from django.http import JsonResponse
 from django.views import View
-from django.contrib.auth.models import User, Group
-from django.shortcuts import render, redirect, get_object_or_404
-from django.conf import settings
-from django.utils.decorators import method_decorator
-
-from store.helpers.ManageStockHelper import StoreHelper
-from asgiref.sync import sync_to_async
-import httpx
-
-from ..webmodels.CustomerDeposit import CustomerDeposit
-#from ..webmodels.CustomerBalance import CustomerBalance
-
-
-from django.views.decorators.csrf import csrf_protect, csrf_exempt, ensure_csrf_cookie
-
-
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from store import StoreLogsDBHandler
-
+from store.helpers.ManageStockHelper import StoreHelper
 from transactify_service.HttpResponses import HTTPResponses
-from django.utils.safestring import mark_safe
+from store.webmodels.Customer import Customer
+from store import StoreLogsDBHandler
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.conf import settings
+from config import Config
 
+from django.shortcuts import render
+from django.views.decorators.csrf import ensure_csrf_cookie
 
-#from ..apps import hwcontroller
-@method_decorator(login_required, name='dispatch')
-class ManageCustomersView(View):
+from django.contrib.auth.models import User
+    
+
+class ManageCustomersView(View, LoginRequiredMixin):
     """Class-based view to handle customer-related operations."""
     template_name = 'store/customers.html'
 
     def __init__(self):
         super().__init__()
         self.logger = StoreLogsDBHandler.setup_custom_logging('ManageCustomersView')
+        self.conf: Config = settings.CONFIG
+
+    def fetch_nfc_data(self):
+        """Fetch NFC data synchronously using requests."""
+        terminal_url = f"{self.conf.terminal.TERMINAL_SERVICE_URL}/api/read/nfc-blocking/"
+        try:
+            response = requests.get(terminal_url, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except requests.HTTPError as e:
+            self.logger.error(f"HTTP error while fetching NFC data: {e}")
+            return {"status": "error", "message": f"HTTP error: {str(e)}"}
+        except requests.Timeout as e:
+            self.logger.error(f"Timeout error while fetching NFC data: {e}")
+            return {"status": "error", "message": f"Timeout error: {str(e)}"}
+        except requests.RequestException as e:
+            self.logger.error(f"Request error while fetching NFC data: {e}")
+            return {"status": "error", "message": f"Request error: {str(e)}"}
 
     def get_all_customers(self):
         """Returns all customers."""
         return Customer.objects.all()
+
+    def delete_customer(self, data):
+        """Delete a customer."""
+        try:
+            username = data.get('username')
+            if not username:
+                response = HTTPResponses.HTTP_STATUS_JSON_PARSE_ERROR('Missing required fields')
+                data, status = response.json_data()
+                return JsonResponse(data, status=status)
+            user = User.objects.filter(username=username).first()
+            customer = Customer.objects.filter(user=user).first()
+            if not customer:
+                response = HTTPResponses.HTTP_STATUS_CUSTOMER_NOT_FOUND(username)
+                data, status = response.json_data()
+                return JsonResponse(data, status=status)
+
+            customer.delete()
+            # also delete the user
+            # user = User.objects.filter(username=username).first()
+
+            response = HTTPResponses.HTTP_STATUS_CUSTOMER_DELETED(username)
+            data, status = response.json_data()
+            return JsonResponse(data, status=status)
+
+        except Exception as e:
+            self.logger.error(f"Error deleting customer: {e}")
+            tb = traceback.format_exc()
+            self.logger.error(f"Exception: {e}\n{tb}")
+            response = HTTPResponses.HTTP_STATUS_CUSTOMER_DELETE_FAILED(username, e)
+            data, status = response.json_data()
+            return JsonResponse(data, status=status)
     
     @method_decorator(ensure_csrf_cookie)
     def get(self, request):
         """Handle GET requests to display all customers."""
         customers = self.get_all_customers()
-        # add the balance chart_data to the context
-        return render(request, self.template_name, {"customers": customers})
-    
-    async def fetch_nfc_data(self):
-        """Fetch NFC data asynchronously using httpx."""
-        terminal_url = f"{os.getenv('TERMINAL_SERVICES')}/api/read/nfc-blocking/"
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(terminal_url, timeout=10)
-                response.raise_for_status()
-                return response.json()
-        except httpx.HTTPStatusError as e:
-            self.logger.error(f"HTTP error while fetching NFC data: {e}")
-            return {"status": "error", "message": f"HTTP error: {str(e)}"}
-        except httpx.RequestError as e:
-            self.logger.error(f"Request error while fetching NFC data: {e}")
-            return {"status": "error", "message": f"Request error: {str(e)}"}
+        return render(request, self.template_name, {'customers': customers})
         
-    @method_decorator(csrf_protect)
-    async def post(self, request):
-        """Handle POST requests to add a new customer."""     
-        
+
+    @method_decorator(ensure_csrf_cookie)
+    def post(self, request):
+        """Handle POST requests to add a new customer."""
         try:
             data = json.loads(request.body)
-            self.logger.debug(f"Post request recieved: {data}")
+            header_cmd = request.headers.get('cmd')
+
+            if header_cmd == "delete":
+                return self.delete_customer(data)
+            
             first_name = data.get('first_name')
             last_name = data.get('last_name')
             email = data.get('email')
-            # convert balance to Decimal
-            balance = float(data.get('balance'))
+            balance = float(data.get('balance', 0))
+            card_number = str(data.get('card_number'))
 
-            self.logger.debug(f"Received data: {first_name}, {last_name}, {email}, {balance}")
-            # Validate the required fields
-            if not first_name or not last_name or not email or balance is None:
-                response = HTTPResponses.HTTP_STATUS_JSON_PARSE_ERROR('Missing required fields')
+            if not all([first_name, last_name, email, card_number]):
+                response = HTTPResponses.HTTP_STATUS_JSON_PARSE_ERROR('Missing required fields: first_name, last_name, email, card_number')
                 data, status = response.json_data()
-                # --------------------------------------
                 return JsonResponse(data, status=status)
             
+            # Check if the card_number is not empty or None
+            if not card_number or card_number.strip() == "" or card_number == "None":
+                response = HTTPResponses.HTTP_STATUS_JSON_PARSE_ERROR(f"Card {card_number} number cannot be empty")
+                data, status = response.json_data()
+                return JsonResponse(data, status=status)
+
             username = f"{first_name[0].lower()}.{last_name.lower()}"
-            self.logger.debug(f"Generated username: {username}")
+
         except Exception as e:
+            self.logger.error(f"Error parsing input data: {e}")
             response = HTTPResponses.HTTP_STATUS_JSON_PARSE_ERROR(e)
             data, status = response.json_data()
-            # --------------------------------------
             return JsonResponse(data, status=status)
 
-
         try:
-            # Trigger NFC read
-            time = datetime.now()
-            # Trigger NFC read
             self.logger.info("Waiting for NFC card...")
-            time_start = datetime.now()
-            nfc_data = await self.fetch_nfc_data(request)
+            self.logger.info(f"NFC card number: {card_number}")
 
-            if nfc_data.get("status") == "error":
-                return JsonResponse(nfc_data, status=500)
-
-            card_number = nfc_data.get("id")
-            content = nfc_data.get("content")
-
-
-            time_stop = datetime.now()
-            time_delta = time_stop - time
-            self.logger.debug(f"Waited for NFC card for: {time_delta}.")
-            self.logger.info(f"Card number: {card_number}, Content: {content}.")
-            # --------------------------------------
-            # Create and save the new customer
-             # Create and save the new customer
             response, customer = StoreHelper.create_new_customer(
                 username, first_name, last_name, email, balance, card_number, self.logger
             )
             data, status = response.json_data()
-            # --------------------------------------
             return JsonResponse(data, status=status)
+
         except Exception as e:
-            self.logger.error(f"Error creating a new customer.")
+            self.logger.error("Error creating a new customer.")
             tb = traceback.format_exc()
-            #self.logger.error(f"Exception: {e}\n{tb}")
-            data, status = HTTPResponses.HTTP_STATUS_CUSTOMER_CREATE_FAILED(username, e).json_data()
+            self.logger.error(f"Exception: {e}\n{tb}")
+            response = HTTPResponses.HTTP_STATUS_CUSTOMER_CREATE_FAILED(username, e)
+            data, status = response.json_data()
             return JsonResponse(data, status=status)

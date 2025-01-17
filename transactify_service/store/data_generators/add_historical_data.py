@@ -251,7 +251,7 @@ class HistoricalData():
         except Exception as e:
             self.logger.error(f"Failed to add product: {e}")
 
-    def add_stock(self, ean, quantity, purchase_price):
+    def add_stock(self, ean, quantity, purchase_price, used_store_equity=False):
         try:
             product = StoreProduct.objects.get(ean=ean)
         except Exception as e:
@@ -260,7 +260,9 @@ class HistoricalData():
         try:
             rsp, product_restock = StoreHelper.restock_product(ean, quantity, 
                                                                purchase_price,
-                                                               self.logger)
+                                                               self.logger,
+                                                               auth_user=User.objects.get(username=self.username),
+                                                               used_store_equity=used_store_equity)
             product_restock.restock_date = self.date
             product_restock.save()
         except Exception as e:

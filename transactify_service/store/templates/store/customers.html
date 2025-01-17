@@ -17,6 +17,14 @@
                 </div>
                 <div class="modal-body">
                     <form id="addCustomerForm" class="border p-4 shadow-sm bg-light">
+
+                        <!-- create an hidden card_number_container -->
+                        <div id="card_number_container" style="display: none;">
+                            <div class="mb-3">
+                                <label for="card_number" class="form-label">Card Number</label>
+                                <input type="text" class="form-control" id="card_number" name="card_number" readonly>
+                            </div>
+                        </div>
                         <div class="form-group mb-3">
                             <label for="first_name">First Name</label>
                             <input type="text" class="form-control" id="first_name" name="first_name" required>
@@ -33,7 +41,12 @@
                             <label for="balance">Initial Balance (€)</label>
                             <input type="number" class="form-control" id="balance" name="balance" step="0.01" required>
                         </div>
-                        <button type="submit" class="btn btn-primary">Add Customer</button>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="submitAddCustomerForm()">Add Customer</button>
+                        </div>
+                        
+
                     </form>
                 </div>
             </div>
@@ -75,6 +88,7 @@
                                     <th>Card Number</th>
                                     <th>Email</th>
                                     <th>Create date</th>
+                                    <th>Active</th>
                                     <th colspan="2">Balance (€)</th>
                                     <th style="width: 75px;">Action</th>
                                 </tr>
@@ -109,7 +123,7 @@
                                         <a href="{% url 'customer' customer.card_number %}" class="action-icon">
                                             <i class="mdi mdi-square-edit-outline"></i>
                                         </a>
-                                        <a href="javascript: confirm('Are you sure you want to delete {{ customer.user.username }}?');" class="action-icon">
+                                        <a href='javascript: window.deleteCustomer("{{ customer.user.username }}");' class="action-icon">
                                             <i class="mdi mdi-delete"></i>
                                         </a>
                                     </td>
@@ -159,7 +173,7 @@
         // On DOM ready
         document.addEventListener("DOMContentLoaded", () => {
             const csrftoken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-            const config = { csrftoken: csrftoken };
+            const config = { csrftoken: csrftoken, page_url: '{% url "customers" %}' };
             window.customersView = new CustomersView(config);
             console.log('Init the spark views...');
             initSparklineCharts();

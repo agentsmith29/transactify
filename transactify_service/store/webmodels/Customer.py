@@ -37,6 +37,8 @@ class Customer(models.Model):
     total_deposits = models.PositiveIntegerField(default=0)
     total_purchases = models.PositiveIntegerField(default=0)
     last_changed = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    
 
     def get_deposits(self, date: Union[datetime, tuple[datetime, datetime]] = None) -> models.QuerySet:
         """
@@ -186,8 +188,14 @@ class Customer(models.Model):
         current_month_val = float(current_month_val)
         previous_month_val = float(previous_month_val)
 
-        # Calculate percentage change
-        percentage_change = ((current_month_val - previous_month_val) / previous_month_val) * 100
+        if previous_month_val == 0 and current_month_val > 0:
+            return 100
+        elif previous_month_val == 0 and current_month_val == 0:
+            return 0
+        else:
+            # Calculate percentage change
+            percentage_change = ((current_month_val - previous_month_val) / previous_month_val) * 100
+
         return round(percentage_change, 2)
 
     def get_monthly_purchase_percentage_change(self) -> float:

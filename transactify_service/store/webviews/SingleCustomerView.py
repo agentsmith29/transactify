@@ -42,9 +42,8 @@ class SingleCustomerView(View):
         balance = customer.balance
 
 
-
-
         return render(request, self.template_name, {
+            'auth_user': request.user,
             'customer': customer,
             #'balance': balance,
             #'total_deposits': customer.total_deposits,

@@ -27,6 +27,20 @@ class HTTPResponses():
         code=0,
         http_status=status.HTTP_200_OK
     )
+    HTTP_STATUS_CUSTOMER_DELETED = lambda username: APIResponse.success(
+        message=f"Customer with card number {username} deleted", 
+        code=4,
+        http_status=status.HTTP_200_OK
+    )
+
+    HTTP_STATUS_CUSTOMER_DELETE_FAILED = lambda username, error_msg: APIResponse.error(
+        message=f"Error while deleting customer with username {username} deleted: {error_msg}", 
+        code=5,
+        http_status=status.HTTP_500_INTERNAL_SERVER_ERROR
+    )
+
+
+
 
     # === Product related responses (100-200) ===
     HTTP_STATUS_PRODUCT_NOT_FOUND = lambda ean: APIResponse.error(

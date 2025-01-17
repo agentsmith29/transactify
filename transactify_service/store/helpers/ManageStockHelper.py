@@ -12,6 +12,11 @@ from ..webmodels.CustomerDeposit import CustomerDeposit
 from ..webmodels.ProductRestock import ProductRestock
 from django.contrib.auth.models import User, Group
 
+from store.webmodels.StoreCash import StoreCash
+from store.webmodels.StoreCashWithdraw import StoreCashWithdraw
+from store.webmodels.StoreCashCashout import StoreCashCashout
+from store.webmodels.StoreCashDeposit import StoreCashDeposit
+
 #from store.helpers.ManageCustomerHelper import ManageCustomerHelper
 from rest_framework.response import Response
 from rest_framework import status
@@ -176,7 +181,9 @@ class StoreHelper:
 
     @staticmethod
     @transaction.atomic
-    def restock_product(ean: str, quantity: int, purchase_price: Decimal, logger: logging.Logger) -> tuple[Response, ProductRestock]:
+    def restock_product(ean: str, quantity: int, purchase_price: Decimal, logger: logging.Logger,
+                        auth_user: User, used_store_equity: bool = True, 
+                        ) -> tuple[Response, ProductRestock]:
         """
         Restock a product and update its stock quantity.
         """
@@ -199,6 +206,28 @@ class StoreHelper:
             logger.error(f"Error during restocking. Cannot create ProductRestock. Error: {e}.\nTraceback: {traceback.format_exc()}")
             raise HelperException(str(e), HTTPResponses.HTTP_STATUS_RESTOCK_FAILED(e))
 
+        if used_store_equity:
+            # Create a new StoreCashWithdraw record
+            try:
+                cash_withdraw = StoreCashWithdraw.objects.create(amount=product_restock.total_cost,
+                                                                 product_restock=product_restock,
+                                                                 user=auth_user)
+                cash_withdraw.save()
+            except Exception as e:
+                logger.error(f"Error during restocking. Cannot create StoreCashWithdraw. Error: {e}.\nTraceback: {traceback.format_exc()}")
+                raise HelperException(str(e), HTTPResponses.HTTP_STATUS_RESTOCK_FAILED(e))
+        else:
+            # Create a new StoreCashDeposit record
+            try:
+                cash_deposit = StoreCashDeposit.objects.create(amount=product_restock.total_cost,
+                                                               product_restock=product_restock,
+                                                               user=auth_user)
+                cash_deposit.save()
+            except Exception as e:
+                logger.error(f"Error during restocking. Cannot create StoreCashDeposit. Error: {e}.\nTraceback: {traceback.format_exc()}")
+                raise HelperException(str(e), HTTPResponses.HTTP_STATUS_RESTOCK_FAILED(e))
+            
+            
         try:
             product.stock_quantity = StoreHelper.get_stock_quantity(product, logger)
             product.save()
