@@ -2,7 +2,8 @@
     position: absolute;
     top: calc(var(--navbar-height, 60px) + 15px);
     right: calc(50% - 280px); /* Adjust based on the sidebar width */
-    z-index: 1;
+    /* display topmost */
+    z-index: 9999;
 }
 
 .toastImageError {

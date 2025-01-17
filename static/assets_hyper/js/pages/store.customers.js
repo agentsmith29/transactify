@@ -16,7 +16,7 @@
         }
         return cookieValue;
     }
-    const CSRF_TOKEN = getCookie("csrftoken");
+    const CSRF_TOKEN = getCookie("csrftoken"); //<1>: Cleaned up variable assignment for clarity
 
     // CustomersView class
     function CustomersView(config) {
@@ -26,6 +26,7 @@
         this.webSocketHandler = window.storeManager.webSocketHandler;
 
         this.csrftoken = config.csrftoken;
+        this.page_url = config.page_url;
         this.cardNumber = null; // To hold the card number from WebSocket
 
         // Bind WebSocket handlers
@@ -55,15 +56,17 @@
                     // Check if the card number already exists
                     const existingCustomer = document.querySelector(`[data-card-number="${data.card_number}"]`);
                     if (existingCustomer) {
+                        console.log(`Customer with card number ${data.card_number} already exists: ${existingCustomer}`);
                         const redirectUrl = existingCustomer.getAttribute("data-url");
                         if (redirectUrl) {
                             window.location.href = redirectUrl;
                             return;
                         }
                     }
-
+                    console.log("Card number does not exist in the list");
                     // Open the modal and populate the card number field
-                    const modal = new bootstrap.Modal(document.getElementById("addCustomerModal"));
+                    const modalElement = document.getElementById("addCustomerModal");
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalElement); //<2>: Use Bootstrap's getOrCreateInstance
                     document.getElementById("card_number").value = data.card_number;
                     document.getElementById("card_number_container").style.display = "block";
                     modal.show();
@@ -71,7 +74,7 @@
 
                 if (data.message) {
                     console.log("Message:", data.message);
-                    this.toastManager.info("Card detected", data.message, "", true);
+                    this.toastManager.info("Card detected", data.message, "", false);
                 }
             } catch (error) {
                 console.error("Error parsing WebSocket message:", error);
@@ -90,18 +93,34 @@
     };
 
     CustomersView.prototype.initFormActions = function () {
-        const addCustomerForm = document.getElementById("addCustomerForm");
-        if (addCustomerForm) {
-            addCustomerForm.addEventListener("submit", (event) => {
-                event.preventDefault(); // Prevent default submission
+        // Create a globally accessible function for form submission
+        // Create a globally accessible function for form submission
+        window.submitAddCustomerForm = async () => {
+            const addCustomerForm = document.getElementById("addCustomerForm");
+            if (!addCustomerForm) {
+                return;
+            }
+            const overlay = document.getElementById("nfcOverlay");
+            overlay.style.display = "block"; // Show NFC overlay
 
-                const overlay = document.getElementById("nfcOverlay");
-                overlay.style.display = "block"; // Show NFC overlay
+            const cardNumberField = document.getElementById("card_number");
+            let cardNumber = cardNumberField && cardNumberField.value ? cardNumberField.value : null;
 
-                const cardNumberField = document.getElementById("card_number");
-                const cardNumber = cardNumberField && cardNumberField.value ? cardNumberField.value : null;
+            try {
+                // Wait for the WebSocket to provide the cardNumber, with a 10-second timeout
+                cardNumber = await this.waitForCardNumber(10000);
 
-                fetch("{% url 'customers' %}", {
+                if (!cardNumber) {
+                    console.error("Timeout waiting for card number.");
+                    this.toastManager.error("Timeout", "No card detected within the time limit.", "", false);
+                    overlay.style.display = "none"; // Hide NFC overlay
+                    return;
+                }
+
+                console.log("Adding customer with card number:", cardNumber);
+                console.log("Post URL is:", this.page_url);
+
+                const response = await fetch(this.page_url, {
                     method: "POST",
                     mode: "same-origin",
                     headers: {
@@ -114,38 +133,87 @@
                         last_name: document.getElementById("last_name").value,
                         email: document.getElementById("email").value,
                         balance: document.getElementById("balance").value,
-                        card_number: cardNumber, // Only append if opened with WebSocket trigger
+                        card_number: cardNumber, // Use the detected card number
+                    }),
+                });
+
+                if (response.ok) {
+                    this.toastManager.info("Success", "Customer added successfully.", "", true);
+                    location.reload();
+                } else {
+                    console.error("Error adding customer:", response.status);
+                    this.toastManager.error("Error", "Failed to add customer.", "", false);
+                }
+            } catch (error) {
+                console.error("Error during form submission:", error);
+                this.toastManager.error("Error", "An error occurred while adding the customer.", "", false);
+            } finally {
+                overlay.style.display = "none"; // Hide NFC overlay
+            }
+        };
+
+        // Helper function to wait for the card number with a timeout
+        this.waitForCardNumber = async function (timeout) {
+            return new Promise((resolve) => {
+                const start = Date.now();
+
+                const checkCardNumber = () => {
+                    if (this.cardNumber) {
+                        resolve(this.cardNumber);
+                    } else if (Date.now() - start >= timeout) {
+                        resolve(null); // Timeout reached
+                    } else {
+                        setTimeout(checkCardNumber, 100); // Check again after 100ms
+                    }
+                };
+
+                checkCardNumber();
+            });
+        };
+
+        // delete user with given card number
+        window.deleteCustomer = (username) => {
+                fetch(this.page_url, {
+                    method: "POST",
+                    mode: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFTOKEN": CSRF_TOKEN,
+                        "X-Requested-With": "XMLHttpRequest",
+                        "cmd": "delete",
+                    },
+                    body: JSON.stringify({
+                        username: username, // Only append if opened with WebSocket trigger
                     }),
                 })
                     .then((response) => {
                         if (response.ok) {
-                            console.log("Customer added successfully");
+                            console.log("Customer deleted successfully");
                             location.reload();
                         } else {
-                            console.error("Error adding customer:", response.status);
-                            alert("Failed to add customer. Try again.");
+                            console.error("Error deleting customer:", response.status);
+                            alert("Failed to delete customer. Try again.");
                         }
                     })
                     .catch((error) => {
                         console.error("Fetch error:", error);
                     })
                     .finally(() => {
-                        overlay.style.display = "none"; // Hide NFC overlay
                     });
-            });
         }
     };
 
     CustomersView.prototype.initModalActions = function () {
-        const addSellersButton = document.querySelector(".btn-danger.mb-2");
+        const addSellersButton = document.querySelector("a.btn-danger.mb-2[data-bs-toggle='modal'][data-bs-target='#addCustomerModal']");
         if (addSellersButton) {
             addSellersButton.addEventListener("click", () => {
-                this.cardNumber = null; // Reset card number if modal is opened manually
-                const cardNumberContainer = document.getElementById("card_number_container");
-                if (cardNumberContainer) {
-                    cardNumberContainer.style.display = "none";
-                }
-                const modal = new bootstrap.Modal(document.getElementById("addCustomerModal"));
+                const modalElement = document.getElementById("addCustomerModal");
+                const modal = bootstrap.Modal.getOrCreateInstance(modalElement); //<3>: Let Bootstrap manage modal initialization
+
+                // Reset fields in the modal
+                document.getElementById("card_number").value = "";
+                document.getElementById("card_number_container").style.display = "none";
+
                 modal.show();
             });
         }

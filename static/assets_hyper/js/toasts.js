@@ -39,6 +39,7 @@ class ToastManager {
     }
 
     error(title, message, submessage, reload) {
+        console.error('Error:', title, message, submessage);
         this._display('error', title, message, submessage);
         if (reload) {
             this.#storeForReload(title, message, submessage, 'error');
@@ -46,6 +47,7 @@ class ToastManager {
     }
 
     success(title, message, submessage, reload) {
+        console.log('Success:', title, message, submessage);
         this._display('success', title, message, submessage);
         if (reload) {
             this.#storeForReload(title, message, submessage, 'success');
@@ -53,6 +55,7 @@ class ToastManager {
     }
 
     info(title, message, submessage, reload) {
+        console.info('Info:', title, message, submessage);
         this._display('info', title, message, submessage);
         if (reload) {
             this.#storeForReload(title, message, submessage, 'info');
@@ -60,6 +63,7 @@ class ToastManager {
     }
 
     warning(title, message, submessage, reload) {
+        console.warn('Warning:', title, message, submessage);
         this._display('warning', title, message, submessage);
         if (reload) {
             this.#storeForReload(title, message, submessage, 'warning');
