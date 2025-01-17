@@ -4,3 +4,35 @@
 .vscode
 __pycache__
 old
+tools_and_tests
+static/assets
+static/fonts
+static/images
+static/sidebars
+
+.git
+.gitignore
+.gitattributes
+
+# Docker
+docker-compose.yml
+Dockerfile
+.docker
+.dockerignore
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg

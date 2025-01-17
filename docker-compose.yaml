@@ -23,37 +23,23 @@ services:
       - SYS_RAWIO  # Allows raw GPIO access
     security_opt:
       - apparmor:unconfined  # Unrestricted access to hardware
-    environment:
-      # !DANGEROUS! DB_RESET: "false"    # Delets and recreates the database (dangerous)
-      REMIGRATE: "false"
-      SERVICE_NAME: "terminal1"
-      # Creation of the admin user
-      ADMIN_USER: "admin"
-      ADMIN_PASSWORD: "admin1" 
-      ADMIN_EMAIL: "admin@admin.com"
-      # 
-      DJANGO_DB_HOST: db
-      DJANGO_DB_PORT: ${DB_PORT}
-      DJANGO_DB_USER: ${DB_USER}
-      DJANGO_DB_PASSWORD: ${DB_PASSWORD}
-      #
-      DJANGO_WEB_PORT: ${PROJECT_PORT}
-      DJANGO_WEB_HOST: ${PROJECT_HOST}
-      #TARGET_SERVICES: http://192.168.1.190:8000/donknabberello #, http://service2:8000
     volumes:
       - /run/docker.sock:/run/docker.sock:ro
       - nginx_data:/etc/nginx/conf.d
       - static_volume:/app/static
-    depends_on:
-      - doncaramello
-      - donknabberello 
+    environment:
+      - TERMINAL_CONFIG_FILE=/app/configs/terminal_config.yaml
+    # depends_on:
+    #   - doncaramello
+    #   - donknabberello 
     healthcheck:
       test: "curl http://127.0.0.1:${PROJECT_PORT}/terminal1/health"
       start_period: 10s
       interval: 10s
       timeout: 10s
       retries: 10
-
+    deploy:       # limit maximum number of containers to 1
+      replicas: 1 # Important for the terminal to work properly (only one terminal can be connected to the hardware)
   
   donknabberello:
     build:
@@ -145,20 +131,23 @@ services:
     image: nginx:latest
     restart: always
     volumes:
-      - static_volume:/static
+      #- static_volume:/static
+      - ./static:/static
+      - ./common/nginx/nginx.conf:/etc/nginx/nginx.conf
       - nginx_data:/etc/nginx/conf.d
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      
+      - /proc/sysrq-trigger:/sysrq
       # - ./nginx/nginx.sh:/docker-entrypoint.d/nginx.sh
       #- ./nginx/nginx.donknabberello.conf:/etc/nginx/nginx.donknabberello.conf
     ports:
       - 8000:8000
-    depends_on:
-      donknabberello:
-        condition: service_started
-      doncaramello:
-        condition: service_started
-      terminal1:
-        condition: service_started
+    #depends_on:
+    #  donknabberello:
+    #    condition: service_started
+    #  doncaramello:
+    #    condition: service_started
+    #  terminal1:
+    #    condition: service_healthy
     # COmmand to remove all nginx.*.conf files bevor starting the container using the default entrypoint
     #entrypoint: [
     #  "/bin/bash",

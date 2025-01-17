@@ -231,21 +231,34 @@ class OLEDPage():
         # Use the currecnt image and make a copy
         copy_image_content = self.image.copy()
         copy_draw_content = ImageDraw.Draw(copy_image_content)
-        # overlay a rechatngel with a lock symbol
-        img = r"/app/static/icons/png_24/NFC_logo.png"
-        img_width,  img_heiht = PIL.Image.open(img).size
-        center_x = self.width // 2
-        center_y = self.height // 2 - 5
-        img_pos_x = int(center_x - img_width  // 2)  # Size of image is 64x64
-        img_pos_y = int(center_y - img_heiht // 2)  # Size of image is 64x64
-        rect_x1 = int(img_pos_x - 30)
-        rect_y1 = int(img_pos_y - 10)
-        rect_x2 = int(img_pos_x + img_width + 30)
-        rect_y2 = int(img_pos_y + img_heiht + 10)
+        try:
+            # overlay a rechatngel with a lock symbol
+            img = r"/app/static/icons/png_24/NFC_logo.png"
+            img_width,  img_heiht = PIL.Image.open(img).size
 
-        # create a black rectangle with white border
-        copy_draw_content.rectangle((rect_x1, rect_y1, rect_x2, rect_y2), fill=(0,0,0), outline=(255,255,255), width=1)
-        self.paste_image(copy_image_content ,img, (img_pos_x, img_pos_y))
+            center_x = self.width // 2
+            center_y = self.height // 2 - 5
+            img_pos_x = int(center_x - img_width  // 2)  # Size of image is 64x64
+            img_pos_y = int(center_y - img_heiht // 2)  # Size of image is 64x64
+            rect_x1 = int(img_pos_x - 30)
+            rect_y1 = int(img_pos_y - 10)
+            rect_x2 = int(img_pos_x + img_width + 30)
+            rect_y2 = int(img_pos_y + img_heiht + 10)
+
+            # create a black rectangle with white border
+            copy_draw_content.rectangle((rect_x1, rect_y1, rect_x2, rect_y2), fill=(0,0,0), outline=(255,255,255), width=1)
+            self.paste_image(copy_image_content ,img, (img_pos_x, img_pos_y))
+        except Exception as e:
+            center_x = self.width // 2
+            center_y = self.height // 2 - 5
+            img_pos_x = int(center_x - 24  // 2)  # Size of image is 64x64
+            img_pos_y = int(center_y - 24 // 2)  # Size of image is 64x64
+            rect_x1 = int(img_pos_x - 30)
+            rect_y1 = int(img_pos_y - 10)
+            rect_x2 = int(img_pos_x + 24 + 30)
+            rect_y2 = int(img_pos_y + 24 + 10)
+            print(f"Error loading symbol: {e}")
+
 
         copy_draw_content.rectangle((0, rect_y2+1, self.width, self.height), fill=(0,0,0))
         # display 4 stages of the NFC process as dots

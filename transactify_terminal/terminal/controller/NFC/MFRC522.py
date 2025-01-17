@@ -55,7 +55,7 @@ class MFRC522(NFCBase):
             self.logger.info(f"[NFC] Card read UID: {uid}")
             self.signals.tag_reading_status.send(sender=self, status=2)
 
-        id = self._uid_to_num(uid)
+        id = self._uid_to_num(uid[0:4])
         reader.SelectTag(uid)
         status = reader.Authenticate(reader.PICC_AUTHENT1A, trailer_block , key, uid)
         
@@ -79,7 +79,7 @@ class MFRC522(NFCBase):
     
     def _uid_to_num(self, uid):
         n = 0
-        for i in range(0, 5):
+        for i in range(0, len(uid)):
             n = n * 256 + uid[i]
         return n
     

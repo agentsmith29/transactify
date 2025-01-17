@@ -11,6 +11,7 @@ class NFCReaderSignals:
     tag_reading_status  = Signal()
     tag_connected = Signal()
     tag_disconnected = Signal()
+    nfc_tag_id_read = Signal()
 
 class NFCBase():
 

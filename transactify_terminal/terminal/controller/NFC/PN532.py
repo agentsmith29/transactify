@@ -62,30 +62,127 @@ class PN532(NFCBase):
         self.nfc.SAMConfig()
         print("Waiting for an ISO14443A Card ...")
 
-
+    def _uid_to_num(self, uid):
+        
+        n = 0
+        for i in range(0, len(uid)):
+            n = n * 256 + uid[i]
+        return n
+    
     def run(self):
         while self.reading:
+
             print("wait for a tag")
             # wait until a tag is present
             tagPresent = False
             while not tagPresent:
                 time.sleep(.1)
                 tagPresent, uid = self.nfc.readPassiveTargetID(pn532.PN532_MIFARE_ISO14443A_106KBPS)
+                print(".", end="")
+            self.signals.tag_reading_status.send(sender=self, status=1)
+            print(f"Tag UID: {binascii.hexlify(uid)} in dec: {self._uid_to_num(uid)}")
+            #if (len(uid) == 4):
+            #    self.read_mifarce_classic(tagPresent, uid)
+            #else:
+            #    self.read_mifare_ultralight(tagPresent, uid)
 
             # if NTAG21x enables r/w protection, uncomment the following line 
             # nfc.ntag21x_auth(password)
+            try:
+                self.signals.tag_reading_status.send(sender=self, status=3)
+                self.signals.nfc_tag_id_read.send(sender=self, id=self._uid_to_num(uid))
+                # wait until the tag is removed
+                while tagPresent:
+                    time.sleep(.1)
+                    tagPresent, uid = self.nfc.readPassiveTargetID(pn532.PN532_MIFARE_ISO14443A_106KBPS)
+                    self.signals.tag_reading_status.send(sender=self, status=4)
+            except Exception as e:
+                print(f"Error: {e}")
 
-            status, buf = self.nfc.mifareultralight_ReadPage(3)
-            capacity = int(buf[2]) * 8
-            print("Tag capacity {:d} bytes".format(capacity))
+            print("Tag removed")
 
-            for i in range(4, int(capacity/4)):
-                status, buf = self.nfc.mifareultralight_ReadPage(i)
-                print(binascii.hexlify(buf[:4]))
+    def read_mifare_ultralight(self,):
+        #  We probably have a Mifare Ultralight card ...
+        print("Seems to be a Mifare Ultralight tag (7 byte UID)")
 
-            # wait until the tag is removed
-            while tagPresent:
-                time.sleep(.1)
-                tagPresent, uid = self.nfc.readPassiveTargetID(pn532.PN532_MIFARE_ISO14443A_106KBPS)
+        #  Try to read the first general-purpose user page (#4)
+        print("Reading page 4")
+        success, data = self.nfc.mifareultralight_ReadPage(4)
+        if (success):
+            #  Data seems to have been read ... spit it out
+            binascii.hexlify(data)
+            return True
 
-   
+        else:
+            print("Ooops ... unable to read the requested page!?")
+
+    def read_mifarce_classic(self, success, uid ):
+        authenticated = False               # Flag to indicate if the sector is authenticated
+
+        # Keyb on NDEF and Mifare Classic should be the same
+        keyuniversal = bytearray([ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ])
+
+        # Wait for an ISO14443A type cards (Mifare, etc.).  When one is found
+        # 'uid' will be populated with the UID, and uidLength will indicate
+        # if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
+
+        if (success):
+            # Display some basic information about the card
+            print("Found an ISO14443A card")
+            print("UID Length: {:d}".format(len(uid)))
+            print("UID Value: {}".format(binascii.hexlify(uid)))
+
+            if (len(uid) == 4):
+                # We probably have a Mifare Classic card ...
+                print("Seems to be a Mifare Classic card (4 byte UID)")
+
+                # Now we try to go through all 16 sectors (each having 4 blocks)
+                # authenticating each sector, and then dumping the blocks
+                for currentblock in range(64):
+                    # Check if this is a new block so that we can reauthenticate
+                    if (self.nfc.mifareclassic_IsFirstBlock(currentblock)):
+                        authenticated = False
+
+                    # If the sector hasn't been authenticated, do so first
+                    if (not authenticated):
+                        # Starting of a new sector ... try to to authenticate
+                        print("------------------------Sector {:d}-------------------------".format(int(currentblock / 4)))
+                        if (currentblock == 0):
+                            # This will be 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF for Mifare Classic (non-NDEF!)
+                            # or 0xA0 0xA1 0xA2 0xA3 0xA4 0xA5 for NDEF formatted cards using key a,
+                            # but keyb should be the same for both (0xFF 0xFF 0xFF 0xFF 0xFF 0xFF)
+                            success = self.nfc.mifareclassic_AuthenticateBlock (uid, currentblock, 1, keyuniversal)
+                        else:
+                            # This will be 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF for Mifare Classic (non-NDEF!)
+                            # or 0xD3 0xF7 0xD3 0xF7 0xD3 0xF7 for NDEF formatted cards using key a,
+                            # but keyb should be the same for both (0xFF 0xFF 0xFF 0xFF 0xFF 0xFF)
+                            success = self.nfc.mifareclassic_AuthenticateBlock (uid, currentblock, 1, keyuniversal)
+                        if (success):
+                            authenticated = True
+                        else:
+                            print("Authentication error")
+                    # If we're still not authenticated just skip the block
+                    if (not authenticated):
+                        print("Block {:d}".format(currentblock))
+                        print(" unable to authenticate")
+                    else:
+                        # Authenticated ... we should be able to read the block now
+                        # Dump the data into the 'data' array
+                        success, data = self.nfc.mifareclassic_ReadDataBlock(currentblock)
+
+                    if (success):
+                        # Read successful
+                        print("Block {:d}".format(currentblock))
+                        if (currentblock < 10):
+                            print("  ")
+                        else:
+                            print(" ")
+                        # Dump the raw data
+                        print(binascii.hexlify(data))
+                    else:
+                        # Oops ... something happened
+                        print("Block {:d}".format(currentblock))
+                        print(" unable to read this block")
+                else:
+                    print("Ooops ... this doesn't seem to be a Mifare Classic card!")
+                    
