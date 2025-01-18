@@ -2,91 +2,105 @@
 {% load custom_filters %}
 {% load static_assets %}
 {% block content %}
-    <!-- Add Product Section -->
-    <div class="mb-5">
-        <h2 class="mb-3">Add New Product</h2>
-        <form id="addProductForm" class="border p-4 shadow-sm bg-light">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="product_ean">EAN (Article Number)</label>
-                <input type="text" class="form-control" id="ean" name="product_ean" required>
-            </div>
-            <div class="form-group">
-                <label for="product_name">Product Name</label>
-                <input type="text" class="form-control" id="name" name="product_name" required>
-            </div>
-            <div class="form-group">
-                <label for="resell_price">Resell Price</label>
-                <!-- Small and grey text for info -->
-                <small id="resell_price_help" class="form-text text-muted">Price at which you will sell the product.</small>
-                <input type="number" class="form-control" id="resell_price" name="resell_price" step="0.01" required>
-            </div>
-            <button type="button" class="btn btn-primary" onclick="manageProducts.submitProductForm()">Add Product</button>
-        </form>
+
+<main class="col-lg-12 ms-sm-auto col-lg-10 px-md-4">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h2 class="h2">Product Management</h2>
     </div>
+    <!-- Add Product Section -->
+    <div class="row sm-12">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Add Product</h4>
+                <div class="card-body">
+                    <form id="addProductForm" class="border p-4 shadow-sm bg-light">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="product_ean">EAN (Article Number)</label>
+                            <input type="text" class="form-control" id="ean" name="product_ean" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product_name">Product Name</label>
+                            <input type="text" class="form-control" id="name" name="product_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="resell_price">Resell Price</label>
+                            <!-- Small and grey text for info -->
+                            <small id="resell_price_help" class="form-text text-muted">Price at which you will sell the product.</small>
+                            <input type="number" class="form-control" id="resell_price" name="resell_price" step="0.01" required>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="manageProducts.submitProductForm()">Add Product</button>
+                    </form>
+                </div>
+            </div>  
+        </div>
+    </div>  
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Product List</h1>
+    </div>
+    <div class="row sm-12">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Product List Section -->
+                        <div id="product-list-datatable_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer"></div>
+                            <table id="product-list-datatable" class="table table-centered table-nowrap mb-0 product-list-table">
+                                <thead>
+                                    <tr>
+                                        <th>EAN</th>
+                                        <th>Name</th>
+                                        <th>Price (€)</th>
+                                        <th>Stock Quantity</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productTableBody">
+                                    {% for product in products %}
+                                    <tr>
+                                        <td>{{ product.ean }}</td>
+                                        <td>{{ product.name }}</td>
+                                        {% if product.discount == 0 %}
+                                            <td>{{ product.resell_price }}</td>
+                                        {% else %}
+                                            <td>
+                                                <del>{{ product.resell_price }}</del> 
+                                                <b>
+                                                    <span style="color: red;">{{ product.final_price }}</span> (-{{ product.discount|multiply:100 }}%)
+                                                </b>
+                                            </td>
+                                            </td>
+                                            </td>
+                                        {% endif %}
+                                        <td>{{ product.stock_quantity }}</td> 
 
-    <!-- Product List Section -->
-    <div>
-        <h2 class="mb-3">Product List</h2>
-        <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>EAN</th>
-                        <th>Name</th>
-                        <th>Price (€)</th>
-                        <th>Stock Quantity</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="productTableBody">
-                    {% for product in products %}
-                    <tr>
-                        <td>{{ product.ean }}</td>
-                        <td>{{ product.name }}</td>
-                        {% if product.discount == 0 %}
-                            <td>{{ product.resell_price }}</td>
-                        {% else %}
-                            <td>
-                                <del>{{ product.resell_price }}</del> 
-                                <b>
-                                    <span style="color: red;">{{ product.final_price }}</span> (-{{ product.discount|multiply:100 }}%)
-                                </b>
-                            </td>
-                            </td>
-                            </td>
-                        {% endif %}
-                        <td>{{ product.stock_quantity }}</td> 
-                        <td>
-                            <!-- Edit Button -->
-                            <button type="button" class="btn btn-primary btn-sm"
-                                    onclick="location.href='{% url 'product' product.ean %}'"
-                                >
-                                    View
-                                </button>
-
-                             <button type="button" class="btn btn-warning btn-sm"
-                            onclick="manageProducts.openEditModal(
-                                '{{ product.ean }}', '{{ product.name }}', '{{ product.resell_price }}', '{{ product.discount}}'
-                                )">
-                            Edit
-                            </button>
-                            <!-- Delete Button -->
-                            <button type="button" class="btn btn-danger btn-sm" onclick="manageProducts.deleteProduct('{{product.ean}}')">
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center">No products available.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                                        <td>
+                                            <a href="{% url 'product' product.ean %}" class="action-icon">
+                                                <i class="mdi mdi-eye"></i>
+                                            </a>
+                                            <a href='javascript: manageProducts.openEditModal(
+                                                "{{ product.ean }}", "{{ product.name }}", "{{ product.resell_price }}", "{{ product.discount}}");'
+                                                class="action-icon">
+                                                <i class="mdi mdi-square-edit-outline"></i>
+                                            </a>
+                                            <a href='javascript: manageProducts.deleteProduct("{{product.ean}}");' class="action-icon">
+                                                <i class="mdi mdi-delete"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">No products available.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+</main>
 
 <!-- Edit Product Modal -->
 <div id="editProductModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="editProductModalLabel" aria-hidden="true">
@@ -126,6 +140,13 @@
 
 {% block scripts %}
     {{ block.super }} 
+    <!-- third party js -->
+    <script src="{% static_assets 'js/vendor/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static_assets 'js/vendor/dataTables.bootstrap5.js' %}"></script>
+    <script src="{% static_assets 'js/vendor/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static_assets 'js/vendor/responsive.bootstrap5.min.js' %}"></script>
+    <script src="{% static_assets 'js/vendor/dataTables.checkboxes.min.js' %}"></script>
+    
     <script src="{% static_assets 'js/pages/store.products.js' %}"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {

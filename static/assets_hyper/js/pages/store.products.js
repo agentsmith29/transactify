@@ -1,154 +1,172 @@
-!(function () {
-    "use strict";
-
-    // CSRF Token Handling
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== "") {
-            const cookies = document.cookie.split(";");
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.startsWith(name + "=")) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    const CSRF_TOKEN = getCookie("csrftoken");
-
-    // CustomersView class
-    function CustomersView(config) {
-        this.toastManager = window.storeManager.toastManager;
-        this.modalManager = window.storeManager.modalManager;
-        this.webSocketHandler = window.storeManager.webSocketHandler;
-
-        this.csrftoken = config.csrftoken;
-        this.page_url = config.page_url;
-        this.cardNumber = null;
-
-        // Bind WebSocket handlers
-        this.initWebSocketHandlers();
-
-        // Bind form submission handler
-        this.initFormActions();
-
-        // Bind modal open event
-        this.initModalActions();
+class ManageProducts {
+    constructor(page_url) {
+        this.page_url = page_url
+        this.initSocket();
+        this.initDataTables();
     }
 
-    CustomersView.prototype.initWebSocketHandlers = function () {
-        const webSocket = this.webSocketHandler;
-
-        webSocket.onopen = () => {
-            console.log("WebSocket connection established");
-        };
-
-        webSocket.onmessage = (event) => {
+    initSocket() {
+        window.storeManager.webSocketHandler.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                if (data.card_number) {
-                    console.log("Card Number Received:", data.card_number);
-                    this.cardNumber = data.card_number;
+                console.log("Message received from server:", data);
 
-                    // Update modal with the card number
-                    document.getElementById("card_number").value = data.card_number;
-                    document.getElementById("card_number_container").style.display = "block";
-
-                    // Close NFC overlay
-                    const overlay = document.getElementById("nfcOverlay");
-                    overlay.style.display = "none";
-
-                    this.toastManager.success("Card detected", `Card number ${data.card_number} has been detected.`, "", false);
+                if (data.barcode) {
+                    const eanField = document.getElementById('ean');
+                    if (eanField) {
+                        eanField.value = data.barcode;
+                    } else {
+                        console.error("EAN field not found.");
+                    }
+                    window.storeManager.toastManager.info("Barcode recieved", `New scanned barcode: ${data.barcode}`, "", false);
                 }
             } catch (error) {
-                console.error("Error parsing WebSocket message:", error);
+                console.error("Error processing WebSocket message:", error);
             }
         };
+    }
 
-        webSocket.onclose = () => {
-            console.log("WebSocket connection closed");
-            this.toastManager.warning("WebSocket connection closed", "WebSocket was reset.", "", false);
-        };
+    initDataTables() {
+        // Initialize DataTable for products
+        $("#product-list-datatable").DataTable({
+            language: {
+                paginate: { previous: "<i class='mdi mdi-chevron-left'>", next: "<i class='mdi mdi-chevron-right'>" },
+                info: "Showing products _START_ to _END_ of _TOTAL_",
+                lengthMenu: 'Display <select class="form-select form-select-sm ms-1 me-1"><option value="10">10</option><option value="20">20</option><option value="-1">All</option></select> products',
+            },
+            columnDefs: [{ targets: -1, className: "dt-body-right" }],
+            pageLength: 10,
+            order: [[1, "asc"]],
+            drawCallback: function () {
+                $(".dataTables_paginate > .pagination").addClass("pagination-rounded"),
+                    $("#product-list-datatable_length label").addClass("form-label");
+            },
+        });
+    }
 
-        webSocket.onerror = (error) => {
-            console.error("WebSocket error:", error);
-            this.toastManager.error("WebSocket error", "WebSocket encountered an error.", "", false);
-        };
-    };
+    submitProductForm() {
+        const form = document.getElementById('addProductForm');
+        const formData = new FormData(form);
 
-    CustomersView.prototype.initFormActions = function () {
-        window.submitAddCustomerForm = () => {
-            const addCustomerForm = document.getElementById("addCustomerForm");
-            if (addCustomerForm) {
-                const overlay = document.getElementById("nfcOverlay");
-                overlay.style.display = "block";
-
-                const cardNumberField = document.getElementById("card_number");
-                const cardNumber = cardNumberField && cardNumberField.value ? cardNumberField.value : null;
-
-                fetch(this.page_url, {
-                    method: "POST",
-                    mode: "same-origin",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFTOKEN": CSRF_TOKEN,
-                        "X-Requested-With": "XMLHttpRequest",
-                    },
-                    body: JSON.stringify({
-                        first_name: document.getElementById("first_name").value,
-                        last_name: document.getElementById("last_name").value,
-                        email: document.getElementById("email").value,
-                        balance: document.getElementById("balance").value,
-                        card_number: cardNumber,
-                    }),
-                })
-                    .then((response) => {
-                        if (response.ok) {
-                            console.log("Customer added successfully");
-                            location.reload();
-                        } else {
-                            console.error("Error adding customer:", response.status);
-                            alert("Failed to add customer. Try again.");
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Fetch error:", error);
-                    })
-                    .finally(() => {
-                        overlay.style.display = "none";
-                    });
-            }
-        };
-    };
-
-    CustomersView.prototype.initModalActions = function () {
-        const addSellersButton = document.querySelector("a.btn-danger.mb-2[data-bs-toggle='modal'][data-bs-target='#addCustomerModal']");
-        if (addSellersButton) {
-            addSellersButton.addEventListener("click", () => {
-                const modalElement = document.getElementById("addCustomerModal");
-                const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
-
-                const overlay = document.getElementById("nfcOverlay");
-                overlay.style.display = "block"; // Show NFC overlay
-
-                // Wait for WebSocket card_number
-                const interval = setInterval(() => {
-                    if (this.cardNumber) {
-                        clearInterval(interval);
-                        modal.show();
-                        overlay.style.display = "none"; // Hide overlay
-                    }
-                }, 1000);
-
-                // Reset fields in the modal
-                document.getElementById("card_number").value = "";
-                document.getElementById("card_number_container").style.display = "none";
-            });
+        // print form data
+        fetch(this.page_url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'cmd': 'add'
+            },
+            body: JSON.stringify({
+                product_ean: formData.get('product_ean'),
+                product_name: formData.get('product_name'),
+                resell_price: formData.get('resell_price'),
+                discount: parseFloat(formData.get('discount')/100)
+            })
         }
-    };
+    )
+        .then(console.log("Form data sent to " + this.page_url))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.code == 103 ) {
+                //location.reload();
+                window.storeManager.toastManager.success('Product added successfully', data.message, "", true);
+            } 
+            else if (data.success && data.code == 104) {
+                window.storeManager.toastManager.info('Product updated successfully', data.message, "", true);
+            }
+            else {
+                //window.toastManager.error(title, message, submessage)
+                window.storeManager.toastManager.error("Product add failed", data.message, "Please try again.", false);
+            }
+        })
+        .catch(error => {
+            console.error('Error adding product:', error);
+            // Toast message with error
+            window.storeManager.toastManager.error("Failed to add product", error, "Please try again.", false);
+        });
+    }
 
-    // Export CustomersView
-    window.CustomersView = CustomersView;
-})(window.jQuery);
+    deleteProduct(ean) {
+        fetch(this.page_url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'cmd': 'delete'
+            },
+            body: JSON.stringify({ product_ean: ean })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                //location.reload();
+                window.storeManager.toastManager.success(`Product ${ean} deleted successfully`, data.message, "", true);
+                
+            } else {
+                window.storeManager.toastManager.error("Failed to deleted product", data.message, "Please try again.", false);
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting product:', error);
+            window.storeManager.toastManager.error("Failed to deleted product", error, "Please try again.", false);
+        });
+    }
+
+    submitEditForm() {
+        const form = document.getElementById('editProductForm');
+        const formData = new FormData(form);
+
+        fetch(this.page_url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'cmd': 'edit'
+            },
+            body: JSON.stringify({
+                product_ean: formData.get('product_ean'),
+                product_name: formData.get('product_name'),
+                resell_price: formData.get('resell_price'),
+                discount: parseFloat(formData.get('discount')/100)
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                //location.reload();
+                window.storeManager.toastManager.success(`Product updated successfully`, data.message, "", true); 
+            } else {
+                window.storeManager.toastManager.error("Failed to deleted product", data.message, "Please try again.", false);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating product:', error);
+            window.storeManager.toastManager.error("Failed to update product", error, "Please try again.", false);
+        });
+    }
+
+    openEditModal(ean, name, resellPrice, dicount) {
+        console.log("Opening edit modal for product:", ean);
+        document.getElementById('editProductModalLabel').value = `Edit Product ${ean}`;
+        document.getElementById('modal_ean').value = ean;
+        document.getElementById('modal_name').value = name;
+        document.getElementById('modal_resellprice').value = resellPrice;
+        document.getElementById('modal_discount').value = dicount * 100;
+        // Use Bootstrap's modal API to show the modal
+        const modal = new bootstrap.Modal('#editProductModal');
+        modal.show();
+    
+    }
+    
+    closeModal() {
+        // Use Bootstrap's modal API to hide the modal
+        const modal = bootstrap.Modal.getInstance('#editProductModal');
+        if (modal) {
+            modal.hide();
+        }
+    }
+
+
+}
+
