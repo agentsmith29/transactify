@@ -72,6 +72,33 @@ class OLEDConfig(BaseConfigField):
         self.OLED_SPI_PORT = self.assign_from_config("OLED_SPI_PORT", "0")
         self.OLED_SPI_DEVICE = self.assign_from_config("OLED_SPI_DEVICE", "0")
   
+class KeyPadConfig(BaseConfigField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(field_name="keypad", *args, **kwargs)
+        self.KEYPAD_ROWS = self.assign_from_config("KEYPAD_ROWS", [26, 19, 13, 6])
+        self.KEYPAD_COLS = self.assign_from_config("KEYPAD_COLS", [5, 16, 20, 21])
+
+class LEDConfig(BaseConfigField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(field_name="ledstrip", *args, **kwargs)
+        self.LED_COUNT = self.assign_from_config("LED_COUNT", 8)
+        self.LED_PIN = self.assign_from_config("LED_PIN", 18)
+        self.LED_FREQ_HZ = self.assign_from_config("LED_FREQ_HZ", 800000)
+        self.LED_DMA = self.assign_from_config("LED_DMA", 10)
+        self.LED_BRIGHTNESS = self.assign_from_config("LED_BRIGHTNESS", 255)
+        self.LED_INVERT = self.assign_from_config("LED_INVERT", False)
+        self.LED_CHANNEL = self.assign_from_config("LED_CHANNEL", 0)
+
+class BarCodeReaderConfig(BaseConfigField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(field_name="barcode_reader", *args, **kwargs)
+        self.DEVICE_PATH = self.assign_from_config("DEVICE_PATH", "/dev/ttyACM0")
+        self.BAUDRATE = self.assign_from_config("BAUDRATE", 115200)
+        self.BYTESIZE = self.assign_from_config("BYTESIZE", 8)
+        self.PARITY = self.assign_from_config("PARITY", "N")
+        self.STOPBITS = self.assign_from_config("STOPBITS", 1)
+        self.TIMEOUT = self.assign_from_config("TIMEOUT", 1)
+
 
 class Config(ConfigParser):
 
@@ -84,6 +111,9 @@ class Config(ConfigParser):
         self.container: ContainerConfig = self.load(ContainerConfig)
         self.django: DjangoConfig = self.load(DjangoConfig, field_name="django")
         self.oled: OLEDConfig = self.load(OLEDConfig)
+        self.keypad: KeyPadConfig = self.load(KeyPadConfig)
+        self.ledstrip: LEDConfig = self.load(LEDConfig)
+        self.barcode_reader: BarCodeReaderConfig = self.load(BarCodeReaderConfig)
 
 if __name__ == "__main__":
     print(Config.from_command_line(Config))

@@ -5,7 +5,7 @@ import traceback
 
 from terminal.webmodels.Store import Store
 from decimal import Decimal
-from ..api_endpoints.Customer import Customer
+from .APIFetchCustomer import Customer
 
 from requests.models import Response
 from ..api_endpoints.APIFetchException import APIFetchException

@@ -4,7 +4,7 @@ import os
 
 from .OLEDPageStoreMain import OLEDPageStoreMain
 
-from terminal.api_endpoints.Customer import Customer
+from terminal.api_endpoints.APIFetchCustomer import Customer
 from terminal.api_endpoints.StoreProduct import StoreProduct
 
 #from ...webmodels.CustomerBalance import CustomerBalance

@@ -42,9 +42,7 @@ class PN532(NFCBase):
         self.nfc = Pn532(self.PN532_I2C)
         
         # Start the NFC reading thread
-        self.setup()
         self.start_thread()
-        self.logger.info("[NFC] NFC Reader initialized.")
 
 
     def setup(self):
@@ -52,40 +50,35 @@ class PN532(NFCBase):
 
         versiondata = self.nfc.getFirmwareVersion()
         if (not versiondata):
-            print("Didn't find PN53x board")
+            self.logger.error("Didn't find PN53x board")
             raise RuntimeError("Didn't find PN53x board")  # halt
 
         #  Got ok data, print it out!
-        print("Found chip PN5 {:#x} Firmware ver. {:d}.{:d}".format((versiondata >> 24) & 0xFF, (versiondata >> 16) & 0xFF,
+        self.logger.info("Found chip PN5 {:#x} Firmware ver. {:d}.{:d}".format((versiondata >> 24) & 0xFF, (versiondata >> 16) & 0xFF,
                                                                     (versiondata >> 8) & 0xFF))
         #  configure board to read RFID tags
         self.nfc.SAMConfig()
-        print("Waiting for an ISO14443A Card ...")
+        self.logger.info(f"Setup for NFC Reader {self.nfc} completed.")
 
     def _uid_to_num(self, uid):
-        
         n = 0
         for i in range(0, len(uid)):
             n = n * 256 + uid[i]
         return n
     
     def run(self):
+        self.setup()
         while self.reading:
-
-            print("wait for a tag")
+            self.logger.info("Waiting for an ISO14443A Card ...")
             # wait until a tag is present
             tagPresent = False
             while not tagPresent:
                 time.sleep(.1)
                 tagPresent, uid = self.nfc.readPassiveTargetID(pn532.PN532_MIFARE_ISO14443A_106KBPS)
-                print(".", end="")
-            self.signals.tag_reading_status.send(sender=self, status=1)
-            print(f"Tag UID: {binascii.hexlify(uid)} in dec: {self._uid_to_num(uid)}")
-            #if (len(uid) == 4):
-            #    self.read_mifarce_classic(tagPresent, uid)
-            #else:
-            #    self.read_mifare_ultralight(tagPresent, uid)
+            self.logger.debug("NFC card or tag detected.")
 
+            self.signals.tag_reading_status.send(sender=self, status=1)
+            self.logger.info(f"Tag UID: {self._uid_to_num(uid)} [0x{binascii.hexlify(uid)}] ")
             # if NTAG21x enables r/w protection, uncomment the following line 
             # nfc.ntag21x_auth(password)
             try:
@@ -97,9 +90,9 @@ class PN532(NFCBase):
                     tagPresent, uid = self.nfc.readPassiveTargetID(pn532.PN532_MIFARE_ISO14443A_106KBPS)
                     self.signals.tag_reading_status.send(sender=self, status=4)
             except Exception as e:
-                print(f"Error: {e}")
+                self.logger.error(f"Error reading NFC tag: {e}")
 
-            print("Tag removed")
+            self.logger.debug(f"Tag was removed.")
 
     def read_mifare_ultralight(self,):
         #  We probably have a Mifare Ultralight card ...

@@ -36,6 +36,9 @@ from luma.oled.device import ssd1322 as OLED
 
 from ..LEDStripController import LEDStripController
 
+import logging
+from transactify_terminal.settings import CONFIG
+
 class OLEDViewControllerSignals():
     view_changed = Signal()
 
@@ -50,6 +53,8 @@ class OLEDViewController():
                  sign_on_websocket_connect: Signal,
                  sign_on_websocket_disconnect: Signal,
                  ledstrip: LEDStripController):
+        
+        self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.{self.__class__.__name__}")
         
         self.sig_abort_page = Signal()
         self.sig_request_view = Signal()
@@ -71,7 +76,8 @@ class OLEDViewController():
             #
             "sign_on_websocket_connect": sign_on_websocket_connect,
             "sign_on_websocket_disconnect": sign_on_websocket_disconnect,
-            "ledstrip": ledstrip
+            "ledstrip": ledstrip,
+            "parent_logger_name": self.logger.name
         }
 
         self.PAGE_STORE_SELECTION = OLEDStoreSelection(**kwargs)
@@ -112,11 +118,14 @@ class OLEDViewController():
         sig_on_barcode_read.connect(self.on_barcode_read)
         sig_on_nfc_read.connect(self.on_nfc_read)
         sig_on_btn_pressed.connect(self.on_btn_pressed)
+
+        # Sets if the view is set
+        self._request_view_set = True
     
     def on_barcode_read(self, sender, barcode, **kwargs):
         self._reset_screensaver_timer()
 
-    def on_nfc_read(self, sender, nfc, **kwargs):
+    def on_nfc_read(self, sender, id, **kwargs):
         self._reset_screensaver_timer()
         
     def on_btn_pressed(self, sender, btn, **kwargs):
@@ -192,41 +201,71 @@ class OLEDViewController():
 
     
     def request_view(self, view: OLEDPage | str, unlock=False, *args, **kwargs): 
-        # get the whole parameter from the function call and store it in context
-        #self.current_view_context = {**args, **kwargs}
-
-        # if given a string for the view, get the view object.
-        if self.current_view is not None:
-            self.current_view.is_active = False
-
-        if self.current_view is not None and self.current_view.locked and not unlock:
-            print(f"View {self.current_view.name} is locked. Exiting.")
+        if  self._request_view_set == False:
+            self.logger.warning("Another view request is already in progress...")
             return
+        self._request_view_set = False
+            # Another view request is already in progress. Exit early.
+        # get the whole parameter from the function call and store it in context
+        # self.current_view_context = {**args, **kwargs}
         
         view_found = False
         for attr in dir(self):
             attr = getattr(self, attr)
-            if isinstance(view, str) and attr.name == view:
-                view = attr
-                break
-            elif not isinstance(view, str) and isinstance(attr, OLEDPage) and attr.name == view.class_name():
-                view = attr
-                break
+            if isinstance(attr, OLEDPage):
+                if isinstance(view, str) and attr.name == view:
+                    view = attr
+                    break
+                elif not isinstance(view, str) and isinstance(attr, OLEDPage) and attr.name == view.class_name():
+                    view = attr
+                    break
+
+        # if given a string for the view, get the view object.
+        if self.current_view is not None:
+            self.logger.debug(f"Requesting to replace view: {self.current_view.name} with {view.name}.")
+            self.current_view.is_active = False
+
+        if self.current_view is not None and self.current_view.locked and not unlock:
+            print(f"View {self.current_view.name} is locked. Exiting.")
+            self._request_view_set = True
+            return
        
 
-        print(f"Requesting view: {view}.")
+        self.logger.info(f"Requesting view: {view.name}.")
         if self.view_thread is not None and self.view_thread.is_alive():
             try:
-                print("Joining thread...")
-                self.current_view.break_loop = True  # Break the loop of the current view
-                self.view_thread.join(timeout=3) 
+                # check if the thread is still alive and join it
+                if self.view_thread.is_alive():
+                    self.logger.debug("Joining view thread to abort it.")
+                    self.current_view.break_loop = True  # Break the loop of the current view
+                else:
+                    self.logger.debug("View thread is not alive. Can directly change view.")
+                
+                try:
+                    if self.view_thread.is_alive():
+                        self.view_thread.join(timeout=3) # Wait for the thread to finish
+                except TimeoutError as e:
+                    self.logger.error(f"Timeout while joining thread: {e}")
+                    self._request_view_set = True
+                    return
+                except Exception as e:
+                    self.logger.error(f"Error joining thread: {e}")
+                    self._request_view_set = True
+                    return
+
             except Exception as e:
-                print(f"Error joining thread: {e}")
+                self.logger.error(f"Error aborting view thread: {e}. Can't change view.")
+                self._request_view_set = True
+                return
+        
+        
         self.current_view = view
         self.current_view.is_active = True
         self.view_thread = threading.Thread(target=self.current_view.view, args=args, kwargs=kwargs, daemon=True)
         self.view_thread.start()
         self.signals.view_changed.send(sender=self, view=view)
+        self._request_view_set = True
+        return
 
     def __del__(self):
         self.oled.cleanup()

@@ -1,7 +1,8 @@
-from channels.generic.websocket import AsyncWebsocketConsumer
 import json
+from terminal.consumers.BaseConsumer import BaseAsyncWebsocketConsumer
+from terminal.consumers.BaseConsumer import WebsocketSignals
 
-class PageSpecificConsumer(AsyncWebsocketConsumer):
+class PageSpecificConsumer(BaseAsyncWebsocketConsumer):
     async def connect(self):
         # Define a group name based on the page
         self.page_name = self.scope['url_route']['kwargs']['page_name']
@@ -13,7 +14,6 @@ class PageSpecificConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
         await self.accept()
-        print(f"WebSocket connection established for page: {self.page_name}")
 
     async def disconnect(self, close_code):
         # Remove the WebSocket connection from the group
@@ -21,11 +21,11 @@ class PageSpecificConsumer(AsyncWebsocketConsumer):
             self.group_name,
             self.channel_name
         )
-        print(f"WebSocket disconnected from page: {self.page_name}")
+        self.logger.info(f"WebSocket  {self.scope['path']} disconnected: {self.scope['client']}")
 
     async def receive(self, text_data):
         # Handle incoming messages and broadcast to the group
-        print(f"Received message: {text_data} for page: {self.page_name}")
+        self.logger.debug(f"{self.scope['path']}: Received {text_data}.")
         await self.channel_layer.group_send(
             self.group_name,
             {
@@ -40,4 +40,4 @@ class PageSpecificConsumer(AsyncWebsocketConsumer):
         asdict = dict(event)
         asjason = json.dumps(asdict)
         await self.send(text_data=asjason)
-        print(f"Message broadcasted: {event}")
+        self.logger.debug(f"{self.scope['path']}: Sent {asjason}.")

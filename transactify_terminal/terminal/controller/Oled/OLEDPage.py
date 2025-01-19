@@ -16,15 +16,19 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from OLEDViewController import OLEDViewController # to avoid circular import, only for type hinting
 
-from ..ConfParser import Store
+from terminal.webmodels.Store import Store
+
 from ...api_endpoints.StoreProduct import StoreProduct
-from ...api_endpoints.Customer import Customer
+from ...api_endpoints.APIFetchCustomer import Customer
 
 from random import randint
 from luma.core.render import canvas
 
 from terminal.controller.LEDStripController import LEDStripController
 from terminal.webmodels.Store import Store
+import logging
+
+from transactify_terminal.settings import CONFIG
 
 class OLEDPage():
     name: str = "OLEDPage"
@@ -40,7 +44,13 @@ class OLEDPage():
                  #
                  view_controller,
                  ledstrip: LEDStripController,
-                 locked = False, overwritable = True):
+                 locked = False, overwritable = True,
+                 parent_logger_name = None):
+        
+        if not parent_logger_name:
+            self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.{self.__class__.__name__}")
+        else:
+            self.logger = logging.getLogger(f"{parent_logger_name}.{self.__class__.__name__}")
         
         self._signal_abort_view = sig_abort_view
         self._signal_request_view = sig_request_view
@@ -97,6 +107,7 @@ class OLEDPage():
 
         self.oled_image = None
         self.oled_image_base64 = None
+        self.logger.debug(f"Initialised Page {self.name}")
 
     def _abort_view(self, sender, **kwargs):
         print(f"Aborting view {self.name}")
@@ -227,7 +238,7 @@ class OLEDPage():
         self.oled.display(self.image)
 
     def display_nfc_overlay(self, stage, display_check=False):
-        print(f"Displaying lock overlay.")
+        self.logger.debug(f"Displaying NFC overlay, stage: {stage}")
         # Use the currecnt image and make a copy
         copy_image_content = self.image.copy()
         copy_draw_content = ImageDraw.Draw(copy_image_content)
@@ -257,7 +268,7 @@ class OLEDPage():
             rect_y1 = int(img_pos_y - 10)
             rect_x2 = int(img_pos_x + 24 + 30)
             rect_y2 = int(img_pos_y + 24 + 10)
-            print(f"Error loading symbol: {e}")
+            self.logger.error(f"Error loading symbol: {e} when displaying NFC overlay.")
 
 
         copy_draw_content.rectangle((0, rect_y2+1, self.width, self.height), fill=(0,0,0))
@@ -391,25 +402,40 @@ class OLEDPage():
     # Actual event handeling
     def _sig_on_barcode_read(self, sender, barcode, **kwargs):
         if self.is_active:
+            self.logger.info(f"Barcode read: {barcode} and signal was handled by view {self.name}.")
             self.on_barcode_read(sender, barcode, **kwargs)
+        #else:
+        #    self.logger.debug(f"Barcode read: {barcode} but signal was ignored by view {self.name}..")
         
-    def _sig_on_nfc_read(self, sender, id, text, **kwargs):
+    def _sig_on_nfc_read(self, sender, id, **kwargs):
         if self.is_active:
-            self.on_nfc_read(sender, id, text, **kwargs)
+            self.logger.debug(f"NFC read: {id} and signal was handled by view {self.name}.")
+            self.on_nfc_read(sender, id, **kwargs)
+        #else:
+        #    self.logger.debug(f"NFC read: {id} but signal was ignored by view {self.name}..")
 
     def _sig_on_btn_pressed(self, sender, btn, **kwargs):
         if self.is_active:
+            self.logger.debug(f"Button pressed: {btn} and signal was handled by view {self.name}.")
             self.on_btn_pressed(sender, btn, **kwargs)
+        #else:
+        #    self.logger.debug(f"Button pressed: {btn} but signal was ignored by view {self.name}..")
 
     def _sig_on_websocket_connect(self, sender, **kwargs):
         self.stores: list[Store] = list(Store.objects.filter(is_connected=True).order_by('terminal_button'))
         if self.is_active:
+            self.logger.debug(f"Websocket connected and signal was handled by view {self.name}.")
             self.on_websocket_connect(sender, **kwargs)
+        #else:
+        #    self.logger.debug(f"Websocket connected but signal was ignored by view {self.name}.")
 
     def _sig_on_websocket_disconnect(self, sender, **kwargs):
         self.stores: list[Store] = list(Store.objects.filter(is_connected=True).order_by('terminal_button'))
         if self.is_active:
+            self.logger.debug(f"Websocket disconnected and signal was handled by view {self.name}.")
             self.on_websocket_disconnect(sender, **kwargs)
+        #else:
+        #    self.logger.debug(f"Websocket disconnected but signal was ignored by view {self.name}.")
 
     # Need to be implemented by the subclass
     @abstractmethod
@@ -417,7 +443,7 @@ class OLEDPage():
         pass
 
     @abstractmethod
-    def on_nfc_read(self, sender, id, text, **kwargs):
+    def on_nfc_read(self, sender, id, **kwargs):
         pass
 
     @abstractmethod
@@ -449,25 +475,38 @@ class OLEDPage():
                 ean=barcode, 
                 next_view=view_controller.PAGE_STORE_SELECTION)   
     
-    def _fetch_customer(self, view_controller: 'OLEDViewController', store: StoreProduct, card_number: str):
+    def _fetch_customer(self, view_controller: 'OLEDViewController', store: Store, card_number: str):
+        self.logger.debug(f"Fetching customer with card number {card_number} from store {store}: {store.web_address}.")
         view_controller: OLEDViewController
         try:
             return Customer.get_from_api(store, card_number)
+        except requests.exceptions.ConnectionError as e:
+            self.logger.debug(f"Connection to store {store.web_address} failed. Error: {e}")
+            view_controller.request_view(view_controller.PAGE_ERROR, 
+                                        error_title="Connection Error", error_message=f"Error connecting to store: {store.web_address}",
+                                        # Next view handler
+                                        next_view=view_controller.PAGE_MAIN,
+                                        store=store)
+            return None
         except requests.exceptions.RequestException as e:
-            print(f"Error: {e}")
-            if int(e.response.json().get('code')) == 10:
+            #print(f"Error: {e}")
+            self.logger.debug(f"Fetching customer with card number {card_number} failed. Error: {e}")
+            if int(e.response.json().get('code')) == 1:
                 view_controller.request_view(view_controller.PAGE_CUSTOMER_UNKNW, id=card_number,
                                              # Next view handler
                                              next_view=view_controller.PAGE_MAIN,
                                              store=store)
             else:
                 view_controller.request_view(view_controller.PAGE_ERROR, 
-                                        error_title=f"Error {e.response.json().get('code')}", 
+                                        error_title=f"Error Code {e.response.json().get('code')}", 
                                         error_message=e.response.json().get("message"),
                                         # Next view handler
                                         next_view=view_controller.PAGE_MAIN,
                                         store=store)
             return None
+
+        
+
         
         except Exception as e:
             print(f"Error: {e}")

@@ -1,12 +1,14 @@
 from django.dispatch import Signal
 
-from ..ConfParser import Store
+
+from terminal.webmodels.Store import Store
+
 
 from .OLEDPage import OLEDPage
 import os
 
-from ...api_endpoints.StoreProduct import StoreProduct
-from ...api_endpoints.Customer import Customer
+from terminal.api_endpoints.StoreProduct import StoreProduct
+from terminal.api_endpoints.APIFetchCustomer import Customer
 import requests
 
 import time
@@ -45,7 +47,8 @@ class OLEDScreenSaver(OLEDPage):
     def _sig_on_btn_pressed(self, sender, btn, **kwargs):
         self.on_btn_pressed(sender, btn, **kwargs)
     
-    def on_btn_pressed(self, sender, kypd_btn, **kwargs):          
+    def on_btn_pressed(self, sender, kypd_btn, **kwargs):   
+        return # Screensaver is diaabled       
         #if kypd_btn:
         OLEDScreenSaver.logger.info(f"Button pressed: {kypd_btn}")
         self.break_loop = True

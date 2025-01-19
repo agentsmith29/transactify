@@ -15,11 +15,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 class CustomerSerializer(serializers.ModelSerializer):
     user = UserSerializer()  # Nested serializer for User fields
-    balance = serializers.SerializerMethodField()  # Custom method for CustomerBalance
+   # balance = serializers.SerializerMethodField()  # Custom method for CustomerBalance
 
     class Meta:
         model = Customer
-        fields = ['user', 'card_number', 'issued_at', 'balance']
+        fields = ['user', 'card_number', 'issued_at', 'balance', 'total_deposits', 'total_purchases', 'last_changed']
 
     #def get_balance(self, obj: Customer):
     #    """Retrieve the balance details for the customer."""

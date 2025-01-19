@@ -6,9 +6,11 @@ import os
 import requests
 
 from .OLEDPageStoreMain import OLEDPageStoreMain
+from .OLEDStoreSelection import OLEDStoreSelection
+from terminal.webmodels.Store import Store
 from ...api_endpoints.StoreProduct import StoreProduct
-from ..ConfParser import Store
-from ...api_endpoints.Customer import Customer
+
+from ...api_endpoints.APIFetchCustomer import Customer
 from rest_framework import status
 
 from requests import Response
@@ -17,6 +19,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from OLEDViewController import OLEDViewController # to avoid circular import, only for type hinting
 from ...api_endpoints.APIFetchException import APIFetchException
+
+
 
 class OLEDPageProduct(OLEDPage):
     name: str = "OLEDPageProduct"
@@ -54,7 +58,12 @@ class OLEDPageProduct(OLEDPage):
             draw.text((30, content_y_start), f"EUR {product.final_price}", font=self.font_large,fill=(255,255,255))
             #draw.text((30, content_y_start + 20), f"Stock {product.stock_quantity}", font=self.font_large,fill=(255,255,255))
         
-        draw.text((30, content_y_start + 25), f"Place NFC to buy from {product.store.name}", font=self.font_regular, fill=(255,255,255))
+        if product.stock_quantity == 0:
+            draw.text((30, content_y_start + 25), f"Out of stock. Please contact staff.", font=self.font_regular, fill=(255,255,255))
+            # --- next view
+            self.display_next(image, draw, OLEDStoreSelection.name, 5, store=self.store,)
+        else:
+            draw.text((30, content_y_start + 25), f"Place NFC to buy from {product.store.name}", font=self.font_regular, fill=(255,255,255))
         # Update the OLED display
         self.send_to_display(image)
         #self.display_next(image, draw, OLEDPageMain.name, 5)

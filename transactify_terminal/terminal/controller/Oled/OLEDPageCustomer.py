@@ -7,8 +7,9 @@ import os
 
 from .OLEDPageStoreMain import OLEDPageStoreMain
 
-from terminal.api_endpoints.Customer import Customer
-from ..ConfParser import Store
+from terminal.api_endpoints.APIFetchCustomer import Customer
+from terminal.webmodels.Store import Store
+
 
 class OLEDPageCustomer(OLEDPage):
     name: str = "OLEDPageCustomer"
@@ -56,7 +57,7 @@ class OLEDPageCustomer(OLEDPage):
     def on_barcode_read(self, sender, barcode, **kwargs):
         pass
 
-    def on_nfc_read(self, sender, id, text, **kwargs):
+    def on_nfc_read(self, sender, id, **kwargs):
         pass
 
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):

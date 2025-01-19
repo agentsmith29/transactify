@@ -1,12 +1,11 @@
 from django.dispatch import Signal
 
-from ..ConfParser import Store
-
+from terminal.webmodels.Store import Store
 from .OLEDPage import OLEDPage
 import os
 
 from ...api_endpoints.StoreProduct import StoreProduct
-from ...api_endpoints.Customer import Customer
+from ...api_endpoints.APIFetchCustomer import Customer
 import requests
 
 class OLEDStoreSelection(OLEDPage):
@@ -17,7 +16,11 @@ class OLEDStoreSelection(OLEDPage):
         OLEDStoreSelection.name: str = str(self.__class__.__name__) 
 
     def view(self, *args, **kwargs):
-
+        if len(self.stores) == 1:
+            self.selected_store = self.stores[0]
+            self.view_controller.request_view(self.view_controller.PAGE_MAIN, store=self.selected_store, display_back=False)
+            return
+    
         image, draw = self._post_init()
 
         # Header Section
@@ -49,7 +52,6 @@ class OLEDStoreSelection(OLEDPage):
         # ------------- Body ----------------
 
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):
-        print(f"Button {kypd_btn} pressed")
         for store in self.stores:
             if store.terminal_button == kypd_btn:
                 self.selected_store = store
@@ -59,6 +61,7 @@ class OLEDStoreSelection(OLEDPage):
     
     def _fetch_customer(self, view_controller: 'OLEDViewController', store: StoreProduct, card_number: str):
         try:
+            self.logger.info(f"Fetching customer from API for store {store.name} and card number {card_number}")
             return Customer.get_from_api(store, card_number)
         except requests.exceptions.RequestException as e:
             print(f"Error: {e}")
@@ -71,15 +74,19 @@ class OLEDStoreSelection(OLEDPage):
                                         store=store)
             return None
         
-    def on_nfc_read(self, sender, id, text, **kwargs):
+    def on_nfc_read(self, sender, id, **kwargs):
         #customer_entries = [self._fetch_customer(self.view_controller, store, card_number=id) for store in self.stores if not None]
         customer_entries = []
+        if len(self.stores) == 0:
+            self.logger.warning("No stores found, cannot fetch customer.")
+            return
+        
         for store in self.stores:
             customer = self._fetch_customer(self.view_controller, store, card_number=id)
             if customer is not None:
                 customer_entries.append(customer)
 
-        print(f"Customer entries: {customer_entries}")
+        self.logger.debug(f"Found customer entries: {customer_entries}")
         if len(customer_entries) == 0:
             self.view_controller.request_view(self.view_controller.PAGE_CUSTOMER_UNKNW,
                                              id=id,

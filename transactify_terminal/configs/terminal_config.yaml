@@ -29,3 +29,29 @@ django:
   STATIC_ASSETS_PATH: "assets_hyper/"
   # If those are set, the static path points to a different location instead of localhost
   STATIC_WEBSERVER: "http://${ENV.PROJECT_HOST}:${ENV.PROJECT_PORT}"
+
+
+# === Hardware
+keypad:
+  KEYPAD_ROWS: [5, 16, 20, 21]
+  KEYPAD_COLS: [26, 19, 13, 6]
+
+
+ledstrip:
+  LED_COUNT: 8
+  LED_PIN: 18
+  LED_FREQ_HZ: 800000
+  LED_DMA: 10
+  LED_BRIGHTNESS: 255
+  LED_INVERT: False
+  LED_CHANNEL: 0
+
+barcode_reader:
+  DEVICE_PATH: "/dev/ttyACM0"
+  BAUDRATE: 115200
+  BYTESIZE: 8
+  PARITY: "N"
+  STOPBITS: 1
+  TIMEOUT: 1
+
+        

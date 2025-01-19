@@ -11,13 +11,14 @@ import logging
 import time
 from rpi_ws281x import PixelStrip, Color
 import argparse
+from transactify_terminal.settings import CONFIG
 
+from .BaseHardware import BaseHardware
 
-class LEDStripController():
+class LEDStripController(BaseHardware):
 
     def __init__(self):
-        self.logger = logging.getLogger('ledstripe')
-
+        super().__init__()
         # LED strip configuration:
         self.LED_COUNT = 8        # Number of LED pixels.
         self.LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
@@ -29,31 +30,56 @@ class LEDStripController():
         self.LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
         try:
             # Create NeoPixel object with appropriate configuration.
-            self.strip = PixelStrip(self.LED_COUNT, self.LED_PIN, self.LED_FREQ_HZ, self.LED_DMA, self.LED_INVERT, self.LED_BRIGHTNESS, self.LED_CHANNEL)
+            self.strip = PixelStrip(
+                self.global_config.ledstrip.LED_COUNT, 
+                self.global_config.ledstrip.LED_PIN, 
+                self.global_config.ledstrip.LED_FREQ_HZ, 
+                self.global_config.ledstrip.LED_DMA, 
+                self.global_config.ledstrip.LED_INVERT, 
+                self.global_config.ledstrip.LED_BRIGHTNESS, 
+                self.global_config.ledstrip.LED_CHANNEL)   
             self.strip.begin()
 
             self.break_loop = False
-            print(f"LEDStripeController initialized with {self.LED_COUNT} LEDs on GPIO {self.LED_PIN}")
+            self.logger.info(f"LEDStripeController initialized with {self.LED_COUNT} LEDs on GPIO {self.LED_PIN}")
             self.animation_thread: threading.Thread = None
-
             self.animate(self._testing_animation)
         except Exception as e:
-            print(f"Error initializing LEDStripeController: {e}")
+            self.logger.error(f"Error initializing LEDStripeController: {e}")
             return  
+        self.is_initialized = True
 
-
+    def _check_if_initialized(func):
+        def wrapper(self, *args, **kwargs):
+            if not self.is_initialized:
+                self.logger.warning("LEDStripeController not initialized. Returning.")
+                return
+            return func(self, *args, **kwargs)
+        return wrapper
+    
+    @_check_if_initialized
     def animate(self, animation_function: callable):
-        # Check if a thread is already running, and if cancel it.
-        self.stop_animation()
+        try:
+             # Check if a thread is already running, and if cancel it.
+            self.stop_animation()
 
-        self.break_loop = False
-        # Intialize the library (must be called once before other functions).
-        print("Starting animation thread.")
-        self.animation_thread = threading.Thread(target=animation_function,  daemon=True)
-        self.animation_thread.start()
-        print("Animation thread started.")
-
+            self.break_loop = False
+            # Intialize the library (must be called once before other functions).
+            self.logger.debug("Starting animation thread.")
+            self.animation_thread = threading.Thread(target=animation_function,  daemon=True)
+            self.animation_thread.start()
+            self.logger.debug("Animation thread started.")
+        except Exception as e:
+            self.logger.error(f"LED animation failed: {e}")
+            return
+        
+    
+    @_check_if_initialized
     def stop_animation(self):
+        if not self.is_initialized:
+            self.logger.warning("LEDStripeController not initialized. Returning.")
+            return
+
         if self.animation_thread is not None:
             print("Stopping animation thread.")
             self.break_loop = True

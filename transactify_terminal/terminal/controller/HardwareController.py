@@ -15,43 +15,47 @@ def check_run_server():
     
 RUN_SERVER = check_run_server()
 if RUN_SERVER:
-    print(f"************* {RUN_SERVER}: Running server with RUN_SERVER=True. Exiting. *************")
     from .HardwareInterface import HardwareInterface
     from .Oled.OLEDViewController import OLEDViewController
 
-from .ConfParser import parse_services_config_from_yaml
+from terminal.webmodels.Store import Store
+
 from terminal.webmodels.Store import Store
 
 from ..api_endpoints.StoreProduct import StoreProduct
-from ..api_endpoints.Customer import Customer
+from ..api_endpoints.APIFetchCustomer import Customer
 
 from requests.models import Response
-
+import threading
 import os
 from terminal.consumers.TerminalConsumer import WebsocketSignals
+
+from transactify_terminal.settings import CONFIG
 
 class HardwareController():
     init_counter = 0
 
     def __init__(self, *args, **kwargs):
-    
+        self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.{self.__class__.__name__}")     
         if not RUN_SERVER:
-           print(f"{bool(os.getenv('RUN_SERVER', 'false'))}: Not running server. Continuing HardwareController init.")  
-           return
+            self.logger.info(f"RUN_SERVER={RUN_SERVER}: Not running server. Exiting HardwareController init.")
+            return
         else:
-            print(f"{bool(os.getenv('RUN_SERVER', 'false'))}: Running server with RUN_SERVER=False. Exiting.")
-            
-
-        logger = logging.getLogger('store')
-        logger.info(f"HardwareController initilized. {HardwareController.init_counter} Number of initializations.")
+            self.logger.warning(f"RUN_SERVER={RUN_SERVER}: Continuing HardwareController init.")
+     
+        self.logger.info(f"HardwareController initilized. {HardwareController.init_counter} number of initializations.")
         HardwareController.init_counter += 1
         if HardwareController.init_counter > 1:
-            logger.error("Multiple initializations of HardwareController.")
+            self.logger.error("Multiple initializations of HardwareController. Skipping this initialization.")
             return
 
         lock_interaction = False
 
         self.hwif = HardwareInterface()
+        self.hwif.signals.nfc_thread_status.connect(self.on_nfc_thread_status_changed)
+        self.hwif.signals.barcode_thread_status.connect(self.on_barcode_thread_status_changed)
+        self.hwif.signals.keypad_thread_status.connect(self.on_keypad_thread_status_changed)
+
         self.current_view = None #self.view_main
         
         
@@ -68,7 +72,7 @@ class HardwareController():
 
         self.view_controller = OLEDViewController(self.hwif.oled,
                                                   self.hwif.barcode_reader.signals.barcode_read,
-                                                  self.hwif.nfc_reader.signals.tag_read,
+                                                  self.hwif.nfc_reader.signals.nfc_tag_id_read,
                                                   self.hwif.keypad.signals.key_pressed,
                                                   #
                                                   WebsocketSignals.on_connect,
@@ -91,6 +95,7 @@ class HardwareController():
         #    self.view_controller.request_view(self.view_controller.PAGE_MAIN, 
         #                                      store=self.store_bases[0], display_back=False)
         #else:
+        self.logger.info("HardwareController initialized. Requesting store selection view.")
         self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)
 
 
@@ -100,6 +105,22 @@ class HardwareController():
     # =================================================================================================================
     # Event handlers
     # =================================================================================================================
+    
+    # Thread status handlers
+    def on_nfc_thread_status_changed(self, sender, is_alive, **kwargs):
+        if not is_alive:
+            self.logger.info("NFC thread seems to be dead. Restarting...")
+            self.hwif.nfc_reader.start()
+    
+    def on_barcode_thread_status_changed(self, sender, is_alive, **kwargs):
+        if not is_alive:
+            self.logger.info("Barcode thread seems to be dead.")
+
+    def on_keypad_thread_status_changed(self, sender, is_alive, **kwargs):
+        if not is_alive:
+            self.logger.info("Keypad thread seems to be dead.")
+
+
     def on_view_changed(self, sender, view, **kwargs):
         pass
  
@@ -125,7 +146,7 @@ class HardwareController():
         )
 
     def on_nfc_tag_id_read(self, sender, id, **kwargs):
-        print(f"*******+ New scanned NFC Tag: {id}")
+        self.logger.info(f"New scanned NFC Tag: {id}")
         self.send_data_to_page(
             "page_customers",
             {
@@ -179,12 +200,13 @@ class HardwareController():
         self.hwif.nfc_reader.write(text)
 
     def send_data_to_page(self, page, payload):
-        print(f"Sending barcode to page: {page}")
+        self.logger.info(f"Sending data to page: {page}")
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             page, 
             payload,
         )
+        self.logger.debug(f"Data sent to page: {payload}")
     def __del__(*args, **kwargs):
         print("HardwareController deleted.")
 

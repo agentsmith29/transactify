@@ -16,8 +16,9 @@ import logging
 import logging.config
 from rich.logging import RichHandler
 
-from config import CONFIG
+from config import CONFIG as _CONFIG
 
+CONFIG = _CONFIG
 
 
 LOGGING = {
@@ -44,16 +45,24 @@ LOGGING = {
         'django': {
             'handlers': ['console'],
             'level': 'INFO',
+            'propagate': False,
         },
         'root': {
-            'handlers': ['console'],
+            'handlers': ['richconsole'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        CONFIG.webservice.SERVICE_NAME: {
+            'handlers': ['store_logs_db'],
             'level': 'DEBUG',
+            'propagate': True,
         },
     },
     
 }
 logging.config.dictConfig(LOGGING)
-logging.info("Logging configured.")
+logger = logging.getLogger(f"root.settings")                    
+logger.debug("Logging configured.")
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -68,11 +77,7 @@ SECRET_KEY = 'django-insecure-%$_5dhp*byaq92$0iz*751&e27y_=ray(kys90(%ppy8e6!nna
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-SERVICE_NAME = os.getenv('SERVICE_NAME', 'terminal')
-DJANGO_WEB_HOST = os.getenv('DJANGO_WEB_HOST', 'localhost')
-STORE_NAME = os.getenv('SERVICE_NAME', 'store')
-HOSTNAME = os.getenv('HOSTNAME', 'localhost')
-CONTAINER_NAME = os.getenv('CONTAINER_NAME', 'store_db')
+logger.warning(f"The DEBUG setting is set to {DEBUG}. Change to False in production.")
 
 ALLOWED_HOSTS = [
     CONFIG.container.HOSTNAME,
@@ -83,7 +88,7 @@ ALLOWED_HOSTS = [
     #
     'localhost', '127.0.0.1'
 ] 
-logging.info(f"Allowed hosts: {ALLOWED_HOSTS}.".replace('[','').replace(']',''))
+logger.info(f"Allowed hosts: {ALLOWED_HOSTS}.".replace('[','').replace(']',''))
 
 
 # Application definition
@@ -162,7 +167,7 @@ DATABASES = {
     # },
 }
 
-print(f"Database: {DATABASES}.")
+logger.info(f"Database settings: {DATABASES}.")
 
 
 # Password validation
@@ -199,7 +204,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = CONFIG.django.STATIC_URL
+STATIC_ROOT = CONFIG.django.STATIC_ROOT
+logger.debug(f"Static files settings: {STATIC_URL}, {STATIC_ROOT}.")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

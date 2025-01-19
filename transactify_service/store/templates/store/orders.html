@@ -29,7 +29,10 @@
                         <form class="row gy-2 gx-2 align-items-center justify-content-xl-start justify-content-between">
                             <div class="col-auto">
                                 <label for="search-input" class="visually-hidden">Search</label>
+                                <div id="datatable-length-menu" class="col-auto"></div>
                                 <input type="search" class="form-control" id="search-input" placeholder="Search...">
+                                 <!-- Length Menu will be dynamically added here by DataTables -->
+                                
                             </div>
                         </form>
                     </div>
@@ -42,77 +45,102 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="table-responsive">
-                    <table class="table table-centered table-nowrap mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Date</th>
-                                <th>Product</th>
-                                <th>Payment Status</th>
-                                <th>Customer</th>
-                                <th>Unit Price</th>
-                                <th>Revenue</th>
-                                <th>Expense</th>
-                                <th>Profit</th>
-                                <th>Order Status</th>
-                                <th style="width: 125px;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for purchase in purchases_list %}
-                            <tr>
-                                <td><a href="#" class="text-body fw-bold">#{{ purchase.id }}</a> </td>
-                                <td>{{ purchase.purchase_date|date:"d M Y" }} <small class="text-muted">{{ purchase.purchase_date|time:"H:i A" }}</small></td>
-                                <td>
-                                    <a href="{% url 'product' purchase.product.ean %}" class="text-body fw-bold">
-                                        {{ purchase.product.name }} ({{ purchase.quantity }})
-                                    </a>
+                    <!-- <div id="orders-datatable_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer"> -->
+                    <table id="orders-datatable" class="table table-centered table-nowrap mb-0 product-list-table">
+
+                        <!-- <div class="table-responsive"> -->
+                            <!-- <table class="table table-centered table-nowrap mb-0"> -->
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Date</th>
+                                        <th>Product</th>
+                                        <th>Status</th>
+                                        <th>Customer</th>
+                                        <th>Price</th>
+                                        <th>Revenue</th>
+                                        <th>Expense</th>
+                                        <th>Profit</th>
+                                        <th>Order Status</th>
+                                        <th style="width: 125px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for purchase in purchases_list %}
+                                    <tr>
+                                        <td><a href="#" class="text-body fw-bold">#{{ purchase.id }}</a> </td>
+                                        <td>{{ purchase.purchase_date|date:"d M Y" }} <small class="text-muted">{{ purchase.purchase_date|time:"H:i A" }}</small></td>
+                                        <td>
+                                            <a href="{% url 'product' purchase.product.ean %}" class="text-body fw-bold">
+                                                {{ purchase.product.name }} ({{ purchase.quantity }})
+                                            </a>
+                                            
+                                        </td>
+                                        <td>
+                                            {% if purchase.payment_status == 'Pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                            {% elif purchase.payment_status == 'Failed' %}
+                                            <span class="badge bg-danger">Failed</span>
+                                            {% else %}
+                                            <span class="badge bg-success">Paid</span>
+                                            {% endif %}
+                                        </td>
                                     
-                                </td>
-                                <td>
-                                    {% if purchase.payment_status == 'Pending' %}
-                                    <span class="badge bg-warning">Pending</span>
-                                    {% elif purchase.payment_status == 'Failed' %}
-                                    <span class="badge bg-danger">Failed</span>
-                                    {% else %}
-                                    <span class="badge bg-success">Paid</span>
-                                    {% endif %}
-                                </td>
-                               
-                                <td>
-                                    <a href="{% url 'customer' purchase.customer.card_number %}" class="text-body fw-bold">
-                                        {{ purchase.customer.user.first_name }} {{ purchase.customer.user.last_name }}
-                                    </a>
-                                </td>
-                                <td>&euro; {{ purchase.purchase_price|floatformat:2 }}</td>
-                                <td>&euro; {{ purchase.revenue|floatformat:2 }}</td>
-                                <td>&euro; {{ purchase.expenses|floatformat:2 }}</td>
-                                <td>&euro; {{ purchase.profit|floatformat:2 }}</td>
-                                <td>
-                                    <a href="javascript:void(0);" class="action-icon"> <i class="mdi mdi-eye"></i></a>
-                                    <a href="javascript:void(0);" class="action-icon"> <i class="mdi mdi-square-edit-outline"></i></a>
-                                    <a href="javascript:void(0);" class="action-icon"> <i class="mdi mdi-delete"></i></a>
-                                </td>
-                                <td>
-                                    {% if purchase.order_status == 'Pending' %}
-                                    <span class="badge bg-warning">Pending</span>
-                                    {% elif purchase.order_status == 'cancelled' %}
-                                    <span class="badge bg-danger">Cancelled</span>
-                                    {% else %}
-                                    <span class="badge bg-success">Completed</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
+                                        <td>
+                                            <a href="{% url 'customer' purchase.customer.card_number %}" class="text-body fw-bold">
+                                                {{ purchase.customer.user.first_name }} {{ purchase.customer.user.last_name }}
+                                            </a>
+                                        </td>
+                                        <td>&euro; {{ purchase.purchase_price|floatformat:2 }}</td>
+                                        <td>&euro; {{ purchase.revenue|floatformat:2 }}</td>
+                                        <td>&euro; {{ purchase.expenses|floatformat:2 }}</td>
+                                        <td>&euro; {{ purchase.profit|floatformat:2 }}</td>
+                                        <td>
+                                            <a href="javascript:void(0);" class="action-icon"> <i class="mdi mdi-eye"></i></a>
+                                            <a href="javascript:void(0);" class="action-icon"> <i class="mdi mdi-square-edit-outline"></i></a>
+                                            <a href="javascript:void(0);" class="action-icon"> <i class="mdi mdi-delete"></i></a>
+                                        </td>
+                                        <td>
+                                            {% if purchase.order_status == 'Pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                            {% elif purchase.order_status == 'cancelled' %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                            {% else %}
+                                            <span class="badge bg-success">Completed</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            <!-- </table> -->
+                        <!-- </div> -->
                     </table>
                 </div>
+
             </div> <!-- end card-body -->
         </div> <!-- end card -->
     </div> <!-- end col -->
 </div>
 <!-- end row -->
 
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }} 
+    
+    <script src="{% static_assets 'js/pages/store.orders.js' %}"></script>
+    <!-- third party js -->
+    <script src="{% static_assets 'js/vendor/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static_assets 'js/vendor/dataTables.bootstrap5.js' %}"></script>
+    <script src="{% static_assets 'js/vendor/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static_assets 'js/vendor/responsive.bootstrap5.min.js' %}"></script>
+    <script src="{% static_assets 'js/vendor/dataTables.checkboxes.min.js' %}"></script>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            window.manage_orders = new ManageOrders("{% url 'orders' %}");
+        });
+    </script> 
 {% endblock %}

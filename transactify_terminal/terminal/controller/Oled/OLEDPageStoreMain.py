@@ -48,10 +48,22 @@ class OLEDPageStoreMain(OLEDPage):
                                                stores=self.stores,
                                                barcode=barcode) 
 
-    def on_nfc_read(self, sender, id, text, **kwargs):
-        customer_entry = self._fetch_customer(view_controller=self.view_controller, 
+    def on_nfc_read(self, sender, id, **kwargs):
+        try:
+            customer_entry = self._fetch_customer(view_controller=self.view_controller, 
                                                 store=self.store, 
                                                 card_number=id)
+            if not customer_entry:
+                return None
+        except Exception as e:
+            self.logger.error(f"Error: {e}")
+            self.view_controller.request_view(self.view_controller.PAGE_ERROR, 
+                                              error_title="Fetch Customer Error",
+                                              error_message=str(e),
+                                              # Next view handler
+                                              next_view=self.view_controller.PAGE_MAIN, store=self.store)
+            return
+        
         self.view_controller.request_view(self.view_controller.PAGE_CUSTOMER, 
                                               store=self.store, 
                                               customer=customer_entry,
@@ -61,3 +73,9 @@ class OLEDPageStoreMain(OLEDPage):
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):
         if kypd_btn == OLEDPage.BTN_BACK:
             self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)
+
+    def on_websocket_disconnect(self, sender, **kwargs):
+        self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)
+
+    def on_websocket_connect(self, sender, **kwargs):
+        self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)

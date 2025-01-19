@@ -1,24 +1,26 @@
 import json
 import uuid
-from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
-from django.dispatch import Signal
+
 from django.utils import timezone
 
-class WebsocketSignals:
-    on_connect = Signal()
-    on_disconnect = Signal()
+from terminal.consumers.BaseConsumer import BaseAsyncWebsocketConsumer
+from terminal.consumers.BaseConsumer import WebsocketSignals
 
 
-class TerminalConsumer(AsyncWebsocketConsumer):
+
+
+class TerminalConsumer(BaseAsyncWebsocketConsumer):
     signals = WebsocketSignals()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     async def connect(self):
         """
         Handle a new WebSocket connection.
         """
         self.uid = str(uuid.uuid4())  # Generate a unique connection UID
-        print(f"WebSocket connection established. UID: {self.uid}")
         await self.accept()
 
         # Reset all connections on server restart
@@ -32,7 +34,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         """
         Handle WebSocket disconnection.
         """
-        print(f"WebSocket connection closed. UID: {self.uid}")
+        self.logger.info(f"WebSocket connection closed. UID: {self.uid}")
         await self.set_connection_inactive(self.uid)
 
     async def receive(self, text_data):
@@ -41,7 +43,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         """
         try:
             data = json.loads(text_data)
-            print(f"Received data: {data}")
+            self.logger.debug(f"Received data: {data}")
             name = data.get("name")
             address = data.get("address")
             docker_container = data.get("docker_container")
@@ -65,8 +67,8 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
         # check if the store is already registered
         if Store.objects.filter(service_name=service_name).exists():
-            print(f"Store {service_name} already registered.")
             store = Store.objects.get(service_name=service_name)
+            self.logger.warning(f"Store {store.name} ({store.service_name}) already registered.")
             store.name = name
             store.web_address = address
             store.docker_container = docker_container
@@ -89,7 +91,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
         # Emit a signal for the new store
         self.signals.on_connect.send(sender=self, store=store)
-        print(f"Store {store.name} registered.")
+        self.logger.info(f"Store {store.name} ({store.service_name}) registered.")
 
 
     @sync_to_async
@@ -133,9 +135,9 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
             # Emit a disconnect signal
             self.signals.on_disconnect.send(sender=self, connection=connection)
-            print(f"Connection {uid} marked as inactive.")
+            self.logger.warning(f"Connection {uid} marked as inactive.")
         except StoreConnection.DoesNotExist:
-            print(f"Connection {uid} not found.")
+            self.logger.warning(f"Connection {uid} not found.")
 
     @sync_to_async
     def reset_all_connections(self):
@@ -146,4 +148,4 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
         StoreConnection.objects.filter(is_active=True).update(is_active=False, disconnected_at=timezone.now())
         Store.objects.filter(is_connected=True).update(is_connected=False)
-        print("All connections reset on server restart.")
+        self.logger.warning("All connections reset on server restart.")
