@@ -1,6 +1,5 @@
 from django.dispatch import Signal
 from .OLEDPage import OLEDPage
-#from ...StoreProduct import StoreProduct
 
 import os
 import requests
@@ -8,7 +7,7 @@ import requests
 from .OLEDPageStoreMain import OLEDPageStoreMain
 from .OLEDStoreSelection import OLEDStoreSelection
 from terminal.webmodels.Store import Store
-from ...api_endpoints.StoreProduct import StoreProduct
+from terminal.api_endpoints.APIFetchStoreProduct import APIFetchStoreProduct
 
 from ...api_endpoints.APIFetchCustomer import Customer
 from rest_framework import status
@@ -29,10 +28,10 @@ class OLEDPageProduct(OLEDPage):
         super().__init__(*args, **kwargs)
         OLEDPageProduct.name: str = str(self.__class__.__name__)
         self.store: Store = None
-        self.product: StoreProduct = None
+        self.product: APIFetchStoreProduct = None
 
-    def view(self, product: StoreProduct, *args, **kwargs):
-        self.product: StoreProduct = product
+    def view(self, product: APIFetchStoreProduct, *args, **kwargs):
+        self.product: APIFetchStoreProduct = product
         self.store: Store = self.product.store
         
 
@@ -83,7 +82,7 @@ class OLEDPageProduct(OLEDPage):
                                               store=self.product.store) 
     
 
-    def _make_purchase(self, view_controller: 'OLEDViewController', product: StoreProduct, card_number: str):
+    def _make_purchase(self, view_controller: 'OLEDViewController', product: APIFetchStoreProduct, card_number: str):
         view_controller: OLEDViewController
         # Request the webpage from the current store
         customer = self._fetch_customer(view_controller, product.store, card_number)

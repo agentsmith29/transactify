@@ -5,6 +5,7 @@ import threading
 from django.core.signals import setting_changed
 from django.dispatch import Signal
 from .BaseHardware import BaseHardware
+import traceback
 
 class BarcodeScannerSignals():
     barcode_read = Signal()
@@ -23,7 +24,6 @@ class BarcodeScanner(BaseHardware):
         super().__init__(thread_disabled=False)
         
         self.signals = BarcodeScannerSignals()
-        self.buffer = ""  # Temporary storage for incoming data     
         self.start_thread()
 
     def start_thread(self):
@@ -50,6 +50,8 @@ class BarcodeScanner(BaseHardware):
                 timeout=self.global_config.barcode_reader.TIMEOUT
             )
             self.logger.info(f"Serial connection established on port {self.global_config.barcode_reader.DEVICE_PATH}")
+            self.buffer = ""  # Temporary storage for incoming data     
+            self.barcode = ""  # The final barcode string
         except serial.SerialException as e:
             self.logger.error(f"Error connecting to serial port {self.global_config.barcode_reader.DEVICE_PATH}: {e}")
             return
@@ -61,17 +63,22 @@ class BarcodeScanner(BaseHardware):
             if raw_data:
                 self.buffer += raw_data  # Append incoming data to the buffer
                 
-                if '\r' in buffer and '\n' in buffer:
-                    line = "".join(buffer.splitlines())  # Remove newline characters
+                if '\r' in self.buffer  and '\n' in self.buffer:
+                    line = "".join(self.buffer.splitlines())  # Remove newline characters
                     line = line.strip()  # Remove leading/trailing whitespace
                     
                     if line:  # Ensure the line is not empty
                         self.logger.debug(f"Received complete barcode: {line}")
-                        self.signals.barcode_read.send(sender=self, barcode=line)
-                        #HardwareController.send_message_to_manage_clients(line)
-                        buffer = ""  # Clear the buffer
-                        line = ""
-                        barcode = ""
+                        try:
+                            self.signals.barcode_read.send(sender=self, barcode=line)
+                        except Exception as e:
+                            print(traceback.print_exc())
+                            raise e
+                        finally:
+                            #HardwareController.send_message_to_manage_clients(line)
+                            self.buffer = ""  # Clear the buffer
+                            line = ""
+
         except serial.SerialException as e:
             self.logger.error(f"Serial error on port {self.global_config.barcode_reader.DEVICE_PATH}: {e}")
         except Exception as e:

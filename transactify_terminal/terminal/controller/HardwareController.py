@@ -22,7 +22,7 @@ from terminal.webmodels.Store import Store
 
 from terminal.webmodels.Store import Store
 
-from ..api_endpoints.StoreProduct import StoreProduct
+from terminal.api_endpoints.APIFetchStoreProduct import APIFetchStoreProduct
 from ..api_endpoints.APIFetchCustomer import Customer
 
 from requests.models import Response
@@ -128,17 +128,9 @@ class HardwareController():
         pass
     
     def on_barcode_read(self, sender, barcode, **kwargs):
-        self.send_data_to_page(
-            "page_products",
-            {
-                "type": "page_message",
-                "message": f"New scanned barcode: {barcode}",
-                "barcode": barcode,
-            }
-        )
-        self.send_data_to_page(
-            "page_stocks",
-            {
+        self.send_data_to_pages(
+            pages=["page_products", "page_stocks"],
+            payload={
                 "type": "page_message",
                 "message": f"New scanned barcode: {barcode}",
                 "barcode": barcode,
@@ -147,7 +139,7 @@ class HardwareController():
 
     def on_nfc_tag_id_read(self, sender, id, **kwargs):
         self.logger.info(f"New scanned NFC Tag: {id}")
-        self.send_data_to_page(
+        self.send_data_to_pages(
             "page_customers",
             {
                 "type": "page_message",
@@ -199,14 +191,34 @@ class HardwareController():
         #await loop.run_in_executor(None, self.reader.write, text)
         self.hwif.nfc_reader.write(text)
 
-    def send_data_to_page(self, page, payload):
-        self.logger.info(f"Sending data to page: {page}")
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            page, 
-            payload,
-        )
-        self.logger.debug(f"Data sent to page: {payload}")
+    def send_data_to_pages(self, pages, payload):
+        _data_sent = {}
+
+        if not isinstance(pages, list):
+            pages = [pages]
+        for page in pages:
+            self.logger.debug(f"Sending data to page {page}: {payload}")
+            try:
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    page, 
+                    payload,
+                )
+                _data_sent[page] = payload
+                _data_sent[page]= 'success'
+            except Exception as e:
+                _data_sent[page]= 'failed'
+                self.logger.error(f"Failed to send data to page {page}: {e}")
+
+        try:
+            pages_success = [page for page in _data_sent if _data_sent[page]== 'success']
+            pages_failed = [page for page in _data_sent if _data_sent[page] == 'failed']
+            self.logger.info(f"Data sent to pages {pages_success} ({len(pages_success)}/{len(pages)}): {payload}")
+            if pages_failed:
+                self.logger.error(f"Failed to send data to page {pages_failed} ({len(pages_failed)}/{len(pages)}): {payload}")
+        except Exception as e:
+            self.logger.error(f"Failed to log data sent to pages: {e}")
+
     def __del__(*args, **kwargs):
         print("HardwareController deleted.")
 

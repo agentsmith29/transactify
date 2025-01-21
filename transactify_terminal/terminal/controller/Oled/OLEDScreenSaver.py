@@ -7,7 +7,7 @@ from terminal.webmodels.Store import Store
 from .OLEDPage import OLEDPage
 import os
 
-from terminal.api_endpoints.StoreProduct import StoreProduct
+from terminal.api_endpoints.APIFetchStoreProduct import APIFetchStoreProduct
 from terminal.api_endpoints.APIFetchCustomer import Customer
 import requests
 

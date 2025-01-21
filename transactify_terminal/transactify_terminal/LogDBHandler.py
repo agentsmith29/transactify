@@ -50,7 +50,7 @@ class LogDBHandler(logging.Handler):
             file_name=record.filename
         )
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord):
         # Ensure the current thread has an event loop
         try:
             loop = asyncio.get_running_loop()
@@ -65,20 +65,25 @@ class LogDBHandler(logging.Handler):
             # Fallback to synchronous emit if no loop is running
             self._emit_sync(record)
 
-    async def _emit_async(self, record):
+    async def _emit_async(self, record: logging.LogRecord):
         traceback_obj = None
+        record.name = f"{record.name} (async)"
         if record.levelno >= logging.ERROR:
             traceback_obj = await self._handle_traceback_async(record)
+            
         try:
             await self._log_to_db_async(record, traceback_obj)
         except Exception as e:
             record.name = f"{record.name} (no DB)"
             print(f"Failed to log to database (async): {e}")
 
-    def _emit_sync(self, record):
+    def _emit_sync(self, record: logging.LogRecord):
         traceback_obj = None
         if record.levelno >= logging.ERROR:
+            # on error append Line number and file name to the message
             traceback_obj = self._handle_traceback_sync(record)
+            last_traceback_line = traceback_obj.traceback.splitlines()[-3:-1]
+            record.msg = f"\nError on line {record.lineno} in {record.filename}:\n[E] {record.getMessage()}\n[TB] {last_traceback_line}"
         try:
             self._log_to_db_sync(record, traceback_obj)
         except Exception as e:

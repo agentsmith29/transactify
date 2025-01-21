@@ -5,7 +5,7 @@ import os
 from .OLEDPageStoreMain import OLEDPageStoreMain
 
 from terminal.api_endpoints.APIFetchCustomer import Customer
-from terminal.api_endpoints.StoreProduct import StoreProduct
+from terminal.api_endpoints.APIFetchStoreProduct import APIFetchStoreProduct
 
 #from ...webmodels.CustomerBalance import CustomerBalance
 
@@ -16,7 +16,7 @@ class OLEDPagePurchaseSuccessfull(OLEDPage):
         super().__init__(*args, **kwargs)
         OLEDPagePurchaseSuccessfull.name: str = str(self.__class__.__name__)
 
-    def view(self, customer: Customer, product: StoreProduct, next_view = None, *args, **kwargs):
+    def view(self, customer: Customer, product: APIFetchStoreProduct, next_view = None, *args, **kwargs):
         balance = 0#CustomerBalance.objects.get(customer=customer)
 
         image, draw = self._post_init()

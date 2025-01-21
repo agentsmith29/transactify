@@ -4,8 +4,8 @@ from terminal.webmodels.Store import Store
 from .OLEDPage import OLEDPage
 import os
 
-from ...api_endpoints.StoreProduct import StoreProduct
-from ...api_endpoints.APIFetchCustomer import Customer
+from terminal.api_endpoints.APIFetchStoreProduct import APIFetchStoreProduct
+from terminal.api_endpoints.APIFetchCustomer import Customer
 import requests
 
 class OLEDStoreSelection(OLEDPage):
@@ -59,21 +59,7 @@ class OLEDStoreSelection(OLEDPage):
                                                   store=self.selected_store, display_back=True)
         #self.display_message_overlay("Scan NFC to select store")
     
-    def _fetch_customer(self, view_controller: 'OLEDViewController', store: StoreProduct, card_number: str):
-        try:
-            self.logger.info(f"Fetching customer from API for store {store.name} and card number {card_number}")
-            return Customer.get_from_api(store, card_number)
-        except requests.exceptions.RequestException as e:
-            print(f"Error: {e}")
-            if int(e.response.json().get('code')) != 10:
-                view_controller.request_view(view_controller.PAGE_ERROR, 
-                                        error_title=f"Error {e.response.json().get('code')}", 
-                                        error_message=e.response.json().get("message"),
-                                        # Next view handler
-                                        next_view=view_controller.PAGE_MAIN,
-                                        store=store)
-            return None
-        
+
     def on_nfc_read(self, sender, id, **kwargs):
         #customer_entries = [self._fetch_customer(self.view_controller, store, card_number=id) for store in self.stores if not None]
         customer_entries = []
@@ -103,6 +89,7 @@ class OLEDStoreSelection(OLEDPage):
             self.display_message_overlay("Multiple store entries. Please use select the store to display the balance.")
 
     def on_barcode_read(self, sender, barcode, **kwargs):
+        self.logger.debug(f"OLED page received barcode: {barcode}")
         self._on_barcode_read_request_products_view(view_controller=self.view_controller, 
                                                stores=self.stores,
                                                barcode=barcode) 

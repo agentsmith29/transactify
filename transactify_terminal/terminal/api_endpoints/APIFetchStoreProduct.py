@@ -8,12 +8,17 @@ from decimal import Decimal
 from .APIFetchCustomer import Customer
 
 from requests.models import Response
-from ..api_endpoints.APIFetchException import APIFetchException
+from terminal.api_endpoints.APIFetchException import APIFetchException
 from rest_framework import status
 from rest_framework.request import Request
 
-class StoreProduct:
+from .APIBaseClass import APIBaseClass
+import logging
+from transactify_terminal.settings import CONFIG
+
+class APIFetchStoreProduct(APIBaseClass):
     def __init__(self, store: Store, ean: str, name: str, stock_quantity: int, discount: Decimal, resell_price: Decimal, final_price: Decimal):
+        super().__init__()
         self.store = store
         self.ean = ean
         self.name = name
@@ -32,13 +37,20 @@ class StoreProduct:
         Returns:
             StoreProduct instance if product is found; otherwise None.
         """
-        for store in stores:
+        logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.{cls.__class__.__name__}")  
+        if ean is None or ean == "":
+            logger.error("EAN cannot be empty.")
+            raise ValueError("EAN cannot be empty.")
+       
+        for storenum, store in enumerate(stores):
+            logger.info(f"({storenum}/{len(store)}) Fetching product from {store}")
             try:
                 # Construct the API URL
                 api_url = f"{store.web_address}/api/products/{ean}/?format=json"
-                print(f"Fetching product from {api_url}")
+                logger.debug(f"Fetching product data API: {api_url}")
                 # Fetch product details
                 response = requests.get(api_url)
+                logger.debug(f"API response recieved: {response}")
                 response.raise_for_status()  # Raise an exception for HTTP errors
 
                 product_data = response.json()
@@ -46,7 +58,7 @@ class StoreProduct:
                 # Validate response data
                 if not all(key in product_data for key in ['ean', 'name', 'stock_quantity', 'discount', 'resell_price', 'final_price']):
                     # Change No. #1: Ensure all required keys are present in the response.
-                    print(f"Invalid data structure from API response at {store.address}")
+                    logger.warning(f"Invalid data structure from API response at {store.web_address}")
                     continue
 
                 # Create an instance of StoreProduct with the fetched data
@@ -60,12 +72,12 @@ class StoreProduct:
                     final_price=Decimal(product_data.get('final_price', 0)),
                 )
             except requests.exceptions.RequestException as e:
-                print(f"Failed to fetch product from {store}: {e}")
+                logger.error(f"Failed to fetch product from {store}: {e}")
                 traceback.print_exc()
             except KeyError as e:
-                print(f"Missing expected key in API response from {store}: {e}")
+                logger.error(f"Missing expected key in API response from {store}: {e}")
             except Exception as e:
-                print(f"Unexpected error when fetching product from {store}: {e}")
+                logger.error(f"Unexpected error when fetching product from {store}: {e}")
                 traceback.print_exc()
 
                 

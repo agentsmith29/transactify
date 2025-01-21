@@ -18,8 +18,8 @@ if TYPE_CHECKING:
 
 from terminal.webmodels.Store import Store
 
-from ...api_endpoints.StoreProduct import StoreProduct
-from ...api_endpoints.APIFetchCustomer import Customer
+from terminal.api_endpoints.APIFetchStoreProduct import APIFetchStoreProduct
+from terminal.api_endpoints.APIFetchCustomer import Customer
 
 from random import randint
 from luma.core.render import canvas
@@ -463,13 +463,16 @@ class OLEDPage():
     # =================================================================================================================
     def _on_barcode_read_request_products_view(self, view_controller: 'OLEDViewController',
                                                 stores: list[Store], barcode: str):
-        current_product = StoreProduct.get_from_api(stores, barcode)
-        print(f"json: {current_product}")
+        self.logger.debug(f"Fetching product with barcode {barcode} from stores: {stores}.")
+        current_product = APIFetchStoreProduct.get_from_api(stores, barcode)
+        
         if current_product:
+            self.logger.debug(f"Product found: {current_product}")
             view_controller.request_view(view_controller.PAGE_PRODUCT, 
                                               product=current_product)
+            
         else:
-            print(f"Product not found: {barcode}")
+            self.logger.warning(f"Product not found: {barcode}")
             view_controller.request_view(
                 view_controller.PAGE_PRODUCT_UNKNW, 
                 ean=barcode, 

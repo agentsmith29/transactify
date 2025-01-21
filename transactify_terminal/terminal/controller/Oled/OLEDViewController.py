@@ -30,7 +30,7 @@ import threading
 
 
 from terminal.webmodels.Store import Store
-from ...api_endpoints.StoreProduct import StoreProduct
+from terminal.api_endpoints.APIFetchStoreProduct import APIFetchStoreProduct
 from luma.oled.device import ssd1322 as OLED
 #from luma.lcd.device import ili9341 as OLED
 
