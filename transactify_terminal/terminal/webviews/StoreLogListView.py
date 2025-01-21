@@ -3,7 +3,7 @@ from terminal.webmodels.StoreLogs import StoreLog
 
 class StoreLogListView(ListView):
     model = StoreLog
-    template_name = 'store/view_logs.html'
+    template_name = 'hwcontroller/view_logs.html'
     context_object_name = 'logs'
     paginate_by = 10  # Paginate the logs (10 per page)
 

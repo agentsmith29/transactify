@@ -12,6 +12,8 @@ from store.webmodels.Customer import Customer
 from store.webmodels.CustomerPurchase import CustomerPurchase
 
 from store import StoreLogsDBHandler
+from transactify_service.settings import CONFIG
+import logging
 import traceback
 
 import json
@@ -19,6 +21,10 @@ import json
 @method_decorator(login_required, name='dispatch')
 class WebViewOrders(View):
     template_name = 'store/orders.html'
+
+    def __init__(self, **kwargs):
+        self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.webviews.{self.__class__.__name__}")
+        super().__init__(**kwargs)
 
     def get(self, request):
         context = {'purchases_list': CustomerPurchase.objects.filter().all().order_by('-purchase_date'),

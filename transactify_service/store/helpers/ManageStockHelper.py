@@ -24,6 +24,9 @@ from transactify_service.HttpResponses import HTTPResponses
 from .Exceptions import HelperException
 import store.StoreLogsDBHandler	  # Import your custom logging here
 import logging
+
+from transactify_service.settings import CONFIG
+
 class StoreHelper:
 
     @staticmethod

@@ -20,15 +20,17 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from django.contrib.auth.models import User
     
+from transactify_service.settings import CONFIG
+import logging
 
 class ManageCustomersView(View, LoginRequiredMixin):
     """Class-based view to handle customer-related operations."""
     template_name = 'store/customers.html'
 
-    def __init__(self):
-        super().__init__()
-        self.logger = StoreLogsDBHandler.setup_custom_logging('ManageCustomersView')
-        self.conf: Config = settings.CONFIG
+    def __init__(self, **kwargs):
+        self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.webviews.{self.__class__.__name__}")
+        super().__init__(**kwargs)
+
 
     def fetch_nfc_data(self):
         """Fetch NFC data synchronously using requests."""

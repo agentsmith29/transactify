@@ -1,6 +1,3 @@
-
-
-
 export MAIN_DB="cashless_donknabberello_1"
 export PGPASSWORD="PASSWORD"
 export PGUSER="USER"
@@ -9,6 +6,7 @@ export DJANGO_SUPERUSER_PASSWORD="admin"
 export DJANGO_SUPERUSER_USERNAME="admin"
 export DJANGO_SUPERUSER_EMAIL="$DJANGO_SUPERUSER_PASSWORD@$DJANGO_SUPERUSER_USERNAME.com"
 
+export "RUN_SERVER"="false"
 export  "INIT_DATA"=0
 if [ "$INIT_DATA" = "1" ]; then
     echo "Initializing data..."
@@ -22,5 +20,4 @@ if [ "$INIT_DATA" = "1" ]; then
 fi
 
 export "RUN_SERVER"="true"
-
 daphne -b 0.0.0.0 -p 8880 transactify_service.asgi:application

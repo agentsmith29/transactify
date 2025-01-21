@@ -5,10 +5,17 @@ from store.webmodels.StoreProduct import StoreProduct
 from store.webmodels.CustomerPurchase import CustomerPurchase
 from django.shortcuts import render
 
+from transactify_service.settings import CONFIG
+import logging
+
 class StoreProductDetailView(DetailView):
     model = StoreProduct
     template_name = "store/product_details.html"
     context_object_name = "product"
+
+    def __init__(self, **kwargs):
+        self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.webviews.{self.__class__.__name__}")
+        super().__init__(**kwargs)
 
     def get_object(self, ean):
         """

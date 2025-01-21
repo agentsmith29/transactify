@@ -178,49 +178,6 @@
         <ul class="nav nav-pills flex-column mb-auto">
             <li class="nav-item">
                 {% load static %}
-                <a href="{% url 'dashboard' %}" class="nav-link" aria-current="page">
-                    <img src="{% static 'icons/svg/house.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
-                    Dashboard
-                </a>
-            </li>
-            <hr>
-            <li>
-                <a href="{% url 'summary' %}" class="nav-link 
-                {% if request.path|regex_match:'^/.*/summary/$' %}active{% else %}text-white{% endif %}">
-                <img src="{% static 'icons/svg/graph-up.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
-                Summary
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'manage_products' %}" class="nav-link {% if request.path|regex_match:'^/.*/manage-products/$' %}active{% else %}text-white{% endif %}" aria-current="page">
-                    <img src="{% static 'icons/svg/database.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
-                    Manage Products
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'manage_stock' %}" class="nav-link {% if request.path|regex_match:'^/.*/manage-stock/$' %}active{% else %}text-white{% endif %}">
-                    <img src="{% static 'icons/svg/database-add.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
-                    Update Stock
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'customers' %}" class="nav-link {% if request.path|regex_match:'^/.*/customers/$' %}active{% else %}text-white{% endif %}">
-                    <img src="{% static 'icons/svg/person-add.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
-                    Manage Customers
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'customers' %}" class="nav-link {% if request.path|regex_match:'^/.*/present_card/$' %}active{% else %}text-white{% endif %}">
-                    <img src="{% static 'icons/svg/person-gear.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
-                    Edit Customer
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'make_sale' %}" class="nav-link {% if request.path|regex_match:'^/.*/make-sale/$' %}active{% else %}text-white{% endif %}">
-                    <img src="{% static 'icons/svg/house.svg' %}" class="bi pe-none me-2 icon-white" width="16" height="16" alt="Home">
-                    Make a Sale
-                </a>
-            </li>
            
             <li>
                 <a href="{% url 'logs' %}" class="nav-link {% if request.path|regex_match:'^/.*/logs/$' %}active{% else %}text-white{% endif %}">

@@ -13,6 +13,8 @@ from store.webmodels.CustomerPurchase import CustomerPurchase
 import random
 from datetime import datetime, timedelta
 
+from transactify_service.settings import CONFIG
+
 class Product():
     def __init__(self, name, ean, weight, resell_price):
         self.name = name
@@ -44,7 +46,7 @@ class HistoricalData():
 
     def __init__(self):
         debug_offset_date = timedelta(days=0)
-        self.logger = logging.getLogger('HistData')    
+        self.logger = logging.getLogger(f'{CONFIG.webservice.SERVICE_NAME}.Mocker') 
         self.username = "anonymous"
         self.first_name = "Anon"
         self.last_name = "Ymous"

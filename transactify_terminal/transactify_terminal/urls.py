@@ -21,7 +21,7 @@ from transactify_terminal.settings import CONFIG
 from transactify_terminal.views import health_check
 
 urlpatterns = [
-    path(CONFIG.webservice.SERVICE_NAME + 'admin/', admin.site.urls),
+    path(CONFIG.webservice.SERVICE_NAME + '/admin/', admin.site.urls),
     path(CONFIG.webservice.SERVICE_NAME + "/", include('terminal.urls')),
     path(f'{CONFIG.webservice.SERVICE_NAME}/health/', health_check),
 ]

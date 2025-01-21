@@ -6,10 +6,13 @@ from django.apps import AppConfig
 from config.Config import Config
 from django.conf import settings
 import websockets
-
+from transactify_service.settings import CONFIG
+import logging
 
 class PersistentWebSocket:
     def __init__(self, ws_url, store_config):
+        
+        self.logger = logging.getLogger(f'{CONFIG.webservice.SERVICE_NAME}.websocket')
         self.ws_url = ws_url
         self.store_config = store_config
         self.keep_running = True
@@ -21,19 +24,18 @@ class PersistentWebSocket:
         while self.keep_running:
             try:
                 # Connect to the WebSocket server
-                print(f"Connecting to {self.ws_url}")
+                self.logger.info(f"Connecting to {self.ws_url}")
                 async with websockets.connect(self.ws_url) as websocket:
                     # Send the store configuration
                     await websocket.send(json.dumps(self.store_config))
-                    print(f"Sent store config to terminal: {self.store_config}")
+                    self.logger.debug(f"Sent store config to terminal: {self.store_config}")
 
                     # Listen for messages
                     while self.keep_running:
                         response = await websocket.recv()
-                        print(f"Message from terminal: {response}")
+                        self.logger.debug(f"Message from terminal: {response}")
             except Exception as e:
-                print(f"WebSocket connection failed: {e}")
-                print("Retrying in 5 seconds...")
+                self.logger.debug(f"WebSocket connection failed: {e}. Retrying in 5 seconds...")
                 await asyncio.sleep(5)  # Wait before retrying
 
     def run_in_background(self):
@@ -50,7 +52,7 @@ class PersistentWebSocket:
         """
         thread = threading.Thread(target=self.run_in_background, daemon=True)
         thread.start()
-        print("WebSocket connection started in the background.")
+        self.logger.info("WebSocket connection started in the background.")
 
     def stop(self):
         """

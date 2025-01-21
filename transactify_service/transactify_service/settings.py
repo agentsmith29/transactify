@@ -19,7 +19,6 @@ from rich.logging import RichHandler
 
 from config import CONFIG
 
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -27,7 +26,7 @@ LOGGING = {
     'handlers': {
         'store_logs_db': {
             'level': 'DEBUG',
-            'class': 'store.StoreLogsDBHandler.StoreLogsDBHandler',
+            'class': 'store.StoreLogsDBHandler.LogDBHandler',
         },
         'richconsole': {
             'level': 'DEBUG',
@@ -44,21 +43,26 @@ LOGGING = {
         'django': {
             'handlers': ['console'],
             'level': 'INFO',
+            'propagate': False,
         },
         'root': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
+            'handlers': ['richconsole'],
+            'level': 'INFO',
+            'propagate': False,
         },
-        'websockets':
-        {
-            'handlers': ['console'],
-            'level': 'WARNING',
+        CONFIG.webservice.SERVICE_NAME: {
+            'handlers': ['store_logs_db'],
+            'level': 'DEBUG',
+            'propagate': True,
         },
     },
     
 }
 logging.config.dictConfig(LOGGING)
-logging.info("Logging configured.")
+logger = logging.getLogger(f"root.settings")                    
+logger.debug("Logging configured.")
+
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -85,7 +89,7 @@ ALLOWED_HOSTS = [
     #
     'localhost', '127.0.0.1'
 ] 
-logging.info(f"Allowed hosts: {ALLOWED_HOSTS}.".replace('[','').replace(']',''))
+logger.info(f"Allowed hosts: {ALLOWED_HOSTS}.".replace('[','').replace(']',''))
 
 
 # Application definition
@@ -165,17 +169,10 @@ DATABASES = {
         'HOST': CONFIG.database.HOST,
         'PORT': CONFIG.database.PORT,
     },
-    # 'USER': {
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'NAME': 'USER',
-    #     'USER': os.getenv('DJANGO_DB_USER', 'default_user'),
-    #     'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', 'default_password'),
-    #     'HOST': os.getenv('DJANGO_DB_HOST', 'localhost'),
-    #     'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
-    # },
 }
 
-print(f"Database: {DATABASES}.")
+logger.info(f"Database settings: {DATABASES}.")
+
 # Use in-memory SQLite for testing
 if 'test' in sys.argv:
     DATABASES['default'] = {
@@ -226,6 +223,7 @@ USE_TZ = True
 
 STATIC_URL = CONFIG.django.STATIC_URL
 STATIC_ROOT = CONFIG.django.STATIC_ROOT
+logger.debug(f"Static files settings: {STATIC_URL}, {STATIC_ROOT}.")
 #print(STATIC_ROOT)
 #print(STATIC_URL)
 

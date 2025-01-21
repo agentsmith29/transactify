@@ -14,13 +14,17 @@ import traceback
 
 import json
 
+from transactify_service.settings import CONFIG
+import logging
+
 @method_decorator(login_required, name='dispatch')
 class ManageProductsView(View):
     template_name = 'store/products.html'
 
-    def __init__(self):
-        super().__init__()
-        self.logger = StoreLogsDBHandler.setup_custom_logging('ManageProductsView')
+    def __init__(self, **kwargs):
+        self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.webviews.{self.__class__.__name__}")
+        super().__init__(**kwargs)
+
 
 
     def get(self, request):

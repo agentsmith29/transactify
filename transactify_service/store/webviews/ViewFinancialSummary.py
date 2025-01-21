@@ -20,6 +20,8 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.db.models import Sum
 
+from transactify_service.settings import CONFIG
+import logging
 
 
 # import datetime
@@ -160,7 +162,9 @@ class FinancialMetrics:
 class Summary(View):
     template_name = 'store/summary.html'
 
-
+    def __init__(self, **kwargs):
+        self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.webviews.{self.__class__.__name__}")
+        super().__init__(**kwargs)
 
     def get_customers(self, timespan: tuple[datetime, datetime] = None):
         """ Get the number of customers within a given timespan or all.

@@ -11,30 +11,24 @@ from django.core.paginator import Paginator
 from django.shortcuts import render
 import logging
 
+from transactify_service.settings import CONFIG
+import logging
+
 @method_decorator(login_required, name='dispatch')
 class StoreLogListView(ListView):
     model = StoreLog
     template_name = 'store/view_logs.html'
     context_object_name = 'logs'
-    paginate_by = 10  # Paginate the logs (10 per page)
-    logger = StoreLogsDBHandler.setup_custom_logging('StoreLog')
 
-    def get_queryset(self):
-        logs = StoreLog.objects.all().order_by('-timestamp')
-        logging.info(f"Total logs: {logs.count()}")
-        return logs
+    def __init__(self, **kwargs):
+        self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.webviews.{self.__class__.__name__}")
+        super().__init__(**kwargs)
+
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        queryset = self.get_queryset()
-
-        # Apply manual pagination
-        paginator = Paginator(queryset, self.paginate_by)
-        page_number = self.request.GET.get('page', 1)
-        page_obj = paginator.get_page(page_number)
-
-        context['logs'] = page_obj  # Paginated object
-        return context
+    def get_queryset(self):
+        """Custom queryset to order logs by timestamp (most recent first)."""
+        return StoreLog.objects.all().order_by('-timestamp')
+    
 
     def post(self, request, *args, **kwargs):
         """
