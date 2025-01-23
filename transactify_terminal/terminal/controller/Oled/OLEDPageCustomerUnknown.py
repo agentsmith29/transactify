@@ -43,7 +43,7 @@ class OLEDPageCustomer_Unknown(OLEDPage):
     def on_barcode_read(self, sender, barcode, **kwargs):
         pass
 
-    def on_nfc_read(self, sender, id, text, **kwargs):
+    def on_nfc_read(self, sender, id, **kwargs):
         pass
 
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):

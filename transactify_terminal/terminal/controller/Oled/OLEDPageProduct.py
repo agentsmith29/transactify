@@ -72,7 +72,7 @@ class OLEDPageProduct(OLEDPage):
                                                stores=self.stores,
                                                barcode=barcode) 
 
-    def on_nfc_read(self, sender, id, text, **kwargs):
+    def on_nfc_read(self, sender, id, **kwargs):
         self._make_purchase(view_controller=self.view_controller, product=self.product, card_number=id)
 
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):
