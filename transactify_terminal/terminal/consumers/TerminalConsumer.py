@@ -44,13 +44,35 @@ class TerminalConsumer(BaseAsyncWebsocketConsumer):
         try:
             data = json.loads(text_data)
             self.logger.debug(f"Received data: {data}")
-            name = data.get("name")
-            address = data.get("address")
-            docker_container = data.get("docker_container")
-            terminal_button = data.get("terminal_button")
+            cmd = data.get("cmd")
+            if cmd == "register_store":
+                await self.cmd_register_store(data)
+            elif cmd == "echo":
+                await self.cmd_echo(data)
+            else:
+                await self.cmd_received(data)
+        except json.JSONDecodeError:
+            await self.send(text_data=json.dumps({"status": "error", "message": "Invalid JSON"}))
+
+    async def cmd_echo(self, data):
+        """
+        Echo the received message back to the client.
+        """
+        params = data.get("params")
+        message = params.get("message")
+        response = {"status": "success", "message": f"You sent: {message}", 'cmd': 'echo'}
+        await self.send(text_data=json.dumps(response))
+
+    async def cmd_register_store(self, data):
+        try:
+            params = data.get("params")
+            name = params.get("name")
+            address = params.get("address")
+            docker_container = params.get("docker_container")
+            terminal_button = params.get("terminal_button")
             await self.register_store(docker_container, name, address, docker_container, terminal_button)
 
-            response = {"status": "success", "message": "Message received."}
+            response = {"status": "success", "message": "Store registered", 'cmd': 'register_store'}
             await self.send(text_data=json.dumps(response))
         except json.JSONDecodeError:
             await self.send(text_data=json.dumps({"status": "error", "message": "Invalid JSON"}))
@@ -93,7 +115,6 @@ class TerminalConsumer(BaseAsyncWebsocketConsumer):
         self.signals.on_connect.send(sender=self, store=store)
         self.logger.info(f"Store {store.name} ({store.service_name}) registered.")
 
-
     @sync_to_async
     def register_connection(self, uid, ip, port):
         """
@@ -125,13 +146,13 @@ class TerminalConsumer(BaseAsyncWebsocketConsumer):
         try:
             connection = StoreConnection.objects.get(uid=uid)
             # get all associated stors and set the connection to inactive
+            if connection.store:
+                connection.store.is_connected = False
+                connection.store.save()    
 
-            connection.store.is_connected = False
-            connection.store.save()    
-
-            connection.is_active = False
-            connection.disconnected_at = timezone.now()
-            connection.save()
+                connection.is_active = False
+                connection.disconnected_at = timezone.now()
+                connection.save()
 
             # Emit a disconnect signal
             self.signals.on_disconnect.send(sender=self, connection=connection)
@@ -149,3 +170,11 @@ class TerminalConsumer(BaseAsyncWebsocketConsumer):
         StoreConnection.objects.filter(is_active=True).update(is_active=False, disconnected_at=timezone.now())
         Store.objects.filter(is_connected=True).update(is_connected=False)
         self.logger.warning("All connections reset on server restart.")
+
+    # --- view utilities ---
+    @sync_to_async
+    def cmd_received(self, cmd):
+        """
+        Request the current view from the terminal.
+        """
+        self.signals.on_cmd_received.send(sender=self, cmd=cmd)

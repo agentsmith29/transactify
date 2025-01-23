@@ -24,11 +24,13 @@ from terminal.webmodels.Store import Store
 
 from terminal.api_endpoints.APIFetchStoreProduct import APIFetchStoreProduct
 from ..api_endpoints.APIFetchCustomer import Customer
+from terminal.controller.Oled.OLEDPage import OLEDPage
 
 from requests.models import Response
 import threading
 import os
-from terminal.consumers.TerminalConsumer import WebsocketSignals
+from terminal.consumers.TerminalConsumer import TerminalConsumer
+from terminal.consumers.ScannerConsumer import PageSpecificConsumer
 
 from transactify_terminal.settings import CONFIG
 
@@ -49,14 +51,11 @@ class HardwareController():
             self.logger.error("Multiple initializations of HardwareController. Skipping this initialization.")
             return
 
-        lock_interaction = False
 
         self.hwif = HardwareInterface()
         self.hwif.signals.nfc_thread_status.connect(self.on_nfc_thread_status_changed)
         self.hwif.signals.barcode_thread_status.connect(self.on_barcode_thread_status_changed)
         self.hwif.signals.keypad_thread_status.connect(self.on_keypad_thread_status_changed)
-
-        self.current_view = None #self.view_main
         
         
         self.hwif.barcode_reader.signals.barcode_read.connect(self.on_barcode_read)
@@ -67,16 +66,22 @@ class HardwareController():
         #self.hwif.keypad.signals.key_pressed.connect(self.on_key_pressed)
         #self.store_bases = list(Store.objects.filter(is_connected=True).order_by('terminal_button'))
 
-        WebsocketSignals.on_connect.connect(self.on_websocket_connect)
-        WebsocketSignals.on_disconnect.connect(self.on_websocket_disconnect)
+        #TerminalConsumer.signals.on_connect.connect(self.on_websocket_connect)
+        #TerminalConsumer.signals.on_disconnect.connect(self.on_websocket_disconnect)
+        TerminalConsumer.signals.on_cmd_received.connect(self.on_ws_cmd_received)
+
+        PageSpecificConsumer.on_connect.connect(self.on_page_connect)
+        PageSpecificConsumer.on_disconnect.connect(self.on_page_disconnect)
 
         self.view_controller = OLEDViewController(self.hwif.oled,
                                                   self.hwif.barcode_reader.signals.barcode_read,
                                                   self.hwif.nfc_reader.signals.nfc_tag_id_read,
                                                   self.hwif.keypad.signals.key_pressed,
                                                   #
-                                                  WebsocketSignals.on_connect,
-                                                  WebsocketSignals.on_disconnect,
+                                                  TerminalConsumer.signals.on_connect,
+                                                  TerminalConsumer.signals.on_disconnect,
+                                                  #
+                                                  PageSpecificConsumer.on_disconnect,
                                                   #
                                                   ledstrip=self.hwif.ledstrip)
         
@@ -95,8 +100,8 @@ class HardwareController():
         #    self.view_controller.request_view(self.view_controller.PAGE_MAIN, 
         #                                      store=self.store_bases[0], display_back=False)
         #else:
-        self.logger.info("HardwareController initialized. Requesting store selection view.")
-        self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION)
+        self.logger.info(f"HardwareController initialized. Requesting store selection view. Current {self.view_controller._request_view_set}")
+        self.view_controller.request_view(self.view_controller.PAGE_STORE_SELECTION, sender=self)
 
 
     def on_nfc_reading_status(self, sender, status, **kwargs):
@@ -155,11 +160,34 @@ class HardwareController():
         urls = os.getenv('TARGET_SERVICES', '')  # Example: 'http://service1:8000, http://service2:8000'
         return [url.strip() for url in urls.split(',') if url.strip()]
     
-    def on_websocket_connect(self, sender, **kwargs):
-       pass
+    def on_page_connect(self, sender, page,  **kwargs):
+        self.logger.info(f"Page connected: {page}")
+        if page == 'products':
+            context_args = self.view_controller.current_view.stored_context['args']
+            context_kwargs = self.view_controller.current_view.stored_context['kwargs']
+            self.view_controller.request_view(self.view_controller.PAGE_STOCK_MGMT_LOCKED, 
+                                              header="Terminal locked",
+                                              icon=r'/app/static/icons/png_16/coin.png', 
+                                              text="The terminal is locked. Please wait until the terminal is released by the management.",
+                                             page=page, 
+                                             next_view=self.view_controller.current_view,
+                                             # pass as args and kwargs
+                                            *context_args, **context_kwargs)
+
+
     
-    def on_websocket_disconnect(self, sender, **kwargs):
+    def on_page_disconnect(self, sender, **kwargs):
         pass
+
+    def on_ws_cmd_received(self, sender, cmd, **kwargs):
+        print(f"Command received: {cmd}")
+        _cmd = cmd.get("cmd")
+        params = cmd.get("params")
+        if _cmd == "request_view":
+            view_name = params.get("view_name")
+            args = params.get("args", [])
+            kwargs = params.get("kwargs", {})
+            self.view_controller.request_view(view_name, *args, **kwargs)
     # =================================================================================================================
     # Websocket posters
     # =================================================================================================================

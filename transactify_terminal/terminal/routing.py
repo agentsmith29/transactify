@@ -12,6 +12,6 @@ import logging
 websocket_urlpatterns = [
     re_path(f'^{CONFIG.webservice.SERVICE_NAME}' + r'/ws/page/(?P<page_name>\w+)/$', PageSpecificConsumer.as_asgi()),
     re_path(f'^{CONFIG.webservice.SERVICE_NAME}' + r'/ws/oled/$', OledDisplayConsumer.as_asgi()),
-    re_path(f'^{CONFIG.webservice.SERVICE_NAME}' + r'/ws/register_store', TerminalConsumer.as_asgi()),
+    re_path(f'^{CONFIG.webservice.SERVICE_NAME}' + r'/ws/configure', TerminalConsumer.as_asgi()),
 ]
 

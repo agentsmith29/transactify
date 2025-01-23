@@ -1,8 +1,13 @@
 import json
 from terminal.consumers.BaseConsumer import BaseAsyncWebsocketConsumer
 from terminal.consumers.BaseConsumer import WebsocketSignals
+from django.dispatch import Signal
 
 class PageSpecificConsumer(BaseAsyncWebsocketConsumer):
+    on_connect = Signal()
+    on_disconnect = Signal()
+    on_cmd_received = Signal()
+
     async def connect(self):
         # Define a group name based on the page
         self.page_name = self.scope['url_route']['kwargs']['page_name']
@@ -14,6 +19,8 @@ class PageSpecificConsumer(BaseAsyncWebsocketConsumer):
             self.channel_name
         )
         await self.accept()
+        self.logger.info(f"WebSocket {self.scope['path']} connected: {self.scope['client']}")
+        self.on_connect.send(sender=self.__class__, page=self.page_name)
 
     async def disconnect(self, close_code):
         # Remove the WebSocket connection from the group
@@ -21,7 +28,8 @@ class PageSpecificConsumer(BaseAsyncWebsocketConsumer):
             self.group_name,
             self.channel_name
         )
-        self.logger.info(f"WebSocket  {self.scope['path']} disconnected: {self.scope['client']}")
+        self.logger.info(f"WebSocket {self.scope['path']} disconnected: {self.scope['client']}")
+        self.on_disconnect.send(sender=self.__class__, page=self.page_name)
 
     async def receive(self, text_data):
         # Handle incoming messages and broadcast to the group

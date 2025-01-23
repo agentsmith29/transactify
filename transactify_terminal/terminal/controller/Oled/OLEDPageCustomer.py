@@ -21,11 +21,9 @@ class OLEDPageCustomer(OLEDPage):
         self.customer = None
 
     def view(self, store: Store, customer: Customer, next_view, *args, **kwargs):
+        image, draw = super().view()
         self.store: Store = store
         self.customer: Customer = customer
-
-        #balance = CustomerBalance.objects.get(customer=customer)
-        image, draw = self._post_init()
 
         header_height = 20
         header_text = f"Hello, {customer.first_name} {customer.last_name}"

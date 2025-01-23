@@ -3,6 +3,7 @@ from .OLEDPage import OLEDPage
 import os
 
 from .OLEDPageStoreMain import OLEDPageStoreMain
+import threading
 
 class OLEDPageProduct_Unknown(OLEDPage):
     name: str = "OLEDPageProduct_Unknown"
@@ -12,7 +13,7 @@ class OLEDPageProduct_Unknown(OLEDPage):
         OLEDPageProduct_Unknown.name: str = str(self.__class__.__name__)
 
     def view(self, ean, next_view = None, *args, **kwargs):
-        image, draw = self._post_init()
+        image, draw = super().view()
 
         # Header Section
         header_height = 20
@@ -36,5 +37,6 @@ class OLEDPageProduct_Unknown(OLEDPage):
         self.send_to_display(image)
         if next_view:
             self.display_next(image, draw, next_view, 5, *args, **kwargs)
-       
+        self.logger.info(f"I'll exit the view function now. my thread ident is {threading.current_thread().ident}")
+        return True
 

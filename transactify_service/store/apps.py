@@ -49,20 +49,25 @@ class StoreConfig(AppConfig):
                     logger.error(f"Failed to mock store content: {e}")
 
             # WebSocket configuration
-            ws_url = f"{CONFIG.terminal.TERMINAL_WEBSOCKET_URL}/register_store"
+            ws_url = f"{CONFIG.terminal.TERMINAL_WEBSOCKET_URL}/configure"
             logger.info(f"Push configureation to terminal: {CONFIG.webservice.SERVICE_NAME} to {ws_url}")
             push_store_conf = {
-                "name": CONFIG.webservice.SERVICE_NAME,
-                "address": CONFIG.webservice.SERVICE_URL,
-                "docker_container": CONFIG.container.CONTAINER_NAME,
-                "terminal_button": CONFIG.terminal.TERMINAL_SELECTION_BUTTONS,
+                "cmd": "register_store",
+                "params": {
+                    "name": CONFIG.webservice.SERVICE_NAME,
+                    "address": CONFIG.webservice.SERVICE_URL,
+                    "docker_container": CONFIG.container.CONTAINER_NAME,
+                    "terminal_button": CONFIG.terminal.TERMINAL_SELECTION_BUTTONS,
+                }
             }
             logger.debug(f"Pushing configuration: {push_store_conf}")
             
             try:
+                global websocket
                 # Start the persistent WebSocket connection
-                self.websocket = PersistentWebSocket(ws_url, push_store_conf)
-                self.websocket.start()
+                websocket = PersistentWebSocket(ws_url, push_store_conf)
+                websocket.start()
+                
             except Exception as e:
                 logger.error(f"Failed to start persistent websocket connection: {e}.")
         else:

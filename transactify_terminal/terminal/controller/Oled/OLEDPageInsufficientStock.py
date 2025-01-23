@@ -13,9 +13,7 @@ class OLEDPageInsufficientStock(OLEDPage):
         OLEDPageInsufficientStock.name: str = str(self.__class__.__name__)
 
     def view(self, product, *args, **kwargs):
-        #balance = CustomerBalance.objects.get(customer=customer)
-
-        image, draw = self._post_init()
+        image, draw = super().view()
 
         header_height = 20
         header_text = f"Insufficient Stock"

@@ -6,6 +6,7 @@ from django.core.signals import setting_changed
 from django.dispatch import Signal
 from .BaseHardware import BaseHardware
 import traceback
+import time
 
 class BarcodeScannerSignals():
     barcode_read = Signal()
@@ -83,6 +84,9 @@ class BarcodeScanner(BaseHardware):
             self.logger.error(f"Serial error on port {self.global_config.barcode_reader.DEVICE_PATH}: {e}")
         except Exception as e:
             self.logger.error(f"Error on port {self.global_config.barcode_reader.DEVICE_PATH}: {e}")
+            time.sleep(5)
+            self.setup()
+            
 
 
 

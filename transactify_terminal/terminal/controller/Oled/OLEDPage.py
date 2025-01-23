@@ -1,4 +1,6 @@
 from django.dispatch import Signal
+from functools import wraps
+import functools
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 import PIL.Image
@@ -30,11 +32,40 @@ import logging
 
 from transactify_terminal.settings import CONFIG
 
+import threading
+
 class OLEDPage():
     name: str = "OLEDPage"
 
     BTN_OKAY = "F"
     BTN_BACK = "E"
+    
+    def store_context():
+        """
+        Decorator to capture all arguments (args and kwargs) of a method 
+        and store the context in `self.stored_context`.
+        """
+        def decorator(func):
+            @functools.wraps(func)
+            def wrapper(self, *args, **kwargs):
+                # Capture the arguments and store them in self.stored_context
+                self.stored_context = {
+                    "args": args,
+                    "kwargs": kwargs,
+                    "method_name": func.__name__
+                }
+                print(f"Stored context: {self.stored_context}")
+
+                # Call the original function
+                result = func(self, *args, **kwargs)
+
+                # Optionally store the result in context
+                self.stored_context["result"] = result
+
+                return result
+
+            return wrapper
+        return decorator
     
     def __init__(self, oled, 
                  sig_abort_view: Signal, sig_request_view: Signal,
@@ -47,6 +78,8 @@ class OLEDPage():
                  locked = False, overwritable = True,
                  parent_logger_name = None):
         
+        self.stored_context = {"args": [], "kwargs": {}}
+
         if not parent_logger_name:
             self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.{self.__class__.__name__}")
         else:
@@ -109,6 +142,15 @@ class OLEDPage():
         self.oled_image_base64 = None
         self.logger.debug(f"Initialised Page {self.name}")
 
+    def view(self):
+        self.logger.info(f"The view {self.name} has been started and is running in a thread now. My ID is {threading.current_thread().ident}")
+        image, draw = self._post_init()
+        # place the current id in the 
+        # id = f"{threading.current_thread().ident}"
+        # self.align_right(draw, id, 10, self.font_tiny)
+        self.logger.debug(f"View {self.name} is running now.")
+        return image, draw
+
     def _abort_view(self, sender, **kwargs):
         print(f"Aborting view {self.name}")
         self.break_loop = True
@@ -122,8 +164,8 @@ class OLEDPage():
     def class_name(cls):
         return cls.__name__
     
-    def view(self,  kill_flag=False, *args, **kwargs,):
-        raise NotImplementedError("View not implemented")
+    #def view(self,  kill_flag=False, *args, **kwargs,):
+    #    raise NotImplementedError("View not implemented")
     
     def convert_image_to_base64(self, image):
         """
@@ -152,6 +194,7 @@ class OLEDPage():
             },
         )
         self.oled.display(self.oled_image)
+        self.logger.debug(f"Image sent to display: {self.name}")
     # =================================================================================================================
     # Display Helper functions
     # =================================================================================================================
@@ -162,7 +205,7 @@ class OLEDPage():
             symb = ImageOps.invert(symb)
             image.paste(symb, pos)  # Paste at (2, 2) in the top-left corner
         except Exception as e:
-            print(f"Error loading symbol: {e}")
+            self.logger.error(f"Error loading symbol: {e}")
             #symb = PIL.Image.open('/app/static/icons/png_16/coin.png')
             #symb = symb.convert('RGB')
             #symb = ImageOps.invert(symb)
@@ -206,6 +249,16 @@ class OLEDPage():
                 next_view = next_view.name
             self._signal_request_view.send(sender=self.name, view=next_view, *args, **kwargs)
 
+    def display_header(self, header_text, icon_path, header_height = 20):
+        self.draw.text((20, 0), header_text, font=self.font_large, fill=(255,255,255))
+        self.draw.text((20, 0), header_text, font=self.font_large, fill=(255,255,255))  # Leave space for NFC symbo
+        # Paste the NFC symbol into the header
+        self.paste_image(self.image, r"/app/static/icons/png_16/coin.png", (0, 0))
+        # Divider line
+        self.draw.line([(0, header_height), (self.width, header_height)], fill=(255,255,255), width=1)
+        return header_height
+
+        # ---------
     # =================================================================================================================
     # Display Overlays
     # =================================================================================================================
@@ -518,6 +571,15 @@ class OLEDPage():
                                         next_view=view_controller.PAGE_MAIN,
                                         store=store)
             return None
-            
+        
+    def on_nfc_thread_exit():
+        pass
+
+    def on_barcode_thread_exit():
+        pass
+
+    def on_keypad_thread_exit():
+        pass
+
     def __del__(self):
         print(f"Life of {self.name} ended.")

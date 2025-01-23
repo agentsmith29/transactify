@@ -5,6 +5,8 @@ from .OLEDPageProduct import OLEDPageProduct
 from .OLEDPageManageProducts import OLEDPageProducts_Manage
 from .OLEDPageUnknownProduct import OLEDPageProduct_Unknown
 
+from .OLEDPageManagementLocked import OLEDPageManagementLocked
+
 from .OLEDPageCustomer import OLEDPageCustomer
 from .OLEDPageCustomerUnknown import OLEDPageCustomer_Unknown
 from .OLEDPagePurchaseSuccessfull import OLEDPagePurchaseSuccessfull
@@ -50,8 +52,12 @@ class OLEDViewController():
                  sig_on_barcode_read: Signal,
                  sig_on_nfc_read: Signal,
                  sig_on_btn_pressed: Signal,
+                 #
                  sign_on_websocket_connect: Signal,
                  sign_on_websocket_disconnect: Signal,
+                 #
+                 sig_on_page_disconnect: Signal,
+                 #
                  ledstrip: LEDStripController):
         
         self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.{self.__class__.__name__}")
@@ -76,6 +82,7 @@ class OLEDViewController():
             #
             "sign_on_websocket_connect": sign_on_websocket_connect,
             "sign_on_websocket_disconnect": sign_on_websocket_disconnect,
+            #
             "ledstrip": ledstrip,
             "parent_logger_name": self.logger.name
         }
@@ -94,6 +101,10 @@ class OLEDViewController():
         self.PAGE_CUSTOMER_UNKNW = OLEDPageCustomer_Unknown(**kwargs)
         self.PAGE_PURCHASE_SUCC = OLEDPagePurchaseSuccessfull(**kwargs)
         self.PAGE_ERROR = OLEDPageError(**kwargs)
+
+        self.PAGE_STOCK_MGMT_LOCKED = OLEDPageManagementLocked(
+            **kwargs,
+            sig_on_page_disconnect=sig_on_page_disconnect)
 
         self._SCREEN_SAVER = OLEDScreenSaver(**kwargs)
 
@@ -202,9 +213,18 @@ class OLEDViewController():
     
     def request_view(self, view: OLEDPage | str, unlock=False, *args, **kwargs): 
         if  self._request_view_set == False:
-            self.logger.warning("Another view request is already in progress...")
+            self.logger.warning(f"Another view request is already in progress...")
             return
+        else:
+            self.logger.debug(f"Flag not set, requesting view...")
         self._request_view_set = False
+
+        if self.current_view is not None and self.current_view.locked and not unlock:
+            self.logger.warning(f"View {self.current_view.name} is locked. Exiting.")
+            self._request_view_set = True
+            return
+       
+
             # Another view request is already in progress. Exit early.
         # get the whole parameter from the function call and store it in context
         # self.current_view_context = {**args, **kwargs}
@@ -212,31 +232,35 @@ class OLEDViewController():
         view_found = False
         for attr in dir(self):
             attr = getattr(self, attr)
-            if isinstance(attr, OLEDPage):
+            if isinstance(attr, OLEDPage) and (isinstance(view, str) or isinstance(view, OLEDPage)):
                 if isinstance(view, str) and attr.name == view:
                     view = attr
+                    view_found = True
                     break
-                elif not isinstance(view, str) and isinstance(attr, OLEDPage) and attr.name == view.class_name():
+                elif not isinstance(view, str) and isinstance(view, OLEDPage) and attr.name == view.class_name():
                     view = attr
+                    view_found = True
                     break
+
+        if not view_found:
+            self.logger.error(f"View not found: {view}.")
+            self._request_view_set = True
+            return
+            
 
         # if given a string for the view, get the view object.
         if self.current_view is not None:
             self.logger.debug(f"Requesting to replace view: {self.current_view.name} with {view.name}.")
             self.current_view.is_active = False
 
-        if self.current_view is not None and self.current_view.locked and not unlock:
-            print(f"View {self.current_view.name} is locked. Exiting.")
-            self._request_view_set = True
-            return
-       
+
 
         self.logger.info(f"Requesting view: {view.name}.")
         if self.view_thread is not None and self.view_thread.is_alive():
             try:
                 # check if the thread is still alive and join it
                 if self.view_thread.is_alive():
-                    self.logger.debug("Joining view thread to abort it.")
+                    self.logger.debug("Setting break loop to True.")
                     self.current_view.break_loop = True  # Break the loop of the current view
                 else:
                     self.logger.debug("View thread is not alive. Can directly change view.")
@@ -249,9 +273,10 @@ class OLEDViewController():
                     self._request_view_set = True
                     return
                 except Exception as e:
-                    self.logger.error(f"Error joining thread: {e}")
+                    self.logger.error(f"Error joining thread: {e} but current thread is alive {self.view_thread.ident}. Can't change view.")
                     self._request_view_set = True
-                    return
+                
+                self.logger.debug(self.view_thread.is_alive())
 
             except Exception as e:
                 self.logger.error(f"Error aborting view thread: {e}. Can't change view.")
@@ -260,11 +285,13 @@ class OLEDViewController():
         
         
         self.current_view = view
-        self.current_view.is_active = True
+        self.current_view.break_loop = False
         self.view_thread = threading.Thread(target=self.current_view.view, args=args, kwargs=kwargs, daemon=True)
         self.view_thread.start()
-        self.signals.view_changed.send(sender=self, view=view)
+        self.signals.view_changed.send(sender=self, view=self.current_view)
         self._request_view_set = True
+        self.current_view.is_active = True
+        self.logger.info(f"View changed to {self.current_view.name}.")
         return
 
     def __del__(self):

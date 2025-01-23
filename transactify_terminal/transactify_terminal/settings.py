@@ -63,6 +63,7 @@ LOGGING = {
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger(f"root.settings")                    
 logger.debug("Logging configured.")
+# disable some loggers
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

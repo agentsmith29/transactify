@@ -12,7 +12,7 @@ class OLEDPageProducts_Manage(OLEDPage):
         OLEDPageProducts_Manage.name: str = str(self.__class__.__name__)
 
     def view(self, *args, **kwargs):
-        image, draw = self._post_init()
+        image, draw = super().view()
 
         # Header Section
         header_height = 20

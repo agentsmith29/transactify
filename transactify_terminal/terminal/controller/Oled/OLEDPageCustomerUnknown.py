@@ -14,7 +14,7 @@ class OLEDPageCustomer_Unknown(OLEDPage):
         OLEDPageCustomer_Unknown.name: str = str(self.__class__.__name__)
        
     def view(self, id, next_view=None, *args, **kwargs):
-        image, draw = self._post_init()
+        image, draw = super().view()
 
         header_height = 20
         header_text = f"Unknown Card {id}"

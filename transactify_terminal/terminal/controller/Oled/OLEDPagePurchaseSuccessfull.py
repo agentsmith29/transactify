@@ -17,9 +17,7 @@ class OLEDPagePurchaseSuccessfull(OLEDPage):
         OLEDPagePurchaseSuccessfull.name: str = str(self.__class__.__name__)
 
     def view(self, customer: Customer, product: APIFetchStoreProduct, next_view = None, *args, **kwargs):
-        balance = 0#CustomerBalance.objects.get(customer=customer)
-
-        image, draw = self._post_init()
+        image, draw = super().view()
 
         header_height = 20
         header_text = f"Thank you, {customer.first_name} {customer.last_name}"

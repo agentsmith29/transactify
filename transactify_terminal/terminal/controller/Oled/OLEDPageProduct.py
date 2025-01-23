@@ -31,11 +31,10 @@ class OLEDPageProduct(OLEDPage):
         self.product: APIFetchStoreProduct = None
 
     def view(self, product: APIFetchStoreProduct, *args, **kwargs):
+        image, draw = super().view()
         self.product: APIFetchStoreProduct = product
         self.store: Store = self.product.store
         
-
-        image, draw = self._post_init()
 
         # Header Section
         header_height = 20

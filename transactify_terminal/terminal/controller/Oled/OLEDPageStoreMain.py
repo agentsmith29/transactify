@@ -15,18 +15,15 @@ class OLEDPageStoreMain(OLEDPage):
         OLEDPageStoreMain.name: str = str(self.__class__.__name__)
         self.store: Store = None
 
-    
+    @OLEDPage.store_context()
     def view(self, store: Store, *args, **kwargs):
+        image, draw = super().view()
         self.store: Store = store
-
-        image, draw = self._post_init()
-
         # Header Section
         header_height = 20
         draw.text((20, 0),  self.store.name, font=self.font_large, fill=(255,255,255))  # Leave space for NFC symbol
 
-        ip_address = f"{os.getenv('DJANGO_WEB_HOST')}:{os.getenv('DJANGO_WEB_PORT')}"
-        self.align_right(draw, ip_address, 10, self.font_tiny)
+
         # Paste the NFC symbol into the header
         self.paste_image(image, r"/app/static/icons/png_16/coin.png", (0, 0))
         # Divider line

@@ -16,8 +16,8 @@ class OLEDPageError(OLEDPage):
              icon=r'/app/static/icons/png_16/x-circle-fill.png', 
              display_back = False,
              next_view = None, *args, **kwargs):
+        image, draw = super().view()
         self.ledstrip.animate(self.led_animation)
-        image, draw = self._post_init()
 
         header_height = 20
         draw.text((20, 0), error_title, font=self.font_large, fill=(255,255,255))  # Leave space for NFC symbol

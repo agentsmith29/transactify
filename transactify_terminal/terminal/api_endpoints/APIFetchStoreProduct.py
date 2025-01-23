@@ -43,7 +43,7 @@ class APIFetchStoreProduct(APIBaseClass):
             raise ValueError("EAN cannot be empty.")
        
         for storenum, store in enumerate(stores):
-            logger.info(f"({storenum}/{len(store)}) Fetching product from {store}")
+            logger.info(f"({storenum}/{len(stores)}) Fetching product from {store}")
             try:
                 # Construct the API URL
                 api_url = f"{store.web_address}/api/products/{ean}/?format=json"

@@ -18,10 +18,10 @@ class OLEDStoreSelection(OLEDPage):
     def view(self, *args, **kwargs):
         if len(self.stores) == 1:
             self.selected_store = self.stores[0]
+            self.logger.debug(f"Only one store found, selecting store: {self.selected_store}")
             self.view_controller.request_view(self.view_controller.PAGE_MAIN, store=self.selected_store, display_back=False)
             return
-    
-        image, draw = self._post_init()
+        image, draw = super().view()
 
         # Header Section
         header_height = 20

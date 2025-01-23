@@ -19,6 +19,12 @@ class TerminalConfig(AppConfig):
             from .controller.HardwareController import HardwareController
             global hwcontroller
             hwcontroller = HardwareController()
+            # logging.getLogger('asyncio').setLevel(logging.ERROR)
+            # logging.getLogger('terminal1.consumers').setLevel(logging.ERROR)
+            # logging.getLogger('terminal1.PN532').setLevel(logging.ERROR)
+            # logging.getLogger('terminal1.BarcodeScanner').setLevel(logging.ERROR)
+            # logging.getLogger('daphne').setLevel(logging.ERROR)
         except Exception as e:
             logger.error(f"Failed to initialize hardware controller: {e}. Application exits now.")
+            logger.error(traceback.format_exc())
             os._exit(1)

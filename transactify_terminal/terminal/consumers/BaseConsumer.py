@@ -9,6 +9,8 @@ class WebsocketSignals:
     on_connect = Signal()
     on_disconnect = Signal()
 
+    on_cmd_received = Signal()
+
 class BaseAsyncWebsocketConsumer(AsyncWebsocketConsumer):
 
     def __init__(self, *args, **kwargs):

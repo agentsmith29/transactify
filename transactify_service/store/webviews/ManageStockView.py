@@ -23,6 +23,7 @@ from transactify_service.HttpResponses import HTTPResponses
 from transactify_service.settings import CONFIG
 import logging
 
+
 #from ..apps import hwcontroller
 @method_decorator(login_required, name='dispatch')
 class ManageStockView(View):
@@ -32,7 +33,6 @@ class ManageStockView(View):
     def __init__(self, **kwargs):
         self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.webviews.{self.__class__.__name__}")
         super().__init__(**kwargs)
-
 
 
     def post(self, request):
@@ -67,6 +67,8 @@ class ManageStockView(View):
             return JsonResponse(data, status=status)
 
     def get(self, request):
+       # websocket.push_cmd_sync()
+        
         # Render the template with context
         context = {
             'products': StoreProduct.objects.all(),
