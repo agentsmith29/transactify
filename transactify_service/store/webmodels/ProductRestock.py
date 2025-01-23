@@ -48,4 +48,4 @@ class ProductRestock(models.Model):
         inventory.save()
 
     def __str__(self):
-        return f"{self.quantity} x {self.product.name} restocked at {self.product.store.name}"
+        return f"{self.quantity} x {self.product.name} restocked."

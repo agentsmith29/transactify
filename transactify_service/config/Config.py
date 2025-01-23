@@ -27,6 +27,7 @@ class WebService(BaseConfigField):
         self.SERVICE_WEB_PORT = self.assign_from_config("SERVICE_WEB_PORT")
         self.SERVICE_WEB_HOST = self.assign_from_config("SERVICE_WEB_HOST")
         self.SERVICE_URL = self.assign_direct(f"http://{self.SERVICE_WEB_HOST}:{self.SERVICE_WEB_PORT}/{self.SERVICE_NAME}")
+        self.JOURNAL_FILE = self.assign_from_config("JOURNAL_FILE", f"./journal_{self.SERVICE_NAME}.py")
 
 class AdminConfig(BaseConfigField):
     def __init__(self, *args, **kwargs):

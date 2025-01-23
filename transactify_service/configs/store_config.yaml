@@ -14,6 +14,7 @@ webservice:
   SERVICE_NAME: "donknabberello"
   SERVICE_WEB_HOST: "${ENV.PROJECT_HOST}"
   SERVICE_WEB_PORT: 8880 #"${ENV.PROJECT_PORT}"
+  JOURNAL_FILE: "journal_${SERVICE_NAME}.py"
   
 admin:
   ADMIN_USER: "admin"

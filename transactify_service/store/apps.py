@@ -40,7 +40,7 @@ class StoreConfig(AppConfig):
         
             
 
-            if os.environ.get('INIT_DATA', '0') == '1':
+            if os.environ.get('MIGRATE_HISTORICAL', '0') == '1':
                 logger.warning("Initializing mock store content... Set INIT_DATA=0 to disable.")
                 from store.data_generators.add_historical_data import HistoricalData
                 try:

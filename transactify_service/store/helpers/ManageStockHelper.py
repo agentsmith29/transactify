@@ -24,13 +24,42 @@ from transactify_service.HttpResponses import HTTPResponses
 from .Exceptions import HelperException
 import store.StoreLogsDBHandler	  # Import your custom logging here
 import logging
+import functools
 
 from transactify_service.settings import CONFIG
 
 class StoreHelper:
 
+    def journal_command():
+        """ decorator to jurnal the command to a file """
+        def decorator(func):
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                # Capture the arguments and store them in self.stored_context
+                # Call the original function
+                if '__ignore_journal__' in kwargs:
+                    kwargs.pop('__ignore_journal__')
+                    return func(*args, **kwargs)
+                
+                result = func(*args, **kwargs)
+
+                # Optionally store the result in context
+                with open(CONFIG.webservice.JOURNAL_FILE, "a") as f:
+                    f.write(f"# Command: {func.__name__}, Args: {args}, Kwargs: {kwargs}, Result: {result}\n")
+                    f.write(f"# Issued at: {datetime.now()}\n")
+                    f.write(f"# Result: {result}\n")
+                    # Construct the commonad which can be direcly called by python
+                    f.write(f"StoreHelper.{func.__name__}(*{args}, **{kwargs})\n\n")
+                    
+                return result
+
+            return wrapper
+        return decorator
+    
+
+
     @staticmethod
-    def get_stock_quantity(product: StoreProduct, logger: logging.Logger) -> int:
+    def get_stock_quantity(product: StoreProduct, logger: logging.Logger, *args, **kwargs) -> int:
         """
         Calculate the remaining stock for a product.
         """
@@ -47,7 +76,8 @@ class StoreHelper:
 
     @staticmethod
     @transaction.atomic
-    def customer_purchase(ean: str, quantity: int, card_number: str, logger: logging.Logger) -> tuple[Response, CustomerPurchase]:
+    @journal_command()
+    def customer_purchase(ean: str, quantity: int, card_number: str, logger: logging.Logger, *args, **kwargs) -> tuple[Response, CustomerPurchase]:
         """
         Handle customer purchase transaction with atomic database operations.
         """
@@ -124,7 +154,8 @@ class StoreHelper:
 
     @staticmethod
     @transaction.atomic
-    def customer_add_deposit(customer: Customer, amount: Decimal, logger: logging.Logger) -> tuple[Response, CustomerDeposit]:
+    @journal_command()
+    def customer_add_deposit(customer: Customer, amount: Decimal, logger: logging.Logger, *args, **kwargs) -> tuple[Response, CustomerDeposit]:
         """
         Add a deposit to a customer's account and log the transaction.
         """
@@ -182,6 +213,7 @@ class StoreHelper:
 
     @staticmethod
     @transaction.atomic
+    @journal_command()
     def restock_product(ean: str, quantity: int, purchase_price: Decimal, logger: logging.Logger,
                         auth_user: User, used_store_equity: bool = True, 
                         ) -> tuple[Response, ProductRestock]:
@@ -245,7 +277,8 @@ class StoreHelper:
 
     @staticmethod
     @transaction.atomic
-    def create_new_customer(username: str, first_name: str, last_name: str, email: str, balance: Decimal, card_number: str, logger: logging.Logger) -> tuple[Response, Customer]:
+    @journal_command()
+    def create_new_customer(username: str, first_name: str, last_name: str, email: str, balance: Decimal, card_number: str, logger: logging.Logger, *args, **kwargs) -> tuple[Response, Customer]:
         """
         Create and save a new customer along with their initial deposit.
         """
@@ -292,7 +325,7 @@ class StoreHelper:
 
         if balance > 0:
             try:
-                response, deposit_entry = StoreHelper.customer_add_deposit(customer, balance, logger)  # Change No. #6: Ensure correct unpacking of return values.
+                response, deposit_entry = StoreHelper.customer_add_deposit(customer, balance, logger, __ignore_journal__=True)  # Change No. #6: Ensure correct unpacking of return values.
                 #customer_balance = CustomerBalance.objects.get(customer=customer)
                 if response.status_code != 200:
                     return response
@@ -312,7 +345,8 @@ class StoreHelper:
 
     @staticmethod
     @transaction.atomic
-    def get_or_create_product(ean: str, name: str, resell_price: Decimal, discount: Decimal, logger: logging.Logger) -> tuple[Response, StoreProduct]:
+    @journal_command()
+    def get_or_create_product(ean: str, name: str, resell_price: Decimal, discount: Decimal, logger: logging.Logger, *args, **kwargs) -> tuple[Response, StoreProduct]:
         """
         Get or create a product by EAN, and update its details if it exists.
         """
@@ -349,7 +383,7 @@ class StoreHelper:
 
     @staticmethod
     @transaction.atomic
-    def _customer_add_purchase(customer: Customer, amount: Decimal, quantity: int, product: StoreProduct, logger: logging.Logger) -> tuple[Response, CustomerPurchase]:
+    def _customer_add_purchase(customer: Customer, amount: Decimal, quantity: int, product: StoreProduct, logger: logging.Logger, *args, **kwargs) -> tuple[Response, CustomerPurchase]:
         """
         Process a purchase for a customer and update their balance and transaction logs.
         """

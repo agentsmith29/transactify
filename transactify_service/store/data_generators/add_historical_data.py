@@ -15,6 +15,8 @@ from datetime import datetime, timedelta
 
 from transactify_service.settings import CONFIG
 
+import traceback
+
 class Product():
     def __init__(self, name, ean, weight, resell_price):
         self.name = name
@@ -269,6 +271,7 @@ class HistoricalData():
             product_restock.save()
         except Exception as e:
             self.logger.error(f"Failed to restock product {ean}: {e}")
+            self.logger.error(traceback.format_exc())
 
         # immediately purchase the products
         self.purchase_all(ean)
