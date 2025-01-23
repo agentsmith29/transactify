@@ -2,6 +2,7 @@ from typing import Iterable
 from django.db import models
 from decimal import Decimal
 import logging
+
 logger = logging.getLogger('StoreProduct')
 class StoreProduct(models.Model):
     """Represents a product bound to a specific store."""
@@ -10,7 +11,19 @@ class StoreProduct(models.Model):
     stock_quantity = models.PositiveIntegerField(default=0) #(auto calculate)
     discount = models.DecimalField(max_digits=3, default = 0, decimal_places=2) # In percent
     product_fill_amout = models.DecimalField(max_digits=5, default = 0, decimal_places=2)
-    product_calories = models.DecimalField(max_digits=5, default = 0, decimal_places=2)
+    
+    # 
+    nutri_score = models.CharField(max_length=255, null=True)
+    energy_kcal = models.CharField(max_length=255, null=True)
+    energy_kj = models.CharField(max_length=255, null=True)
+    fat = models.CharField(max_length=255, null=True)
+    carbohydrates = models.CharField(max_length=255, null=True)
+    sugar = models.CharField(max_length=255, null=True)
+    fiber = models.CharField(max_length=255, null=True)
+    proteins = models.CharField(max_length=255, null=True)
+    salt = models.CharField(max_length=255, null=True)
+
+    image_url = models.URLField(max_length=255, null=True)
 
     # The price the product was purchased for
     resell_price = models.DecimalField(max_digits=10, default = 0, decimal_places=2)
@@ -23,6 +36,7 @@ class StoreProduct(models.Model):
     total_revenue = models.DecimalField(max_digits=10, default = 0, decimal_places=2) #(auto calculate)
     # Total orders
     total_orders = models.PositiveIntegerField(default=0)   #(auto calculate)
+
 
 
 

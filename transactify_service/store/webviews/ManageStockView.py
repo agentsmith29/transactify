@@ -45,24 +45,27 @@ class ManageStockView(View):
                 cmd = "add"
 
             data = json.loads(request.body)
-            ManageStockView.logger.debug(f"Post request recieved: {data}")
+            self.logger.debug(f"Post request recieved: {data}")
         
             ean = data.get('product_ean')
             quantity = data.get('quantity')
             purchase_price = data.get('purchase_price') 
+            store_equity = bool(data.get('store_equity'))
             with transaction.atomic():
                 try:
                     quantity = int(quantity)  # Validate Decimal conversion
                     purchase_price = Decimal(purchase_price)
                 except Exception as e:
-                    ManageStockView.logger.error(f"Invalid input for quantity or purchase_price: {e}")
+                    self.logger.error(f"Invalid input for quantity or purchase_price: {e}")
                     return JsonResponse({'success': False, 'message': f"Invalid input for quantity or purchase_price: {e}. Please enter a valid number."}, status=400)
-                response, product = StoreHelper.restock_product(ean, quantity, purchase_price, ManageStockView.logger)
+                response, product = StoreHelper.restock_product(ean, quantity, purchase_price, 
+                                                                request.user,                                                                
+                                                                self.logger, store_equity)
                 data, status = response.json_data()
                 return JsonResponse(data=data, status=status)
         except Exception as e:
             # -- Comment 3: Catch generic exceptions and log them
-            ManageStockView.logger.error(f"Unexpected error: {e}")
+            self.logger.error(f"Unexpected error: {e}")
             data, status = HTTPResponses.HTTP_STATUS_PRODUCT_CREATE_FAILED(ean if 'ean' in locals() else "", str(e)).json_data()
             return JsonResponse(data, status=status)
 

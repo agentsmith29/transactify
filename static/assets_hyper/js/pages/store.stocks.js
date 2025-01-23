@@ -125,6 +125,7 @@ class ManageStock {
                 product_ean: formData.get('ean'),
                 quantity: formData.get('quantity'),
                 purchase_price: formData.get('purchase_price'),
+                store_equity: formData.get('store_equity'),
             })
         })
             .then(response => {

@@ -1,8 +1,10 @@
 class ManageProducts {
     constructor(page_url) {
-        this.page_url = page_url
-        this.initSocket();
-        this.initDataTables();
+        this.page_url = page_url;
+        $(document).ready(() => {
+            this.initSocket();
+            this.initDataTables();
+        });
     }
 
     initSocket() {
@@ -27,12 +29,18 @@ class ManageProducts {
     }
 
     initDataTables() {
+        const tableSelector = "#product-list-datatable";
+        if ($(tableSelector).length === 0) {
+            console.error("Table with ID 'product-list-datatable' not found.");
+            return;
+        }
         // Initialize DataTable for products
-        $("#product-list-datatable").DataTable({
+        $(tableSelector).DataTable({
             language: {
                 paginate: { previous: "<i class='mdi mdi-chevron-left'>", next: "<i class='mdi mdi-chevron-right'>" },
                 info: "Showing products _START_ to _END_ of _TOTAL_",
                 lengthMenu: 'Display <select class="form-select form-select-sm ms-1 me-1"><option value="10">10</option><option value="20">20</option><option value="-1">All</option></select> products',
+                emptyTable: "No products available to display.", // Message for empty tables
             },
             columnDefs: [{ targets: -1, className: "dt-body-right" }],
             pageLength: 10,

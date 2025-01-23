@@ -6,6 +6,9 @@ evdev
 # For the LED Stripe
 rpi_ws281x
 
+# for webscrping
+beautifulsoup4
+
 pn532pi
 
 # Django

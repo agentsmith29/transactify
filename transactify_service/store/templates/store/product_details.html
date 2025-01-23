@@ -28,10 +28,10 @@
                     <div class="col-lg-5">
                         <!-- Product image -->
                         <a href="javascript:void(0);" class="text-center d-block mb-4">
-                            <img src="{% static_images 'products/product-5.jpg' %}" class="img-fluid" style="max-width: 280px;" alt="Product-img" />
+                            <img src="{{ product.image_url }}" class="img-fluid" style="max-width: 280px;" alt="Product-img" />
                         </a>
 
-                        <div class="d-lg-flex d-none justify-content-center">
+                        <!-- <div class="d-lg-flex d-none justify-content-center">
                             <a href="javascript:void(0);">
                                 <img src="{% static_images 'products/product-1.jpg' %}" class="img-fluid img-thumbnail p-2" style="max-width: 75px;" alt="Product-img" />
                             </a>
@@ -41,7 +41,7 @@
                             <a href="javascript:void(0);" class="ms-2">
                                 <img src="{% static_images 'products/product-3.jpg' %}" class="img-fluid img-thumbnail p-2" style="max-width: 75px;" alt="Product-img" />
                             </a>
-                        </div>
+                        </div> -->
                     </div> <!-- end col -->
 
                     <div class="col-lg-7">
@@ -61,7 +61,14 @@
                             <!-- Product price -->
                             <div class="mt-4">
                                 <h6 class="font-14">Retail Price:</h6>
-                                <h3> ${{ product.final_price }}</h3>
+                                {% if product.discount == 0 %}
+                                <h3>€ {{ product.final_price }}</h3>
+                                {% else %}
+                                <del><h3></h3>{{ product.resell_price }}</h3></del> 
+                                <b>
+                                    <span style="color: red;">{{ product.final_price }}</span> (-{{ product.discount|multiply:100 }}%)
+                                </b>
+                                {% endif %}
                             </div>
 
                             <!-- Product information -->
@@ -117,6 +124,64 @@
         </div> <!-- end card -->
     </div> <!-- end col -->
 </div> <!-- end row -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+
+                <div class="table-responsive mt-4">
+                    <table class="table table-bordered table-centered mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nutrient</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Nutri-Score</td>
+                                <td>{{ product.nutri_score }}</td>
+                            </tr>
+                            <tr>
+                                <td>Energy (kcal)</td>
+                                <td>{{ product.energy_kcal }}</td>
+                            </tr>
+                            <tr>
+                                <td>Energy (kJ)</td>
+                                <td>{{ product.energy_kj }}</td>
+                            </tr>
+                            <tr>
+                                <td>Fat</td>
+                                <td>{{ product.fat }}</td>
+                            </tr>
+                            <tr>
+                                <td>Carbohydrates</td>
+                                <td>{{ product.carbohydrates }}</td>
+                            </tr>
+                            <tr>
+                                <td>Sugar</td>
+                                <td>{{ product.sugar }}</td>
+                            </tr>
+                            <tr>
+                                <td>Fiber</td>
+                                <td>{{ product.fiber }}</td>
+                            </tr>
+                            <tr>
+                                <td>Proteins</td>
+                                <td>{{ product.proteins }}</td>
+                            </tr>
+                            <tr>
+                                <td>Salt</td>
+                                <td>{{ product.salt }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div> <!-- end table-responsive-->
+            </div> <!-- end card-body -->
+        </div>  
+    </div>  
+</div>
 
 {% endblock %}
 

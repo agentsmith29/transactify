@@ -28,6 +28,8 @@ import functools
 
 from transactify_service.settings import CONFIG
 
+from store.helpers.OFFExtractor import OFFExtractor
+
 class StoreHelper:
 
     def journal_command():
@@ -214,15 +216,13 @@ class StoreHelper:
     @staticmethod
     @transaction.atomic
     @journal_command()
-    def restock_product(ean: str, quantity: int, purchase_price: Decimal, logger: logging.Logger,
-                        auth_user: User, used_store_equity: bool = True, 
+    def restock_product(ean: str, quantity: int, purchase_price: Decimal, auth_user: User, 
+                        logger: logging.Logger, used_store_equity: bool = True, 
                         ) -> tuple[Response, ProductRestock]:
         """
         Restock a product and update its stock quantity.
         """
         logger.info(f"Restocking product with EAN {ean}, Quantity: {quantity}, Purchase Price: {purchase_price}")
-
-
 
         try:
             product = StoreProduct.objects.get(ean=ean)
@@ -363,12 +363,30 @@ class StoreHelper:
             logger.error(f"Invalid resell price for product '{name}': {resell_price}")
             raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_CREATE_FAILED(ean, f"Invalid resell price: {resell_price}"))
         
+        try:
+            offextractor = OFFExtractor(ean)
+            nutri_facts = offextractor.extract()
+        except Exception as e:
+            logger.error(f"Error during product creation: {e}. Skipping. (You need to manually add the nutrition facts)")
+
         logger.info(f"Creating or retrieving product '{name}' with EAN '{ean}' (Resell Price: {resell_price})")
         try:
             product, created = StoreProduct.objects.get_or_create(ean=ean)
             product.name = name
             product.resell_price = resell_price
             product.discount = discount
+
+            if offextractor:
+                product.nutri_score = nutri_facts["Nutri-Score"]
+                product.energy_kcal = nutri_facts["Energy (kcal)" ]
+                product.energy_kj = nutri_facts["Energy (kJ)"]
+                product.fat = nutri_facts["Fat"]
+                product.carbohydrates = nutri_facts["Carbohydrates"]
+                product.sugar = nutri_facts['Sugar']
+                product.fiber = nutri_facts['Fiber']
+                product.proteins = nutri_facts["Proteins"]
+                product.salt = nutri_facts["Salt"]
+                product.image_url = nutri_facts["Image URL"]
             product.save()
         except Exception as e:
             logger.error(f"Error during product creation: {e}")

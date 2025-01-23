@@ -16,7 +16,7 @@ from .APIBaseClass import APIBaseClass
 import logging
 from transactify_terminal.settings import CONFIG
 
-class APIFetchStoreProduct(APIBaseClass):
+class APIFetchStoreProduct():
     def __init__(self, store: Store, ean: str, name: str, stock_quantity: int, discount: Decimal, resell_price: Decimal, final_price: Decimal):
         super().__init__()
         self.store = store

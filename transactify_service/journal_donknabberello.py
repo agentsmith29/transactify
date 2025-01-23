@@ -1098,3 +1098,103 @@ StoreHelper.customer_purchase(*('20333737', 1, 'NoCardNumber', <Logger donknabbe
 # Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 2.50>)
 StoreHelper.customer_add_deposit(*(<Customer: Anon Ymous (anonymous)>, Decimal('2.50'), <Logger donknabberello.Mocker (DEBUG)>), **{})
 
+# Command: customer_purchase, Args: ('20333737', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x Alesto Cashew-Erdnuss-Mix (Honig Salz) (20333737) [2] = 2.50€>)
+# Issued at: 2025-01-23 19:59:44.083689
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x Alesto Cashew-Erdnuss-Mix (Honig Salz) (20333737) [2] = 2.50€>)
+StoreHelper.customer_purchase(*('20333737', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: customer_add_deposit, Args: (<Customer: Anon Ymous (anonymous)>, Decimal('2.50'), <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 2.50>)
+# Issued at: 2025-01-23 19:59:44.173271
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 2.50>)
+StoreHelper.customer_add_deposit(*(<Customer: Anon Ymous (anonymous)>, Decimal('2.50'), <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: customer_purchase, Args: ('20333737', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x Alesto Cashew-Erdnuss-Mix (Honig Salz) (20333737) [1] = 2.50€>)
+# Issued at: 2025-01-23 19:59:44.857650
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x Alesto Cashew-Erdnuss-Mix (Honig Salz) (20333737) [1] = 2.50€>)
+StoreHelper.customer_purchase(*('20333737', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: customer_add_deposit, Args: (<Customer: Anon Ymous (anonymous)>, Decimal('2.50'), <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 2.50>)
+# Issued at: 2025-01-23 19:59:44.935352
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 2.50>)
+StoreHelper.customer_add_deposit(*(<Customer: Anon Ymous (anonymous)>, Decimal('2.50'), <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: customer_purchase, Args: ('20333737', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x Alesto Cashew-Erdnuss-Mix (Honig Salz) (20333737) [0] = 2.50€>)
+# Issued at: 2025-01-23 19:59:45.233338
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x Alesto Cashew-Erdnuss-Mix (Honig Salz) (20333737) [0] = 2.50€>)
+StoreHelper.customer_purchase(*('20333737', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: restock_product, Args: ('409920000442', 4, 0.99, <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {'auth_user': <User: anonymous>, 'used_store_equity': False}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <ProductRestock: 4 x SnackFun Teigumantelte Erdnüsse restocked.>)
+# Issued at: 2025-01-23 19:59:45.459801
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <ProductRestock: 4 x SnackFun Teigumantelte Erdnüsse restocked.>)
+StoreHelper.restock_product(*('409920000442', 4, 0.99, <Logger donknabberello.Mocker (DEBUG)>), **{'auth_user': <User: anonymous>, 'used_store_equity': False})
+
+# Command: customer_add_deposit, Args: (<Customer: Anon Ymous (anonymous)>, Decimal('1.50'), <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 1.50>)
+# Issued at: 2025-01-23 19:59:45.570342
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 1.50>)
+StoreHelper.customer_add_deposit(*(<Customer: Anon Ymous (anonymous)>, Decimal('1.50'), <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: customer_purchase, Args: ('409920000442', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x SnackFun Teigumantelte Erdnüsse (409920000442) [3] = 1.50€>)
+# Issued at: 2025-01-23 19:59:45.904534
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x SnackFun Teigumantelte Erdnüsse (409920000442) [3] = 1.50€>)
+StoreHelper.customer_purchase(*('409920000442', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: customer_add_deposit, Args: (<Customer: Anon Ymous (anonymous)>, Decimal('1.50'), <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 1.50>)
+# Issued at: 2025-01-23 19:59:45.999714
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 1.50>)
+StoreHelper.customer_add_deposit(*(<Customer: Anon Ymous (anonymous)>, Decimal('1.50'), <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: customer_purchase, Args: ('409920000442', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x SnackFun Teigumantelte Erdnüsse (409920000442) [2] = 1.50€>)
+# Issued at: 2025-01-23 19:59:46.296295
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x SnackFun Teigumantelte Erdnüsse (409920000442) [2] = 1.50€>)
+StoreHelper.customer_purchase(*('409920000442', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: customer_add_deposit, Args: (<Customer: Anon Ymous (anonymous)>, Decimal('1.50'), <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 1.50>)
+# Issued at: 2025-01-23 19:59:46.387462
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 1.50>)
+StoreHelper.customer_add_deposit(*(<Customer: Anon Ymous (anonymous)>, Decimal('1.50'), <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: customer_purchase, Args: ('409920000442', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x SnackFun Teigumantelte Erdnüsse (409920000442) [1] = 1.50€>)
+# Issued at: 2025-01-23 19:59:46.733054
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x SnackFun Teigumantelte Erdnüsse (409920000442) [1] = 1.50€>)
+StoreHelper.customer_purchase(*('409920000442', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: customer_add_deposit, Args: (<Customer: Anon Ymous (anonymous)>, Decimal('1.50'), <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 1.50>)
+# Issued at: 2025-01-23 19:59:46.808629
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 1.50>)
+StoreHelper.customer_add_deposit(*(<Customer: Anon Ymous (anonymous)>, Decimal('1.50'), <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: customer_purchase, Args: ('409920000442', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x SnackFun Teigumantelte Erdnüsse (409920000442) [0] = 1.50€>)
+# Issued at: 2025-01-23 19:59:47.070941
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x SnackFun Teigumantelte Erdnüsse (409920000442) [0] = 1.50€>)
+StoreHelper.customer_purchase(*('409920000442', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: restock_product, Args: ('409920000466', 1, 0.99, <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {'auth_user': <User: anonymous>, 'used_store_equity': False}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <ProductRestock: 1 x SnackFun Teigumantelte Erdnüsse (Wasabi) restocked.>)
+# Issued at: 2025-01-23 19:59:47.160971
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <ProductRestock: 1 x SnackFun Teigumantelte Erdnüsse (Wasabi) restocked.>)
+StoreHelper.restock_product(*('409920000466', 1, 0.99, <Logger donknabberello.Mocker (DEBUG)>), **{'auth_user': <User: anonymous>, 'used_store_equity': False})
+
+# Command: customer_add_deposit, Args: (<Customer: Anon Ymous (anonymous)>, Decimal('1.50'), <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 1.50>)
+# Issued at: 2025-01-23 19:59:47.252378
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerDeposit: Anon Ymous deposited 1.50>)
+StoreHelper.customer_add_deposit(*(<Customer: Anon Ymous (anonymous)>, Decimal('1.50'), <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: customer_purchase, Args: ('409920000466', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x SnackFun Teigumantelte Erdnüsse (Wasabi) (409920000466) [0] = 1.50€>)
+# Issued at: 2025-01-23 19:59:47.558881
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <CustomerPurchase: Purchase for Anon Ymous (anonymous): 1 x SnackFun Teigumantelte Erdnüsse (Wasabi) (409920000466) [0] = 1.50€>)
+StoreHelper.customer_purchase(*('409920000466', 1, 'NoCardNumber', <Logger donknabberello.Mocker (DEBUG)>), **{})
+
+# Command: get_or_create_product, Args: ('4014400927139', 'Nimm2 Lachgummi', Decimal('4.5'), Decimal('0'), <Logger donknabberello.webviews.ManageProductsView (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <StoreProduct pk=4014400927139>)
+# Issued at: 2025-01-23 20:38:05.509329
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <StoreProduct pk=4014400927139>)
+StoreHelper.get_or_create_product(*('4014400927139', 'Nimm2 Lachgummi', Decimal('4.5'), Decimal('0'), <Logger donknabberello.webviews.ManageProductsView (DEBUG)>), **{})
+
+# Command: get_or_create_product, Args: ('4014400927139', 'Nimm2 Lachgummi', Decimal('4.5'), Decimal('0'), <Logger donknabberello.webviews.ManageProductsView (DEBUG)>), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <StoreProduct pk=4014400927139>)
+# Issued at: 2025-01-23 20:51:33.438058
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <StoreProduct pk=4014400927139>)
+StoreHelper.get_or_create_product(*('4014400927139', 'Nimm2 Lachgummi', Decimal('4.5'), Decimal('0'), <Logger donknabberello.webviews.ManageProductsView (DEBUG)>), **{})
+
+# Command: restock_product, Args: ('4014400927139', 1, Decimal('1.5'), <SimpleLazyObject: <User pk=1>>, <Logger donknabberello.webviews.ManageStockView (DEBUG)>, False), Kwargs: {}, Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <ProductRestock pk=1>)
+# Issued at: 2025-01-23 21:07:58.869696
+# Result: (<WebResponse status_code=200, "text/html; charset=utf-8">, <ProductRestock pk=1>)
+StoreHelper.restock_product(*('4014400927139', 1, Decimal('1.5'), <SimpleLazyObject: <User pk=1>>, <Logger donknabberello.webviews.ManageStockView (DEBUG)>, False), **{})
+
