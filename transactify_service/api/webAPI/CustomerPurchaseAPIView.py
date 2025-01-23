@@ -9,14 +9,21 @@ import json
 
 from rest_framework.views import APIView
 from api.authentication import APIKeyAuthentication
+import logging
+from transactify_service.settings import CONFIG
 
 class CustomerPurchaseAPIView(APIView):
     authentication_classes = [APIKeyAuthentication]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.webviews.{self.__class__.__name__}")
 
     def post(self, request, *args, **kwargs):
         """
         Handle a customer purchase request.
         """
+        self.logger.info("Received a customer purchase request from the API.")
         try:
             # Parse and validate JSON data from the request body.
             data = json.loads(request.body)
@@ -25,12 +32,14 @@ class CustomerPurchaseAPIView(APIView):
             card_number = data.get('card_number')
         except json.JSONDecodeError as e:
             # Change No. #1: Added specific error handling for JSON decoding errors.
+            self.logger.error(f"Invalid JSON format: {str(e)}")
             return Response(
                 {"error": f"Invalid JSON format: {str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
             # General error for request body parsing.
+            self.logger.error(f"Error parsing request data: {str(e)}")
             return Response(
                 {"error": f"Error parsing request data: {str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -39,6 +48,7 @@ class CustomerPurchaseAPIView(APIView):
         # Validate required fields
         if not all([ean, quantity, card_number]):
             # Change No. #2: Corrected the error message to reflect actual required fields.
+            self.logger.error("All fields (ean, quantity, card_number) are required.")
             return Response(
                 {"error": "All fields (ean, quantity, card_number) are required."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -48,12 +58,14 @@ class CustomerPurchaseAPIView(APIView):
             quantity = int(quantity)
             if quantity <= 0:
                 # Change No. #3: Ensure quantity is a positive integer.
+                self.logger.error("Quantity must be a positive integer.")
                 return Response(
                     {"error": "Quantity must be a positive integer."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         except ValueError:
             # Handle invalid integer conversion for quantity.
+            self.logger.error(f"Invalid data for quantity. Must be an integer but was '{quantity}'")
             return Response(
                 {"error": f"Invalid data for quantity. Must be an integer but was '{quantity}'"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -61,11 +73,13 @@ class CustomerPurchaseAPIView(APIView):
 
         try:
             # Assuming ManageStockHelper handles the logic for the purchase
+            self.logger.debug(f"Calling StoreHelper.customer_purchase with ean={ean}, quantity={quantity}, card_number={card_number}")
             response, customer = StoreHelper.customer_purchase(
-                ean, quantity, card_number
+                ean, quantity, card_number, logger=self.logger
             )
         except Exception as e:
             # Change No. #4: Handle unexpected exceptions from ManageStockHelper.
+            self.logger.error(f"An error occurred during the purchase: {str(e)}")
             return Response(
                 {"error": f"An error occurred during the purchase: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -73,6 +87,7 @@ class CustomerPurchaseAPIView(APIView):
 
         if response is None:
             # Change No. #5: Ensure a response is always returned by ManageStockHelper.
+            self.logger.error("Unexpected error: No response from ManageStockHelper.")
             return Response(
                 {"error": "Unexpected error: No response from ManageStockHelper."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

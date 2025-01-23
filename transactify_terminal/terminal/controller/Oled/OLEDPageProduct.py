@@ -91,7 +91,7 @@ class OLEDPageProduct(OLEDPage):
         try:
             # Call the make_sale function
             response_make_purchase: Response = product.customer_purchase(customer, quantity=1)
-            print(f"Got Response: {status}")
+            self.logger.debug(f"Got Response: {status}")
             # make a post to MakePurchase
             if response_make_purchase.status_code == status.HTTP_200_OK:
                 # extract message and code
@@ -112,6 +112,13 @@ class OLEDPageProduct(OLEDPage):
             view_controller.request_view(view_controller.PAGE_ERROR, 
                                         error_title=f"Error {e.response.json().get('code')}", 
                                         error_message=e.response.json().get("message"),
+                                        # Next view handler
+                                        next_view=view_controller.PAGE_MAIN,
+                                        store=product.store)
+        except Exception as e:
+            view_controller.request_view(view_controller.PAGE_ERROR, 
+                                        error_title="Error", 
+                                        error_message=str(e),
                                         # Next view handler
                                         next_view=view_controller.PAGE_MAIN,
                                         store=product.store)

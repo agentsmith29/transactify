@@ -19,6 +19,7 @@ from transactify_terminal.settings import CONFIG
 class APIFetchStoreProduct():
     def __init__(self, store: Store, ean: str, name: str, stock_quantity: int, discount: Decimal, resell_price: Decimal, final_price: Decimal):
         super().__init__()
+        self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.{self.__class__.__name__}")  
         self.store = store
         self.ean = ean
         self.name = name
@@ -110,13 +111,15 @@ class APIFetchStoreProduct():
             "Content-Type": "application/json"
         }
 
-        print(f"Making purchase: {payload}")
+        self.logger.info(f"Making purchase: {payload}")
         try:
-            api_url = f"http://{self.store.address}/api/purchase/"
+            api_url = f"{self.store.web_address}/api/purchase/"
             response = requests.post(api_url, json=payload, headers=headers)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
         except Exception as e:
-            print(f"Unexpected error during purchase: {e}")
+            self.logger.error(f"Unexpected error during purchase: {e}")
             tb = traceback.format_exc()
             raise APIFetchException("Failed to make purchase", e, response, tb)
+        
+        self.logger.info(f"Purchase successful of {self.name} for {customer.card_number}")
         return response

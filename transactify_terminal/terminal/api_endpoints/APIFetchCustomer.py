@@ -11,7 +11,7 @@ import traceback
 import logging
 from transactify_terminal.settings import CONFIG
 
-class Customer(APIBaseClass):
+class Customer():
     
     def __init__(self, store: Store,
                     username: str, first_name: str, last_name: str, email: str,
