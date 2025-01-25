@@ -5,6 +5,8 @@ from .StoreCashMovement import StoreCashMovement
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
+import logging
+
 class ProductRestock(models.Model):
     """Represents re
     stocking a product in a store.
@@ -30,8 +32,10 @@ class ProductRestock(models.Model):
     def get_all_restocks(product: StoreProduct):
         return ProductRestock.objects.filter(product=product)
     
-    def get_all_restocks_aggregated(product: StoreProduct):
-        return ProductRestock.objects.filter(product=product).aggregate(models.Sum('quantity'))['quantity__sum']
+    def get_all_restocks_aggregated(product: StoreProduct, logger: logging.Logger):
+        _ara = ProductRestock.objects.filter(product=product).aggregate(models.Sum('quantity'))['quantity__sum']
+        logger.debug(f"Getting all restocks for product {product.name}: {_ara}")
+        return _ara
 
     def save(self, *args, **kwargs):
         from .ProductInventory import ProductInventory

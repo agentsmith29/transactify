@@ -47,13 +47,10 @@ class CustomerPurchase(models.Model):
     def get_all_purchases(product: StoreProduct):
         return CustomerPurchase.objects.filter(product=product)
     
-    def total_purchases(product: StoreProduct, _logger: logging.Logger = None):
+    def total_purchases(product: StoreProduct, logger: logging.Logger):
         # get the sum of all purchases for a product
-        if not _logger:
-            _logger = logger
-        _logger.info(f"Calculating total purchases for product {product}")
         total_purchases = CustomerPurchase.objects.filter(product=product).aggregate(models.Sum('quantity'))['quantity__sum']
-        _logger.info(f"Total purchases: {total_purchases}")
+        logger.debug(f"Calculating total purchases for product {product}: {total_purchases}")
         return total_purchases
     
     def total_revenue(product: StoreProduct, _logger: logging.Logger =None):
@@ -101,7 +98,7 @@ class CustomerPurchase(models.Model):
         inventory_items = ProductInventory.objects.filter(
             restock__product=self.product, remaining_quantity__gt=0
         ).order_by('restock__restock_date')
-        logger.debug(f"Inventory items: {inventory_items}")
+        logger.debug(f"Inventory items: {inventory_items.all()}")
 
         for inventory in inventory_items:
             if quantity_to_allocate <= 0:

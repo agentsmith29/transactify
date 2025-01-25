@@ -173,16 +173,7 @@ DATABASES = {
 
 logger.info(f"Database settings: {DATABASES}.")
 
-# Use in-memory SQLite for testing
-if 'test' in sys.argv:
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'test_db',
-        'USER': 'USER',
-        'PASSWORD': 'PASSWORD',
-        'HOST':'192.168.1.190',
-        'PORT': 5432,
-    }
+
 # Important, to make the correct database routing work
 #DATABASE_ROUTERS = ['transactify_service.db_router.MultiDatabaseRouter']
 

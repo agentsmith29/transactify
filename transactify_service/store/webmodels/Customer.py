@@ -111,7 +111,7 @@ class Customer(models.Model):
         Returns:
             float: Total deposit amount.
         """
-        return self.get_deposits(date).aggregate(total=models.Sum('amount'))['total'] or 0.0
+        return Decimal(self.get_deposits(date).aggregate(total=models.Sum('amount'))['total'] or 0.0)
 
     def get_total_purchase_amount(self, date: Union[datetime, tuple[datetime, datetime]] = None) -> float | Decimal:  # #4: Renamed method for clarity
         """
@@ -124,7 +124,8 @@ class Customer(models.Model):
         Returns:
             float: Total purchase amount.
         """
-        return self.get_purchases(date).aggregate(total=models.Sum(models.F('purchase_price') * models.F('quantity')))['total'] or 0.0
+        #return Decimal(self.get_purchases(date).aggregate(total=models.Sum(models.F('purchase_price') * models.F('quantity')))['total'] or 0.0)
+        return Decimal(self.get_purchases(date).aggregate(total=models.Sum(models.F('purchase_price')))['total'] or 0.0)
 
  
     def get_generated_profit(self, date: datetime | tuple[datetime, datetime]=None) -> float:

@@ -25,7 +25,7 @@ class HTTPResponses():
     HTTP_STATUS_CUSTOMER_CREATE_SUCCESS = lambda username: APIResponse.success(
         message=f"Customer {username} created successfully.",
         code=0,
-        http_status=status.HTTP_200_OK
+        http_status=status.HTTP_201_CREATED
     )
     HTTP_STATUS_CUSTOMER_DELETED = lambda username: APIResponse.success(
         message=f"Customer with card number {username} deleted", 
@@ -64,7 +64,7 @@ class HTTPResponses():
     HTTP_STATUS_PRODUCT_CREATE_SUCCESS = lambda ean: APIResponse.success(
         message=f"Product with EAN {ean} created successfully.",
         code=103,
-        http_status=status.HTTP_200_OK
+        http_status=status.HTTP_201_CREATED
     )
 
     HTTP_STATUS_PRODUCT_UPDATE_SUCCESS = lambda ean: APIResponse.success(
@@ -142,7 +142,7 @@ class HTTPResponses():
     HTTP_STATUS_RESTOCK_SUCCESS = lambda product_name: APIResponse.success(
         message=f"Restock of {product_name} successful.",
         code=116,
-        http_status=status.HTTP_200_OK
+        http_status=status.HTTP_201_CREATED
     )
 
     # === Log Respnses ===
