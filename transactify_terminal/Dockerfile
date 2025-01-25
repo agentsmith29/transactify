@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED 1
 
 # Set the working directory
 WORKDIR /app
-
+ENV APP_DIR /app
 # Install system dependencies for Python, GPIO, and PostgreSQL
 RUN apt-get update && apt-get install -y \
     build-essential \

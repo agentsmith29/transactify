@@ -125,9 +125,22 @@ class ConfigParser(metaclass=FinalizeMeta):
 
     def __str__(self) -> str:
         return f"\n{self._str_repr}"
+    
+    def set_all_env_vars(self):
+        print("Setting all environment variables")
+        # iterate through all BaseConfigField instances and set their variables as environment variables
+        for member_key, member_val in self.__dict__.items():
+            if isinstance(member_val, BaseConfigField):
+                print(f"Setting environment variables for {member_key}")
+                # iterate through all variables in the BaseConfigField instance
+                for var_key, var_val in member_val.__dict__.items():
+                    if var_key.startswith("_"):
+                        continue
+                    os.environ[var_key] = str(var_val)
+                    print(f"Set {var_key}={var_val}")
         
     @staticmethod
-    def from_command_line(config):
+    def from_command_line(config: BaseConfigField):
         """
         Parse command-line arguments and retrieve configuration values.
         Usage: python Config.py <config_file> --getvar "key"
@@ -139,23 +152,28 @@ class ConfigParser(metaclass=FinalizeMeta):
 
         parser = argparse.ArgumentParser(description="ConfigParser Command Line Utility")
         parser.add_argument("config_file", type=str, help="Path to the configuration file.")
-        parser.add_argument("--getvar", type=str, help="Dot-separated key to fetch from the configuration.")
+        parser.add_argument("-g", "--getvar", type=str, help="Dot-separated key to fetch from the configuration.")
+        parser.add_argument("-e", "--env_setall", action='store_true', help="Set all variables as environment variables from the given file.")
 
         args = parser.parse_args()
 
         config_file = args.config_file
-        key = args.getvar
+        key_getvar = args.getvar
+        env_setall = args.env_setall
 
         if not config_file:
             raise ValueError("Configuration file path is required.")
 
-        config = config(config_file, disable_logs=True)
+        _config: ConfigParser = config(config_file, disable_logs=True)
 
-        if key:
-            keys = key.split(".")
-            value = config
+        if key_getvar:
+            keys = key_getvar.split(".")
+            value = _config
             for k in keys:
                 value = getattr(value, k, None)
             return value
-        return None
+        
+        if env_setall:
+            _config.set_all_env_vars()
 
+        return None

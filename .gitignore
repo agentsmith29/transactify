@@ -164,3 +164,4 @@ cython_debug/
 
 cashlessui/cashlessui/.my_pgpass
 tools_and_tests/test_html_page
+static

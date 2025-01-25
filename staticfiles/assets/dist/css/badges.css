@@ -1,0 +1,66 @@
+/* logs_badges.css */
+
+/* Default badge styles */
+.badge-pill {
+    display: inline-block;
+    padding: 0.5em 0.75em;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 10rem;
+}
+
+/* Specific styles for each log level */
+.badge-primary {
+    color: #ffffff;
+    background-color: #007bff;
+}
+
+.badge-secondary {
+    color: #ffffff;
+    background-color: #6c757d;
+}
+
+.badge-success {
+    color: #ffffff;
+    background-color: #28a745;
+}
+
+.badge-danger {
+    color: #ffffff;
+    background-color: #dc3545;
+}
+
+.badge-warning {
+    color: #212529;
+    background-color: #ffc107;
+}
+
+.badge-info {
+    color: #ffffff;
+    background-color: #17a2b8;
+}
+
+.badge-light {
+    color: #212529;
+    background-color: #f8f9fa;
+}
+
+.badge-dark {
+    color: #ffffff;
+    background-color: #343a40;
+}
+
+/* Optional hover effect for better interactivity */
+.badge-pill:hover {
+    opacity: 0.9;
+    text-decoration: none;
+}
+
+/* Optional focus effect for accessibility */
+.badge-pill:focus {
+    outline: 2px dotted #333333;
+}

@@ -1,3 +1,7 @@
+export APP_DIR="."
+./entrypoint.sh
+
+
 export MAIN_DB="cashless_donknabberello_1"
 export PGPASSWORD="PASSWORD"
 export PGUSER="USER"

@@ -19,9 +19,6 @@ $MANAGE_PY migrate || {
     exit 1
 }
 
-export DJANGO_SUPERUSER_PASSWORD=$ADMIN_PASSWORD
-export DJANGO_SUPERUSER_USERNAME=$ADMIN_USER 
-export DJANGO_SUPERUSER_EMAIL=$ADMIN_EMAIL 
 echo "Creating a superuser for the USER database (if not exists)..."
 $MANAGE_PY create_or_update_superuser  || {
     echo "ERROR: Failed to create superuser $ADMIN_USER."

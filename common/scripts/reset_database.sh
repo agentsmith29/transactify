@@ -1,17 +1,18 @@
 # Ensure required environment variables are set
-if [ -z "$DJANGO_DB_HOST" ] || [ -z "$DJANGO_DB_USER" ] || [ -z "$DJANGO_DB_PASSWORD" ] || [ -z "$SERVICE_NAME" ]; then
+PGHOST=$(python ./config/Config.py $CONFIG_FILE --getvar "database.HOST")
+PGUSER=$(python ./config/Config.py $CONFIG_FILE --getvar "database.USER")
+PGPASSWORD=$(python ./config/Config.py $CONFIG_FILE --getvar "database.PASSWORD")
+PGPORT=$(python ./config/Config.py $CONFIG_FILE --getvar "database.PORT")
+SERVICE_NAME=$(python ./config/Config.py $CONFIG_FILE --getvar "webservice.SERVICE_NAME")
+
+MAIN_DB=$(python ./config/Config.py $CONFIG_FILE --getvar "database.NAME")
+
+if [ -z "$PGHOST" ] || [ -z "$PGUSER" ] || [ -z "$PGPASSWORD" ] || [ -z "$SERVICE_NAME" ] || [ -z "$MAIN_DB" ]; then
     echo "Error: One or more required environment variables are not set."
-    echo "Ensure DJANGO_DB_HOST, DJANGO_DB_USER, DJANGO_DB_PASSWORD, and DJANGO_DB_NAME are set."
+    echo "Ensure PGHOST, PGUSER, PGPASSWORD, SERVICE_NAME and MAIN_DB are set."
     exit 1
 fi
 
-# Database-specific settings
-PGHOST=$DJANGO_DB_HOST
-PGUSER=$DJANGO_DB_USER
-PGPASSWORD=$DJANGO_DB_PASSWORD
-PGPORT=${DJANGO_DB_PORT:-5432} # Default PostgreSQL port if not set
-
-MAIN_DB="$CONTAINER_NAME"   # Main Django database
 TEMP_DB="postgres"          # Temporary database to connect to during database operations
 
 

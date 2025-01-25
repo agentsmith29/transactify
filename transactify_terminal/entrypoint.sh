@@ -4,9 +4,9 @@ export APP_NAME="terminal"
 export DB_RESET=$(python ./config/Config.py $TERMINAL_CONFIG_FILE --getvar "database.DB_RESET")
 export REMIGRATE=$(python ./config/Config.py $TERMINAL_CONFIG_FILE --getvar "database.REMIGRATE")
 
-source /app/entrypoint_template.sh
+source ${APP_DIR}/entrypoint_template.sh
 
-python /app/static/tools/convert_svg_png.py
+python ${APP_DIR}/static/tools/convert_svg_png.py
 
 # Step 7: Start the server
 export INIT_HARDWARE=1
