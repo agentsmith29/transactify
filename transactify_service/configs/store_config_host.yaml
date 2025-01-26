@@ -1,4 +1,4 @@
-ENV: "../../.env"  # Path to the .env file for global environment variable resolution
+ENV: ../../.env  # Path to the .env file for global environment variable resolution
 
 database:
   RESET: True  # Deletes and recreates the database (dangerous)
@@ -11,10 +11,10 @@ database:
   NAME: "transactify_${webservice.SERVICE_NAME}"
   
 webservice:
-  SERVICE_NAME: "${container.CONTAINER_NAME}"
-  FRIENDLY_NAME: "Don Knabberello"
+  SERVICE_NAME: "donknabberello"
   SERVICE_WEB_HOST: "${ENV.PROJECT_HOST}"
-  SERVICE_WEB_PORT: ${ENV.PROJECT_PORT}
+  #SERVICE_WEB_PORT: ${ENV.PROJECT_PORT}
+  SERVICE_WEB_PORT: 8880  # run on host: 8880
   JOURNAL_FILE: "journal_${SERVICE_NAME}.py"
   
 admin:
@@ -24,7 +24,7 @@ admin:
 
 terminal:
   TERMINAL_SERVICE: terminal1
-  TERMINAL_SERVICE_URL: "${TERMINAL_SERVICE}:${ENV.PROJECT_PORT}/${TERMINAL_SERVICE}"
+  TERMINAL_SERVICE_URL: "${ENV.PROJECT_HOST}:8881/${TERMINAL_SERVICE}"
   TERMINAL_WEBSOCKET_URL: "${TERMINAL_SERVICE_URL}/ws"
   TERMINAL_SELECTION_BUTTONS: A
 

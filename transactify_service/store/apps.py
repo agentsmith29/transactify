@@ -54,7 +54,7 @@ class StoreConfig(AppConfig):
             push_store_conf = {
                 "cmd": "register_store",
                 "params": {
-                    "name": CONFIG.webservice.SERVICE_NAME,
+                    "name": CONFIG.webservice.FRIENDLY_NAME,
                     "address": CONFIG.webservice.SERVICE_URL,
                     "docker_container": CONFIG.container.CONTAINER_NAME,
                     "terminal_button": CONFIG.terminal.TERMINAL_SELECTION_BUTTONS,

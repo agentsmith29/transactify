@@ -7,7 +7,6 @@ ENV PYTHONUNBUFFERED 1
 
 # Set the working directory
 WORKDIR /app
-ENV APP_DIR /app/server
 
 # Install system dependencies for Python, GPIO, and PostgreSQL
 RUN apt-get update && apt-get install -y \
@@ -23,29 +22,29 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip
-#RUN ntpdate pool.ntp.org
+
 # Install Django 5 and Python dependencies
 COPY ./requirements.txt /app/
-
 RUN pip install --no-cache-dir -r requirements.txt
-COPY ./common /common
-COPY .env /.env
-COPY ./static/staticfiles /app/staticfiles
-COPY ./entrypoint_template.sh /app/entrypoint_template.sh
-RUN chmod +x /app/entrypoint_template.sh
+
+ENV APP_DIR /app/webapp
+ENV CONFIG_FILE="$APP_DIR/configs/config.yaml"
+
+COPY .env                       /app/.env
+COPY ./staticfiles              /app/staticfiles
+COPY ./common                   /app/common
+
 
 # Expose the application port
 EXPOSE 8000
-
+WORKDIR $APP_DIR
 
 # ----------------- NEW CODE -----------------
 
 COPY ./transactify_service ${APP_DIR}
-#COPY ./management /app/transactify_service/store/
-#RUN python manage.py makemigrations
 
-RUN chmod +x /app/entrypoint.sh 
-RUN chmod +x /app/entrypoint.tests.sh
+RUN chmod +x $APP_DIR/entrypoint.sh 
+RUN chmod +x $APP_DIR/entrypoint.tests.sh
 
 # Run migrations and start the Django development server
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/app/webapp/entrypoint.sh"]

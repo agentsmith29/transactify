@@ -51,7 +51,7 @@ services:
     volumes:
       # Configuration file for the store
       - .env:/app/.env
-      - ./transactify_service/configs/store_config.yaml:/app/configs/store_config.yaml
+      - ./transactify_service/configs/store_config.yaml:/app/webapp/configs/config.yaml
       # Docker socket for container management
       - /run/docker.sock:/run/docker.sock:ro
       # Data: Nginx configuration and static files

@@ -24,6 +24,7 @@ class WebService(BaseConfigField):
     def __init__(self, *args, **kwargs):
         super().__init__(field_name="webservice", *args, **kwargs)
         self.SERVICE_NAME = self.assign_from_config("SERVICE_NAME")
+        self.FRIENDLY_NAME = self.assign_from_config("FRIENDLY_NAME", self.SERVICE_NAME)
         self.SERVICE_WEB_PORT = self.assign_from_config("SERVICE_WEB_PORT")
         self.SERVICE_WEB_HOST = self.assign_from_config("SERVICE_WEB_HOST")
         self.SERVICE_URL = self.assign_direct(f"http://{self.SERVICE_WEB_HOST}:{self.SERVICE_WEB_PORT}/{self.SERVICE_NAME}")
@@ -61,7 +62,7 @@ class ContainerConfig(BaseConfigField):
         self.HOSTNAME = self.assign_direct(self._get_hostname())
         self.CONTAINER_NAME = self.assign_direct(self.docker_socket_helper.container_name(f"{self.HOSTNAME}"))
         self.CONTAINER_ID = self.assign_direct(self.docker_socket_helper.container_id(f"{self.HOSTNAME}"))
-
+       
     def _get_hostname(self) -> str:
         hostname = socket.gethostname()
         return hostname

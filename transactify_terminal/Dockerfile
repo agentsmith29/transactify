@@ -37,7 +37,7 @@ COPY ./common                   /app/common
 
 # Expose the application port
 EXPOSE 8000
-
+WORKDIR $APP_DIR
 
 # ----------------- NEW CODE -----------------
 COPY ./transactify_terminal $APP_DIR
@@ -45,6 +45,5 @@ COPY ./transactify_terminal $APP_DIR
 RUN chmod +x $APP_DIR/entrypoint.sh 
 RUN chmod +x $APP_DIR/entrypoint.tests.sh
 
-WORKDIR $APP_DIR
 # Run migrations and start the Django development server
 ENTRYPOINT ["/app/webapp/entrypoint.sh"]

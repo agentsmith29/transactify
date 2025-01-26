@@ -22,6 +22,16 @@ else
     echo_inf "APP_DIR is set to $APP_DIR"
     echo_inf "CONFIG_FILE is set to $CONFIG_FILE"
 fi
+
+# Check if the configuration file exists
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo_err "Error: Configuration file $CONFIG_FILE does not exist. Exiting."
+    exit 1
+else
+    echo_ok "Configuration file $CONFIG_FILE exists."
+fi
+cat $CONFIG_FILE
+
 echo_dbg "Reading configuration from $CONFIG_FILE"
 
 # export DJANGO_SETTINGS_MODULE=terminal.settings
@@ -47,7 +57,6 @@ export FILE_NGINX_CONF="$DIR_NGINX/templates/nginx.template.conf"
 export FILE_NGINX_CONF_STORE="$DIR_SHARED_CONFIG/nginx.${CONTAINER_NAME}.conf"
 
 # Scripts
-export SH_CHANGE_NGINX="$DIR_SCRIPTS/change_nginx.sh"
 export PY_CHANGE_NGINX="$DIR_SCRIPTS/change_nginx.py"
 export SH_MAKE_STORE_MIGRATION="$DIR_SCRIPTS/db_migration.sh"
 export SH_RESET_DATABSE_SCRIPT="$DIR_SCRIPTS/reset_database.sh"
@@ -95,12 +104,12 @@ else
         echo_ok "File $FILE_NGINX_CONF exists."
     fi
 
-    echo "Checking file $SH_CHANGE_NGINX"
-    if [ ! -f "$SH_CHANGE_NGINX" ]; then
-        echo_err "Error: $SH_CHANGE_NGINX does not exist. Exiting."
+    echo "Checking file $PY_CHANGE_NGINX"
+    if [ ! -f "$PY_CHANGE_NGINX" ]; then
+        echo_err "Error: $PY_CHANGE_NGINX does not exist. Exiting."
         exit 1
     else
-        echo_ok "File $SH_CHANGE_NGINX exists."
+        echo_ok "File $PY_CHANGE_NGINX exists."
     fi
 
     echo "Checking directory $DIR_SHARED_CONFIG"
@@ -190,11 +199,11 @@ if [ "$CONTAINER_NAME" = "host" ]; then
     echo_warn "Running on host. Skipping nginx configuration adaptation..."
 else
     # Alter the nginx configuration file to use the correct port
-    echo_warn "Changing the port in the nginx configuration file using the script $SH_CHANGE_NGINX..."
-    chmod +x $SH_CHANGE_NGINX || {
-        echo_err "ERROR: Failed to change the port in the nginx configuration file. Exiting."
-        exit 1
-    }
+    # echo_warn "Changing the port in the nginx configuration file using the script $SH_CHANGE_NGINX..."
+    # chmod +x $SH_CHANGE_NGINX || {
+    #     echo_err "ERROR: Failed to change the port in the nginx configuration file. Exiting."
+    #     exit 1
+    # }
 
     echo_inf "Changing the placeholders in the nginx configuration file $FILE_NGINX_CONF..."
     python $PY_CHANGE_NGINX $FILE_NGINX_CONF || {
