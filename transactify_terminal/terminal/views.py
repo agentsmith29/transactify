@@ -7,13 +7,13 @@ import json
 from .webmodels.Store  import Store
 
 
-from .apps import hwcontroller
+from terminal.apps import TerminalConfig
 
 #@csrf_exempt
 class API_ReadNFCBlocking(View):
 
     def get(self, request):
-        id, txt = hwcontroller.hwif.nfc_reader.read_block()
+        id, txt = TerminalConfig.hwcontroller.hwif.nfc_reader.read_block()
         # return a correct response
         return JsonResponse({'id': id, 'content': txt})
 

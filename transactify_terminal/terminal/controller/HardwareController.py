@@ -7,14 +7,9 @@ from django.http import JsonResponse
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.dispatch import Signal
-def check_run_server():
-    _rs = os.getenv('RUN_SERVER', "False").lower()
-    if _rs == "true" or _rs == "1":
-        return True
-    return False
-    
-RUN_SERVER = check_run_server()
-if RUN_SERVER:
+
+from common.src.is_running_migration import is_running_migration
+if not is_running_migration():
     from .HardwareInterface import HardwareInterface
     from .Oled.OLEDViewController import OLEDViewController
 
@@ -39,11 +34,11 @@ class HardwareController():
 
     def __init__(self, *args, **kwargs):
         self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.{self.__class__.__name__}")     
-        if not RUN_SERVER:
-            self.logger.info(f"RUN_SERVER={RUN_SERVER}: Not running server. Exiting HardwareController init.")
+        if not is_running_migration:
+            self.logger.info(f"Not running server. Exiting HardwareController init.")
             return
         else:
-            self.logger.warning(f"RUN_SERVER={RUN_SERVER}: Continuing HardwareController init.")
+            self.logger.warning(f"Continuing HardwareController init.")
      
         self.logger.info(f"HardwareController initilized. {HardwareController.init_counter} number of initializations.")
         HardwareController.init_counter += 1

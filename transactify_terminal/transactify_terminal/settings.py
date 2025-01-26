@@ -12,9 +12,14 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 import logging
 import logging.config
 from rich.logging import RichHandler
+
+APP_DIR = os.getenv('APP_DIR')
+sys.path.append(f'{APP_DIR}/..')
+from common.src.is_running_migration import is_running_migration
 
 from config import CONFIG as _CONFIG
 
@@ -60,7 +65,8 @@ LOGGING = {
     },
     
 }
-logging.config.dictConfig(LOGGING)
+if not is_running_migration():
+    logging.config.dictConfig(LOGGING)
 logger = logging.getLogger(f"root.settings")                    
 logger.debug("Logging configured.")
 # disable some loggers

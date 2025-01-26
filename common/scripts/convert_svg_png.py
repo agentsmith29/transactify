@@ -5,6 +5,7 @@ from PIL import Image
 from io import BytesIO
 from cairosvg import svg2png
 import sys
+import argparse
 
 
 # get current working directory
@@ -38,7 +39,13 @@ def process_png(ref, path_out, sizes = [12, 16, 24, 32, 48]):
 
 # Main script
 def main():
-    svg_base_dir = '/app/static/icons/svg/'
+    # add argparse
+    parser = argparse.ArgumentParser(description="Convert SVG files to PNG.")
+    parser.add_argument("folder", type=str, help="Folder containing SVG files.")
+    args = parser.parse_args()
+
+    svg_base_dir = args.folder
+
     svg_convert = [
        "lock.svg",
        "cart-check-fill.svg",

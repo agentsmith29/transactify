@@ -70,6 +70,7 @@ class ConfigParser(metaclass=FinalizeMeta):
         return logger
 
     def _load_environment(self, key="ENV") -> Dict[str, str]:
+        self.logger.info(f"Loading environment variables from {self.config_file}")
         with open(self.config_file, 'r') as file:
             self.config_data = {'content': yaml.safe_load(file), 'keywords': {}}
             self.logger.info(f"Loading configuration from {self.config_file}")

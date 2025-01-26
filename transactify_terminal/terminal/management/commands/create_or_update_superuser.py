@@ -3,14 +3,16 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 
+from transactify_terminal.settings import CONFIG
+
 class Command(BaseCommand):
     help = "Create or update a superuser with environment variables"
 
     def handle(self, *args, **kwargs):
         # Fetch environment variables
-        username = os.environ.get("DJANGO_SUPERUSER_USERNAME")
-        password = os.environ.get("DJANGO_SUPERUSER_PASSWORD")
-        email = os.environ.get("DJANGO_SUPERUSER_EMAIL")
+        username = CONFIG.admin.ADMIN_USER
+        password = CONFIG.admin.ADMIN_PASSWORD
+        email = CONFIG.admin.ADMIN_EMAIL
 
         # Ensure all required environment variables are set
         if not username or not password or not email:

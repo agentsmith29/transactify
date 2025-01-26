@@ -1,8 +1,13 @@
 import os
 import sys
-sys.path.append(f'/common/src')
+# get current file path
+_filepwd = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(f'{_filepwd}/../../common')
+
 from ConfigParser.ConfigParser import ConfigParser
-sys.path.append(f'/app/config')
+
+APP_DIR = os.getenv('APP_DIR', '/app/webapp')
+sys.path.append(f'{APP_DIR}/config')
 from Config import Config
 
 def replace_placeholders(file_nginx_conf, config: Config):

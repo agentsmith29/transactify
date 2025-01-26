@@ -2,6 +2,7 @@ import logging
 import traceback
 import asyncio
 from rich.logging import RichHandler
+from common.src.is_running_migration import is_running_migration
 
 class LogDBHandler(logging.Handler):
     """
@@ -13,6 +14,8 @@ class LogDBHandler(logging.Handler):
         self.rich_handler = RichHandler()
 
     async def _log_to_db_async(self, record, traceback_obj=None):
+        if is_running_migration():
+            return
         from terminal.webmodels.StoreLogs import StoreLog
         await StoreLog.objects.acreate(
             loglevel=record.levelname,
@@ -24,6 +27,8 @@ class LogDBHandler(logging.Handler):
         )
 
     def _log_to_db_sync(self, record, traceback_obj=None):
+        if is_running_migration():
+            return
         from terminal.webmodels.StoreLogs import StoreLog
         StoreLog.objects.create(
             loglevel=record.levelname,
@@ -35,6 +40,8 @@ class LogDBHandler(logging.Handler):
         )
 
     async def _handle_traceback_async(self, record):
+        if is_running_migration():
+            return
         from terminal.webmodels.LogTraceback import LogTraceback
         return await LogTraceback.objects.acreate(
             traceback=traceback.format_exc(),
@@ -43,6 +50,8 @@ class LogDBHandler(logging.Handler):
         )
 
     def _handle_traceback_sync(self, record):
+        if is_running_migration():
+            return
         from terminal.webmodels.LogTraceback import LogTraceback
         return LogTraceback.objects.create(
             traceback=traceback.format_exc(),

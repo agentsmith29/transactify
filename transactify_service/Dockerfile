@@ -7,6 +7,7 @@ ENV PYTHONUNBUFFERED 1
 
 # Set the working directory
 WORKDIR /app
+ENV APP_DIR /app/server
 
 # Install system dependencies for Python, GPIO, and PostgreSQL
 RUN apt-get update && apt-get install -y \
@@ -29,7 +30,7 @@ COPY ./requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 COPY ./common /common
 COPY .env /.env
-COPY ./static /app/staticfiles
+COPY ./static/staticfiles /app/staticfiles
 COPY ./entrypoint_template.sh /app/entrypoint_template.sh
 RUN chmod +x /app/entrypoint_template.sh
 
@@ -39,7 +40,7 @@ EXPOSE 8000
 
 # ----------------- NEW CODE -----------------
 
-COPY ./transactify_service /app/
+COPY ./transactify_service ${APP_DIR}
 #COPY ./management /app/transactify_service/store/
 #RUN python manage.py makemigrations
 

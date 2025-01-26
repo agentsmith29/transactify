@@ -15,13 +15,13 @@ import os
 class DatabaseConfig(BaseConfigField):
     def __init__(self, *args, **kwargs):
         super().__init__(field_name="database", *args, **kwargs)
-        self.DB_RESET = self.assign_from_config("DB_RESET", "false")
+        self.RESET = self.assign_from_config("RESET", "false")
         self.REMIGRATE = self.assign_from_config("REMIGRATE", "false")
-        self.NAME = self.assign_from_config("DB_NAME")
-        self.HOST = self.assign_from_config("DB_HOST")
-        self.PORT = self.assign_from_config("DB_PORT")
-        self.USER = self.assign_from_config("DB_USER")
-        self.PASSWORD = self.assign_from_config("DB_PASSWORD")
+        self.NAME = self.assign_from_config("NAME")
+        self.HOST = self.assign_from_config("HOST")
+        self.PORT = self.assign_from_config("PORT")
+        self.USER = self.assign_from_config("USER")
+        self.PASSWORD = self.assign_from_config("PASSWORD")
 
 class WebService(BaseConfigField):
     def __init__(self, *args, **kwargs):

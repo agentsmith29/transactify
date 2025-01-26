@@ -25,4 +25,4 @@ if [ "$INIT_DATA" = "1" ]; then
 fi
 
 export "RUN_SERVER"="true"
-daphne -b 0.0.0.0 -p 8880 transactify_service.asgi:application
+sudo daphne -b 0.0.0.0 -p 8880 transactify_service.asgi:application
