@@ -94,9 +94,9 @@ docker-compose up --build
   
   <summary>Configuration Files</summary>
   
-  For configuration, the project uses the [ConfigParser](./common/src/ConfigParser)-Class, which allows to configure the djago webserver. All necessary configurations are managed through a configuration file, which can be found here:
-  - [Store Config](./transactify_service/configs/store_config.yaml).
-  - [Terminal Config](./transactify_terminal/configs/terminal_config.yaml).
+  For configuration, the project uses the [ConfigParser](./common/src/ConfigParser)-Class, which allows to configure the djago webserver. All necessary configurations are managed through a configuration file, which can be found here as an example:
+  - [Store Config](./transactify_service/configs/store_config.example.yaml).
+  - [Terminal Config](./transactify_terminal/configs/terminal_config.example.yaml).
 </details>
 
 <details>
@@ -120,7 +120,122 @@ python -m venv .venv
 ```
 </details>
 
+When using docker, use the following example config file
+```yaml
+version: '3.9'
+services:
+  # DATABASE
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: ${DB_USER}         # Stored in the .env file
+      POSTGRES_PASSWORD: ${DB_PASSWORD} # Stored in the .env file
+    ports:
+      - 5432:${DB_PORT}                 # Stored in the .env file
+  
+  terminal1:
+    build:
+      context: .
+      dockerfile: ./transactify_terminal/Dockerfile
+    restart: always
+    tty: true         # docker run -t, used to have a nice log formatting (rich logging)
+    privileged: true  # Grants access to devices and kernel features and hardware
+    cap_add:
+      - SYS_RAWIO  # Allows raw GPIO access
+    security_opt:
+      - apparmor:unconfined  # Unrestricted access to hardware
+    volumes:
+      # Configuration file for the store
+      - ./transactify_terminal/configs/terminal1_config.yaml:/app/webapp/configs/config.yaml
+      # Needed to retrieve container infos
+      - /run/docker.sock:/run/docker.sock:ro
+      #
+      - nginx_data:/etc/nginx/conf.d
+      - static_volume:/app/static
+    depends_on:
+      - db
+    healthcheck:
+      test: "curl http://127.0.0.1:${PROJECT_PORT}/terminal1/health"
+      start_period: 10s
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    deploy:       # limit maximum number of containers to 1
+      replicas: 1 # Important for the terminal to work properly (only one terminal can be connected to the hardware)
+  
+  your_store:
+    build:
+      context: .
+      dockerfile: ./transactify_service/Dockerfile
+    restart: always
+    depends_on:
+      - db
+      - terminal1
+    volumes:
+      # Configuration file for the store
+      - .env:/app/.env    # Needed by the config loader
+      # Mounts your configuratin file 
+      - ./transactify_service/configs/your_store.yaml:/app/webapp/configs/config.yaml 
+      # Docker socket for container management
+      - /run/docker.sock:/run/docker.sock:ro
+      # Data: Nginx configuration and static files
+      - nginx_data:/etc/nginx/conf.d
+      - static_volume:/app/static
+    healthcheck:
+      test: "curl http://127.0.0.1:${PROJECT_PORT}/your_store/health"
+      start_period: 10s
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  # Optional, good for managing you database
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    #depends_on:
+    #  - django
+
+  # Needed, for serving static files and routing
+  nginx:
+    image: nginx:latest
+    restart: always
+    volumes:
+      # To serve the startic files
+      - static_volume:/static
+      # Automatically configures the services
+      - ./common/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - nginx_data:/etc/nginx/conf.d
+      
+      - /proc/sysrq-trigger:/sysrq
+    ports:
+      - 8000:8000
+    depends_on:
+      donknabberello:
+        condition: service_started
+      doncaramello:
+        condition: service_started
+      terminal1:
+        condition: service_healthy
+
+volumes:
+  nginx_data:
+  postgres_data:
+  static_volume:
+
+```
+
+### Troubleshooting
+If your neginx instance makes problems its often good to start fresh and remove all volumes and containers. The database should not be 
+affacted.
+
 ## Directly running on the host (not recommended)
+> [!NOTE]
+> This section is outdated. Do not use it. For now, it should be sufficient to use the `run_on_host.sh`- scripts.
+
 > [!NOTE]
 > If you have problems with syntax highlghting in your VS-Code project, check if you have included the following settings for you [VSCode Settings](.vscode/settings.json)
 > ```json
