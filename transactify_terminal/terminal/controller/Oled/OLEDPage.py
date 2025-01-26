@@ -31,7 +31,7 @@ from terminal.webmodels.Store import Store
 import logging
 
 from transactify_terminal.settings import CONFIG
-
+import os
 import threading
 
 class OLEDPage():
@@ -39,6 +39,8 @@ class OLEDPage():
 
     BTN_OKAY = "F"
     BTN_BACK = "E"
+    APP_DIR = os.getenv("APP_DIR", "/app")
+    ICONS=f"${APP_DIR}/../static/icons"
     
     def store_context():
         """
@@ -248,12 +250,13 @@ class OLEDPage():
             if isinstance(next_view, OLEDPage):
                 next_view = next_view.name
             self._signal_request_view.send(sender=self.name, view=next_view, *args, **kwargs)
+            self.ledstrip.stop_animation()
 
     def display_header(self, header_text, icon_path, header_height = 20):
         self.draw.text((20, 0), header_text, font=self.font_large, fill=(255,255,255))
         self.draw.text((20, 0), header_text, font=self.font_large, fill=(255,255,255))  # Leave space for NFC symbo
         # Paste the NFC symbol into the header
-        self.paste_image(self.image, r"/app/static/icons/png_16/coin.png", (0, 0))
+        self.paste_image(self.image,f"{self.ICONS}/png_16/coin.png", (0, 0))
         # Divider line
         self.draw.line([(0, header_height), (self.width, header_height)], fill=(255,255,255), width=1)
         return header_height
@@ -268,7 +271,7 @@ class OLEDPage():
         copy_image_content = self.image.copy()
         copy_draw_content = ImageDraw.Draw(copy_image_content)
         # overlay a rechatngel with a lock symbol
-        img = r"/app/static/icons/png_32/lock.png"
+        img =f"{self.ICONS}/png_32/lock.png"
         img_width,  img_heiht = PIL.Image.open(img).size
         center_x = self.width // 2
         center_y = self.height // 2
@@ -297,7 +300,7 @@ class OLEDPage():
         copy_draw_content = ImageDraw.Draw(copy_image_content)
         try:
             # overlay a rechatngel with a lock symbol
-            img = r"/app/static/icons/png_24/NFC_logo.png"
+            img =f"{self.ICONS}/png_24/NFC_logo.png"
             img_width,  img_heiht = PIL.Image.open(img).size
 
             center_x = self.width // 2
@@ -333,7 +336,7 @@ class OLEDPage():
                 copy_draw_content.ellipse((center_x + pox, rect_y2 + 6, center_x + pox + 6, rect_y2 + 12), fill=(0,0,0), outline=(255,255,255))
        
         if display_check:
-            self.paste_image(copy_image_content, r"/app/static/icons/png_24/check-square.png", (img_pos_x, img_pos_y))
+            self.paste_image(copy_image_content,f"{self.ICONS}/png_24/check-square.png", (img_pos_x, img_pos_y))
             copy_draw_content.rectangle((0, rect_y2+1, self.width, self.height), fill=(0,0,0))
             self.align_center(copy_draw_content, "Card read!", rect_y2 +10, self.font_small)
             self.oled.display(copy_image_content)
@@ -352,7 +355,7 @@ class OLEDPage():
         copy_image_content = self.image.copy()
         copy_draw_content = ImageDraw.Draw(copy_image_content)
         # overlay a rechatngel with a lock symbol
-        img = r"/app/static/icons/png_16/info-circle.png"
+        img =f"{self.ICONS}/png_16/info-circle.png"
         img_width,  img_heiht = PIL.Image.open(img).size
         
         msg_heiht, msg_width = 25, 154

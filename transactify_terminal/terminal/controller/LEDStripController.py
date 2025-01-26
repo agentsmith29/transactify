@@ -43,11 +43,12 @@ class LEDStripController(BaseHardware):
             self.break_loop = False
             self.logger.info(f"LEDStripeController initialized with {self.LED_COUNT} LEDs on GPIO {self.LED_PIN}")
             self.animation_thread: threading.Thread = None
-            self.animate(self._testing_animation)
+            self.is_initialized = True
+            #self.animate(self._testing_animation)
         except Exception as e:
             self.logger.error(f"Error initializing LEDStripeController: {e}")
+            self.is_initialized = False
             return  
-        self.is_initialized = True
 
     def _check_if_initialized(func):
         def wrapper(self, *args, **kwargs):

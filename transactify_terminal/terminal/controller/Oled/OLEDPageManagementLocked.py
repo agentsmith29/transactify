@@ -27,7 +27,7 @@ class OLEDPageManagementLocked(OLEDPage):
         self.sig_on_page_disconnect.connect(self.on_page_disconnect)
 
     def view(self, header, icon, text, page, next_view: OLEDPage, *args, **kwargs):
-
+        self.ledstrip.animate(self.led_animation)
         self.page = page
         self.next_view = next_view
         self.args = args
@@ -39,7 +39,7 @@ class OLEDPageManagementLocked(OLEDPage):
         # ------------- Body ----------------
         # Content Section: Display Name, Surname, and Balance
         content_y_start = header_height + 3
-        self.paste_image(image, r"/app/static/icons/png_12/cart3.png", (0, content_y_start+1))
+        self.paste_image(image, f"{self.ICONS}/png_12/cart3.png", (0, content_y_start+1))
         lines = self.wrap_text(text, self.font_regular, 30, 255)
         for line, y in lines:
             draw.text((20, content_y_start + y), line, font=self.font_small, fill=(255,255,255))
@@ -66,4 +66,15 @@ class OLEDPageManagementLocked(OLEDPage):
             self.locked = False
             self.break_loop = True
             self.view_controller.request_view(self.next_view, *self.args, **self.kwargs)
+            self.ledstrip.stop_animation()
 
+    def led_animation(self):
+        from rpi_ws281x import Color
+        try:
+            while not self.ledstrip.break_loop:
+                self.ledstrip.pulse(Color(255, 0, 0), 5)  # Red wipe
+        except KeyboardInterrupt:
+            self.ledstrip.colorWipe(Color(0, 0, 0), 10)
+        
+        except Exception as e:
+            self.ledstrip.colorWipe(Color(0, 0, 0), 10)

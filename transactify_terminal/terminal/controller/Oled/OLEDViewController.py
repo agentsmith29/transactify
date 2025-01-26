@@ -123,7 +123,6 @@ class OLEDViewController():
         
         self._screensaver_timeout = OLEDViewController.OLED_SCREEN_SAVER_TIMEOUT
         self._screensaver_time_left = self._screensaver_timeout 
-
         #self._init_screensaver_thread()
 
         sig_on_barcode_read.connect(self.on_barcode_read)

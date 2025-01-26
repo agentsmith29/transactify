@@ -31,7 +31,7 @@ class OLEDStoreSelection(OLEDPage):
         ip_address = f"{os.getenv('DJANGO_WEB_HOST')}:{os.getenv('DJANGO_WEB_PORT')}"
         self.align_right(draw, ip_address, 10, self.font_tiny)
         # Paste the NFC symbol into the header
-        self.paste_image(image, r"/app/static/icons/png_16/coin.png", (0, 0))
+        self.paste_image(image, f"{self.ICONS}/png_16/coin.png", (0, 0))
         # Divider line
         draw.line([(0, header_height), (self.width, header_height)], fill=(255,255,255), width=1)
 

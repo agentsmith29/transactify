@@ -30,20 +30,20 @@ class OLEDPageCustomer(OLEDPage):
         draw.text((20, 0), header_text, font=self.font_large, fill=(255,255,255))  # Leave space for NFC symbol
 
 
-        self.paste_image(image, r"/app/static/icons/png_16/person-bounding-box.png", (0, 0))
+        self.paste_image(image, f"${APP_DIR}/../static/icons/png_16/person-bounding-box.png", (0, 0))
         # Divider line
         draw.line([(0, header_height), (self.width, header_height)], fill=(255,255,255), width=1)
 
         # ------------- Body ----------------
         # Content Section: Display Name, Surname, and Balance
         content_y_start = header_height + 3
-        self.paste_image(image, r"/app/static/icons/png_12/cart3.png", (0, content_y_start+1))
+        self.paste_image(image, f"{self.ICONS}/png_12/cart3.png", (0, content_y_start+1))
         draw.text((30, content_y_start+2), f"Selected store: {store.name}", font=self.font_regular, fill=(255,255,255))
 
-        self.paste_image(image, r"/app/static/icons/png_12/cash-stack.png", (0, content_y_start+15))
+        self.paste_image(image, f"{self.ICONS}/png_12/cash-stack.png", (0, content_y_start+15))
         draw.text((30, content_y_start+14), f"Balance: EUR: {customer.balance}", font=self.font_regular, fill=(255,255,255))
         
-        self.paste_image(image, r"/app/static/icons/png_12/cart4.png", (0, content_y_start+27))
+        self.paste_image(image, f"{self.ICONS}/png_12/cart4.png", (0, content_y_start+27))
         draw.text((30, content_y_start+28), f"Last purchase: {customer.last_changed}", font=self.font_regular, fill=(255,255,255))
 
         # Update the OLED display

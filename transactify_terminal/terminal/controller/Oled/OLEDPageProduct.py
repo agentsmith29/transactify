@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from OLEDViewController import OLEDViewController # to avoid circular import, only for type hinting
 from ...api_endpoints.APIFetchException import APIFetchException
 
+from decimal import Decimal
 
 
 class OLEDPageProduct(OLEDPage):
@@ -32,6 +33,7 @@ class OLEDPageProduct(OLEDPage):
 
     def view(self, product: APIFetchStoreProduct, *args, **kwargs):
         image, draw = super().view()
+        self.ledstrip.animate(self.led_animation)
         self.product: APIFetchStoreProduct = product
         self.store: Store = self.product.store
         
@@ -43,17 +45,18 @@ class OLEDPageProduct(OLEDPage):
         self.align_right(draw, f"({product.stock_quantity})", 10, self.font_small)
 
         # Paste the NFC symbol into the header
-        self.paste_image(image, r"/app/static/icons/png_16/cart-dash-fill.png", (0, 0))
+        self.paste_image(image, f"{self.ICONS}/png_16/cart-dash-fill.png", (0, 0))
 
         # Divider line
         draw.line([(0, header_height), (self.width, header_height)], fill=(255,255,255), width=1)
 
         content_y_start = header_height + 5
+        fp = Decimal(product.final_price).quantize(Decimal('0.01'))
         if float(product.discount) > 0:
-            draw.text((30, content_y_start), f"SALE {product.final_price}", font=self.font_large,fill=(255,255,255))
+            draw.text((30, content_y_start), f"SALE {fp}", font=self.font_large,fill=(255,255,255))
             #draw.text((30, content_y_start + 25), f"Stock {product.stock_quantity}", font=self.font_regular,fill=(255,255,255))
         else:
-            draw.text((30, content_y_start), f"EUR {product.final_price}", font=self.font_large,fill=(255,255,255))
+            draw.text((30, content_y_start), f"EUR {fp}", font=self.font_large,fill=(255,255,255))
             #draw.text((30, content_y_start + 20), f"Stock {product.stock_quantity}", font=self.font_large,fill=(255,255,255))
         
         if product.stock_quantity == 0:
@@ -64,7 +67,7 @@ class OLEDPageProduct(OLEDPage):
             draw.text((30, content_y_start + 25), f"Place NFC to buy from {product.store.name}", font=self.font_regular, fill=(255,255,255))
         # Update the OLED display
         self.send_to_display(image)
-        #self.display_next(image, draw, OLEDPageMain.name, 5)
+        
         
     
     def on_barcode_read(self, sender, barcode, **kwargs):
@@ -77,6 +80,7 @@ class OLEDPageProduct(OLEDPage):
 
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):
         if kypd_btn == OLEDPage.BTN_BACK:
+            self.ledstrip.stop_animation()
             self.view_controller.request_view(self.view_controller.PAGE_MAIN,
                                               store=self.product.store) 
     
@@ -125,3 +129,14 @@ class OLEDPageProduct(OLEDPage):
 
 
 
+    def led_animation(self):
+        from rpi_ws281x import Color
+        try:
+            while not self.ledstrip.break_loop:
+                self.ledstrip.colorWipe(Color(0, 255, 0), 50)  # Green wipe
+                self.ledstrip.colorWipe(Color(0, 0, 0), 50)  # Green wipe
+        except KeyboardInterrupt:
+            self.ledstrip.colorWipe(Color(0, 0, 0), 10)
+
+        except Exception as e:
+            self.ledstrip.colorWipe(Color(0, 0, 0), 10)

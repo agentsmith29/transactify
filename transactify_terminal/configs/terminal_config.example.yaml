@@ -1,0 +1,57 @@
+ENV: "../../.env"  # Path to the .env file for global environment variable resolution
+
+database:
+  RESET: False  # Deletes and recreates the database (dangerous)
+  REMIGRATE: True  # Remigrates the database
+  
+  HOST: "${ENV.PROJECT_HOST}"                       # Database server (docker image name)
+  PORT: "${ENV.DB_PORT}"               # Database port
+  USER: "${ENV.DB_USER}"
+  PASSWORD: "${ENV.DB_PASSWORD}"
+  NAME: "transactify_${webservice.SERVICE_NAME}"
+  
+webservice:
+  SERVICE_NAME: "terminal1"
+  SERVICE_WEB_HOST: "${ENV.PROJECT_HOST}"
+  SERVICE_WEB_PORT: ${ENV.PROJECT_PORT}
+  
+admin:
+  ADMIN_USER: "admin"
+  ADMIN_PASSWORD: "admin"
+  ADMIN_EMAIL: "admin@admin.com"
+
+# Other configurations
+django:
+  DEBUG: False
+  SECRET_KEY: "YourSecretKey"
+  # The path to the static files
+  STATIC_URL: "static/"
+  STATIC_ASSETS_PATH: "assets_hyper/"
+  # If those are set, the static path points to a different location instead of localhost
+  STATIC_WEBSERVER: "http://${ENV.PROJECT_HOST}:${ENV.PROJECT_PORT}"
+
+
+# === Hardware
+keypad:
+  KEYPAD_ROWS: [5, 16, 20, 21]
+  KEYPAD_COLS: [26, 19, 13, 6]
+
+
+ledstrip:
+  LED_COUNT: 8
+  LED_PIN: 18
+  LED_FREQ_HZ: 800000
+  LED_DMA: 10
+  LED_BRIGHTNESS: 255
+  LED_INVERT: False
+  LED_CHANNEL: 0
+
+barcode_reader:
+  DEVICE_PATH: "/dev/ttyACM0"
+  BAUDRATE: 115200
+  BYTESIZE: 8
+  PARITY: "N"
+  STOPBITS: 1
+  TIMEOUT: 1
+
+        

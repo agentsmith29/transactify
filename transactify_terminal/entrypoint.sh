@@ -5,7 +5,7 @@ echo "Sourcing the entrypoint_template.sh from ${APP_DIR}/../entrypoint_template
 source ${APP_DIR}/../common/scripts/entrypoint_template.sh
 
 echo "Applying migrations for application $APP_NAME ..."
-python ${APP_DIR}/../common/scripts/convert_svg_png.py "${APP_DIR}/../staticfiles/icons/svg"
+python ${APP_DIR}/../common/scripts/convert_svg_png.py "${APP_DIR}/../staticfiles/icons/svg" "${APP_DIR}/../static/icons/png"
 
 # Step 7: Start the server
 echo "Starting the Django development server..."
