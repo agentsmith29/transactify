@@ -55,53 +55,54 @@ class ManageProducts {
     submitProductForm() {
         const form = document.getElementById('addProductForm');
         const formData = new FormData(form);
-
-        // print form data
+        const csrftoken = document.cookie.match(/csrftoken=([^;]+)/)[1];
+    
         fetch(this.page_url, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
-                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
-                'cmd': 'add'
+                'Content-Type': 'application/json', // Ensure this header is set correctly
+                'X-CSRFToken': csrftoken, //formData.get('csrfmiddlewaretoken'), // Extract CSRF token
+                'cmd': 'add' // Pass additional command header
             },
             body: JSON.stringify({
                 product_ean: formData.get('product_ean'),
                 product_name: formData.get('product_name'),
-                resell_price: formData.get('resell_price'),
-                discount: parseFloat(formData.get('discount')/100)
+                resell_price: parseFloat(formData.get('resell_price')),
+                discount: parseFloat(formData.get('discount') / 100)
             })
-        }
-    )
-        .then(console.log("Form data sent to " + this.page_url))
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.code == 103 ) {
-                //location.reload();
-                window.storeManager.toastManager.success('Product added successfully', data.message, "", true);
-            } 
-            else if (data.success && data.code == 104) {
-                window.storeManager.toastManager.info('Product updated successfully', data.message, "", true);
-            }
-            else {
-                //window.toastManager.error(title, message, submessage)
-                window.storeManager.toastManager.error("Product add failed", data.message, "Please try again.", false);
-            }
         })
-        .catch(error => {
-            console.error('Error adding product:', error);
-            // Toast message with error
-            window.storeManager.toastManager.error("Failed to add product", error, "Please try again.", false);
-        });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.code == 103) {
+                    window.storeManager.toastManager.success('Product added successfully', data.message, "", true);
+                } else if (data.success && data.code == 104) {
+                    window.storeManager.toastManager.info('Product updated successfully', data.message, "", true);
+                } else {
+                    window.storeManager.toastManager.error("Product add failed", data.message, "Please try again.", false);
+                }
+            })
+            .catch(error => {
+                console.error('Error adding product:', error);
+                window.storeManager.toastManager.error("Failed to add product", error.message, "Please try again.", false);
+            });
     }
+
+    
 
     deleteProduct(ean) {
         fetch(this.page_url, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                'cmd': 'delete'
+                'Content-Type': 'application/json', // Ensure this header is correctly set
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken'), // Pass CSRF token here
+                'cmd': 'add' // Custom command header
             },
             body: JSON.stringify({ product_ean: ean })
         })
