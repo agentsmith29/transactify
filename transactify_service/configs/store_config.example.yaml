@@ -1,8 +1,8 @@
 ENV: "../../.env"  # Path to the .env file for global environment variable resolution
 
 database:
-  RESET: True  # Deletes and recreates the database (dangerous)
-  REMIGRATE: false  # Remigrates the database
+  RESET: False  # Deletes and recreates the database (dangerous)
+  REMIGRATE: False  # Remigrates the database
   
   HOST: "${ENV.PROJECT_HOST}"                       # Database server (docker image name)
   PORT: "${ENV.DB_PORT}"               # Database port
@@ -11,8 +11,8 @@ database:
   NAME: "transactify_${webservice.SERVICE_NAME}"
   
 webservice:
-  SERVICE_NAME: "${container.CONTAINER_NAME}"
-  FRIENDLY_NAME: "Don Knabberello"
+  SERVICE_NAME: <SERVICE_NAME>            # Enter the service name here, this is also the subdomain, e.g. https://<IP>:<PORT>/<SERVICE_NAME>
+  FRIENDLY_NAME: <FRIENDLY_NAME>          # Friendly name of the service (will be displayed in the frontend and the Terminal)
   SERVICE_WEB_HOST: "${ENV.PROJECT_HOST}"
   SERVICE_WEB_PORT: ${ENV.PROJECT_PORT}
   JOURNAL_FILE: "journal_${SERVICE_NAME}.py"

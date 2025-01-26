@@ -48,10 +48,11 @@ services:
     restart: always
     depends_on:
       - db
+      - terminal1
     volumes:
       # Configuration file for the store
       - .env:/app/.env
-      - ./transactify_service/configs/store_config.yaml:/app/webapp/configs/config.yaml
+      - ./transactify_service/configs/store_config_donknabberello.yaml:/app/webapp/configs/config.yaml
       # Docker socket for container management
       - /run/docker.sock:/run/docker.sock:ro
       # Data: Nginx configuration and static files
@@ -59,6 +60,30 @@ services:
       - static_volume:/app/static
     healthcheck:
       test: "curl http://127.0.0.1:${PROJECT_PORT}/donknabberello/health"
+      start_period: 10s
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  doncaramello:
+    build:
+      context: .
+      dockerfile: ./transactify_service/Dockerfile
+    restart: always
+    depends_on:
+      - db
+      - terminal1
+    volumes:
+      # Configuration file for the store
+      - .env:/app/.env
+      - ./transactify_service/configs/store_config_doncaramello.yaml:/app/webapp/configs/config.yaml
+      # Docker socket for container management
+      - /run/docker.sock:/run/docker.sock:ro
+      # Data: Nginx configuration and static files
+      - nginx_data:/etc/nginx/conf.d
+      - static_volume:/app/static
+    healthcheck:
+      test: "curl http://127.0.0.1:${PROJECT_PORT}/doncaramello/health"
       start_period: 10s
       interval: 10s
       timeout: 10s
@@ -87,13 +112,13 @@ services:
       #- ./nginx/nginx.donknabberello.conf:/etc/nginx/nginx.donknabberello.conf
     ports:
       - 8000:8000
-    #depends_on:
-    #  donknabberello:
-    #    condition: service_started
-    #  doncaramello:
-    #    condition: service_started
-    #  terminal1:
-    #    condition: service_healthy
+    depends_on:
+      donknabberello:
+        condition: service_started
+      doncaramello:
+        condition: service_started
+      terminal1:
+        condition: service_healthy
     # COmmand to remove all nginx.*.conf files bevor starting the container using the default entrypoint
     #entrypoint: [
     #  "/bin/bash",
