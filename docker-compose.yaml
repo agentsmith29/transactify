@@ -24,7 +24,7 @@ services:
     security_opt:
       - apparmor:unconfined  # Unrestricted access to hardware
     volumes:
-          # Configuration file for the store
+      # Configuration file for the store
       - ./transactify_terminal/configs/terminal_config.yaml:/app/webapp/configs/config.yaml
       #
       - /run/docker.sock:/run/docker.sock:ro
@@ -78,7 +78,7 @@ services:
     restart: always
     volumes:
       #- static_volume:/static
-      - ./static:/static
+      - ./staticfiles:/static
       - ./common/nginx/nginx.conf:/etc/nginx/nginx.conf
       - nginx_data:/etc/nginx/conf.d
       

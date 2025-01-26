@@ -1,8 +1,11 @@
 from django.apps import AppConfig
 import logging
 import os
+import sys
 import traceback
 from transactify_terminal.settings import CONFIG
+APP_DIR = os.getenv('APP_DIR')
+sys.path.append(f'{APP_DIR}/..')
 from common.src.is_running_migration import is_running_migration
 
 

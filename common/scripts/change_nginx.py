@@ -1,16 +1,13 @@
 import os
 import sys
-# get current file path
-_filepwd = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(f'{_filepwd}/../../common')
 
-from ConfigParser.ConfigParser import ConfigParser
-
-APP_DIR = os.getenv('APP_DIR', '/app/webapp')
+APP_DIR = os.getenv('APP_DIR')
+sys.path.append(f'{APP_DIR}/..')
 sys.path.append(f'{APP_DIR}/config')
+from common.src.ConfigParser.ConfigParser import ConfigParser
 from Config import Config
 
-def replace_placeholders(file_nginx_conf, config: Config):
+def replace_placeholders(file_nginx_conf, config: ConfigParser):
     """
     Replace placeholders in the given NGINX configuration file based on the provided configuration.
 
@@ -42,9 +39,9 @@ def replace_placeholders(file_nginx_conf, config: Config):
         content = file.read()
 
     # Replace placeholders
-    content = content.replace("<location>", service_name)
-    content = content.replace("<host>", hostname)
-    content = content.replace("<port>", django_web_port)
+    content = content.replace("<location>", str(service_name))
+    content = content.replace("<host>", str(hostname))
+    content = content.replace("<port>", str(django_web_port))
 
     # Write the updated content back to the file
     with open(file_nginx_conf, 'w') as file:
@@ -64,11 +61,11 @@ if __name__ == "__main__":
     file_nginx_conf = sys.argv[1]
 
     # Load the configuration
-    config_file_path = os.getenv("TERMINAL_CONFIG_FILE")
+    config_file_path = os.getenv("CONFIG_FILE")
     if not config_file_path:
-        raise ValueError("Error: TERMINAL_CONFIG_FILE environment variable is not set.")
+        raise ValueError("Error: CONFIG_FILE environment variable is not set.")
 
-    config = Config(config_file_path)
+    config: ConfigParser = Config(config_file_path)
 
     try:
         replace_placeholders(file_nginx_conf, config)
