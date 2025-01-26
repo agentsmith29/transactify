@@ -18,6 +18,7 @@ services:
       context: .
       dockerfile: ./transactify_terminal/Dockerfile
     restart: always
+    tty: true        # docker run -t
     privileged: true  # Grants access to devices and kernel features
     cap_add:
       - SYS_RAWIO  # Allows raw GPIO access
@@ -25,8 +26,8 @@ services:
       - apparmor:unconfined  # Unrestricted access to hardware
     volumes:
       # Configuration file for the store
-      - ./transactify_terminal/configs/terminal_config.yaml:/app/webapp/configs/config.yaml
-      #
+      - ./transactify_terminal/configs/terminal1_config.yaml:/app/webapp/configs/config.yaml
+      
       - /run/docker.sock:/run/docker.sock:ro
       - nginx_data:/etc/nginx/conf.d
       - static_volume:/app/static
@@ -102,8 +103,8 @@ services:
     image: nginx:latest
     restart: always
     volumes:
-      #- static_volume:/static
-      - ./staticfiles:/static
+      - static_volume:/static
+      #- ./staticfiles:/static
       - ./common/nginx/nginx.conf:/etc/nginx/nginx.conf
       - nginx_data:/etc/nginx/conf.d
       

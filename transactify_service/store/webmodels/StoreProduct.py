@@ -1,7 +1,7 @@
 from typing import Iterable
 from django.db import models
 from decimal import Decimal, ROUND_HALF_UP
-from django.db.models import Sum, F, Prefetch
+from django.db.models import Sum, F, Prefetch, Max, ExpressionWrapper, DecimalField
 
 
 class StoreProduct(models.Model):
@@ -51,6 +51,42 @@ class StoreProduct(models.Model):
         price = self.resell_price * (1 - self.discount)
         return price.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
+
+
+    def calculate_total_profit(self):
+        """
+        Calculate the total profit for this product.
+        """
+        from store.webmodels.CustomerPurchase import CustomerPurchase
+        result = CustomerPurchase.objects.filter(product=self).aggregate(
+            total_profit=Sum(F("profit"))
+        )
+        return result["total_profit"] or 0  # Return 0 if no result
+
+    def calculate_total_revenue(self):
+        """
+        Calculate the total revenue from all purchases of this product.
+        """
+        from store.webmodels.CustomerPurchase import CustomerPurchase
+        # Wrap the complex expression in ExpressionWrapper
+        revenue_expression = ExpressionWrapper(F("purchase_price") * F("quantity"), output_field=DecimalField())
+        result = CustomerPurchase.objects.filter(product=self).aggregate(
+            total_revenue=Sum(revenue_expression)
+        )
+        return result["total_revenue"] or 0  # Return 0 if no result
+
+    def calculate_total_orders(self):
+        """
+        Calculate the total quantity of orders for this product.
+        """
+        from store.webmodels.CustomerPurchase import CustomerPurchase
+        result = CustomerPurchase.objects.filter(product=self).aggregate(
+            total_orders=Sum("quantity")
+        )
+        return result["total_orders"] or 0  # Return 0 if no result
+
+    
+
     @staticmethod
     def get_top_selling_products(limit: int) -> Iterable[dict]:
         """Fetch top-selling products with pre-aggregated data."""
@@ -62,8 +98,7 @@ class StoreProduct(models.Model):
                 Prefetch("customerpurchase_set", queryset=CustomerPurchase.objects.all())
             )
             .annotate(
-                annotated_total_revenue=Sum(F("resell_price") * F("customerpurchase__quantity")),
-                annotated_total_orders=Sum("customerpurchase__quantity"),
+                annotated_last_purchase=Max("customerpurchase__purchase_date"),
             )
             .order_by("-total_orders")[:limit]
         )
@@ -74,9 +109,12 @@ class StoreProduct(models.Model):
                 {
                     "name": product.name,
                     "price": product.final_price,
-                    "total_orders": product.annotated_total_orders or 0,
-                    "total_revenue": product.annotated_total_revenue or Decimal("0.00"),
+                    "total_orders": product.calculate_total_orders() or 0,
+                    "total_revenue": product.calculate_total_revenue() or Decimal("0.00"),
                     # Include purchases if needed
+                    "last_purchase": product.annotated_last_purchase,
+                    "total_profit":  product.calculate_total_profit() or Decimal("0.00")
+
                 }
             )
         return results

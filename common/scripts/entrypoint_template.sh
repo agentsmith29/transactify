@@ -53,7 +53,7 @@ export DIR_NGINX="${DIR_COMMON}/nginx"
 export DIR_SHARED_CONFIG="/etc/nginx/conf.d"
 
 # Files 
-export FILE_NGINX_CONF="$DIR_NGINX/templates/nginx.template.conf"
+export FILE_NGINX_CONF="$APP_DIR/configs/nginx.template.conf"
 export FILE_NGINX_CONF_STORE="$DIR_SHARED_CONFIG/nginx.${CONTAINER_NAME}.conf"
 
 # Scripts

@@ -3,11 +3,11 @@ import os
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 
 from django.contrib.auth.models import User
+from transactify_service.settings import CONFIG
 
 
 
@@ -25,18 +25,18 @@ def store_selection(request):
 
 @login_required
 def dashboard(request):
-    template = loader.get_template("store/index.html")
-    return HttpResponse(template.render({}, request))
+    #template = loader.get_template("store/dashboard.html")
+    #return HttpResponse(template.render({}, request))
     sites = [
-            {"name": "Don Knabberello", "url": f"/{settings.STORE_NAME}/summary/", 
+            {"name": "Don Knabberello", "url": f"/{CONFIG.webservice.SERVICE_NAME}/summary/", 
              'description':"Management of the Don Knabberello Store", 
              'icon_link': "#home",
              'goto_text': "Go to Store"},
-            {"name": "User Management (Under Construction)", "url": f"/{settings.STORE_NAME}/summary/", 
+            {"name": "User Management (Under Construction)", "url": f"/{CONFIG.webservice.SERVICE_NAME}/summary/", 
              'description':"Management of the Don Knabberello Store", 
              'icon_link': "#people-circle",
              'goto_text': "Access"},
-             {"name": "Admin Area", "url": f"/{settings.STORE_NAME}/admin/", 
+             {"name": "Admin Area", "url": f"/{CONFIG.webservice.SERVICE_NAME}/admin/", 
              'description':"Admin Area", 
              'icon_link': "#gear-fill",
              'goto_text': "Access"},

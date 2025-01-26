@@ -13,6 +13,7 @@ from .webviews.StoreLogListView import StoreLogListView
 from .webviews.ViewFinancialSummary import Summary
 from .webviews.WebViewOrders import WebViewOrders
 from .webviews.StoreProductDetailView import StoreProductDetailView
+from .webviews.JournalView import JournalView
 
 from django.contrib.auth.models import User
 from rest_framework import routers, serializers, viewsets
@@ -37,4 +38,5 @@ urlpatterns = [
     path('make-sale/', MakePurchaseView.as_view(),  name='make_sale'),
     path('summary/', Summary.as_view(), name='summary'),
     path('logs/', StoreLogListView.as_view(), name='logs'),
+    path('journal/', JournalView.as_view(), name='journal'),
 ]

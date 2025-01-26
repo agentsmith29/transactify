@@ -128,12 +128,24 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
+    f"http://127.0.0.1:{CONFIG.webservice.SERVICE_WEB_PORT}",
+    f"http://localhost:{CONFIG.webservice.SERVICE_WEB_PORT}",
     f"http://{CONFIG.webservice.SERVICE_WEB_HOST}",
     f"http://{CONFIG.webservice.SERVICE_WEB_HOST}:{CONFIG.webservice.SERVICE_WEB_PORT}",
     f"https://{CONFIG.webservice.SERVICE_WEB_HOST}",
     f"https://{CONFIG.webservice.SERVICE_WEB_HOST}:{CONFIG.webservice.SERVICE_WEB_PORT}",
+    f"http://{CONFIG.webservice.SERVICE_NAME}",
+    f"http://{CONFIG.webservice.SERVICE_NAME}:{CONFIG.webservice.SERVICE_WEB_PORT}",
+    f"https://{CONFIG.container.CONTAINER_NAME}",
+    f"https://{CONFIG.container.CONTAINER_NAME}:{CONFIG.webservice.SERVICE_WEB_PORT}",
 ]
+logger.info(f"CSRF trusted origins: {CSRF_TRUSTED_ORIGINS}.")
 CSRF_FAILURE_VIEW = "transactify_service.views.custom_csrf_failure_view"
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')  # Set to 'http' if not using SSL
+
+#SESSION_COOKIE_SECURE = True
+#CSRF_COOKIE_SECURE = True
 
 
 ROOT_URLCONF = 'transactify_service.urls'

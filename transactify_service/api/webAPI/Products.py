@@ -16,6 +16,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     Additionally we also provide an extra `highlight` action.
     """
+    lookup_field = "ean"
+    
     queryset = StoreProduct.objects.all()
     serializer_class = StoreProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]

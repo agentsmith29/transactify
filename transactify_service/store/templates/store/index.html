@@ -33,7 +33,9 @@
             .toastImageInfo { color: blue; }
             .toastImageWarning { color: orange; }
         </style>
-
+        {% block head %}
+                        <!-- Dynamic content from child templates will appear here -->
+        {% endblock %}
 
     </head>
 
@@ -134,9 +136,15 @@
                         </li>
 
                         <li class="side-nav-item">
-                            <a href="apps-chat.html" class="side-nav-link">
+                            <a href="{% url 'logs' %}" class="side-nav-link">
                                 <i class="uil-document-layout-right"></i>
                                 <span> Logs </span>
+                            </a>
+                        </li>
+                        <li class="side-nav-item">
+                            <a href="{% url 'journal' %}" class="side-nav-link">
+                                <i class="uil-document-layout-right"></i>
+                                <span> Journal </span>
                             </a>
                         </li>
 
@@ -701,6 +709,10 @@
         <script src="{% static_assets 'js/modals.js' %}"></script>
         <script src="{% static_assets 'js/websockets.js' %}"></script>
         <script src="{% static_assets 'js/store.js' %}"></script>
+        <!-- <script> -->
+            <!-- document.cookie = "csrftoken={{ csrf_token }}" -->
+         <!-- </script> -->
+         
         <script>
             document.addEventListener("DOMContentLoaded", () => {
                 

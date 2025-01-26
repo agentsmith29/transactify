@@ -17,6 +17,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
     Additionally, we also provide an extra `highlight` action.
     """
+    lookup_field = "card_number"
+
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]

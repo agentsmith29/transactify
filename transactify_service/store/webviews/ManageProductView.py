@@ -8,6 +8,8 @@ from django.http import JsonResponse
 from store.webmodels.StoreProduct import StoreProduct
 from store.helpers.ManageStockHelper import StoreHelper
 from transactify_service.HttpResponses import HTTPResponses
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from store import StoreLogsDBHandler
 import traceback
@@ -37,9 +39,12 @@ class ManageProductsView(View):
             traceback.print_exc()
             data, status = HTTPResponses.HTTP_STATUS_PRODUCT_CREATE_FAILED("", str(e)).json_data()
             return JsonResponse(data, status=status)
-
+    
+    @method_decorator(ensure_csrf_cookie)
     def post(self, request):
         """Handle POST requests for adding or editing products."""
+
+
         try:
             
             # check the header for field cmd

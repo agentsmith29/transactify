@@ -1,0 +1,66 @@
+{% extends "./index.html" %}
+{% load static_assets %}
+{% load static_images %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4 class="card-title">Python Code Editor</h4>
+                </div>
+                <div class="card-body">
+                    <div id="editor" class="border rounded" style="height: 400px; width: 100%;">
+                        {{ journal_content|default:"" }}
+                    </div>
+                    <div class="mt-3 text-end">
+                        <button id="saveButton" class="btn btn-success">Save</button>
+                        <button id="downloadButton" class="btn btn-primary">Download</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+
+    <!-- Include Ace Editor library -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.11.2/ace.js" 
+     crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+    <script src="{% static_assets 'js/vendor/ace/ace.js' %}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Initialize the Ace Editor
+            const editor = ace.edit("editor");
+            editor.setTheme("ace/theme/monokai"); // Set theme
+            editor.session.setMode("ace/mode/python"); // Set mode to Python
+            editor.setOptions({
+                fontSize: "14px",
+                wrap: true,
+            });
+
+            // Save button functionality
+            document.getElementById("saveButton").addEventListener("click", function () {
+                const content = editor.getValue();
+                alert("File saved (simulated).\n\nContent:\n" + content);
+                // You can send content to the backend for saving here using an AJAX call.
+            });
+
+            // Download button functionality
+            document.getElementById("downloadButton").addEventListener("click", function () {
+                const content = editor.getValue();
+                const blob = new Blob([content], { type: "text/plain" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "journal.py"; // Set the default file name
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        });
+    </script>
+{% endblock %}

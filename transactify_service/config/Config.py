@@ -72,7 +72,8 @@ class DjangoConfig(BaseConfigField):
             super().__init__(data, field_name, logger)
             self.DEBUG = bool(self.assign_from_config("DJANGO_DEBUG", "False"))
             self.SECRET_KEY = str(self.assign_from_config("SECRET_KEY", "Secret"))
-            self.STATIC_ROOT = str(self.assign_direct(os.getenv("DIR_STATIC", "/app/static/")))
+            #self.STATIC_ROOT = str(self.assign_direct(os.getenv("DIR_STATIC", "/app/static/")))
+            self.STATIC_ROOT = str(self.assign_from_config("STATIC_ROOT", "./../static/"))
             # Handeling static files
 
             self.STATIC_URL = str(self.assign_from_config("STATIC_URL", "static/"))
