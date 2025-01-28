@@ -72,9 +72,9 @@ class BaseConfigField:
         return _value
 
     @capture_assigned_var()
-    def assign_direct(self, value: Any, assigned_to: str = None) -> Any:
+    def assign_direct(self, value: Any, lambda_apply_func: callable = None, assigned_to: str = None) -> Any:
         assigned_to = assigned_to.replace("self.", "")
-        return self._assign(key=assigned_to, value=value, assigned_to=assigned_to)
+        return self._assign(key=assigned_to, value=value, assigned_to=assigned_to, lambda_apply_func=lambda_apply_func)
 
     def _assign(self, key: str, value: Any, assigned_to: str, lambda_apply_func: callable=None) -> Any:
         self._keywords[f"{self.field_name}.{key}"] = value
@@ -146,14 +146,51 @@ class BaseConfigField:
             url = f"{protocol}://{url}"
 
         # Validate the final URL format
-        #pattern = re.compile(r'^[a-zA-Z]+://(?:[a-zA-Z0-9.-]+|\d{1,3}(?:\.\d{1,3}){3}):\d{1,5}/[a-zA-Z0-9_-]+(?:/[a-zA-Z0-9_-]+)*$')
-        pattern = re.compile(r'^[a-zA-Z]+://(?:[a-zA-Z0-9.-]+|\d{1,3}(?:\.\d{1,3}){3}):\d{1,5}(?:/[a-zA-Z0-9._-]+)*$')
+        # pattern = re.compile(r'^[a-zA-Z]+://(?:[a-zA-Z0-9.-]+|\d{1,3}(?:\.\d{1,3}){3}):\d{1,5}/[a-zA-Z0-9_-]+(?:/[a-zA-Z0-9_-]+)*$')
+        # pattern = re.compile(r'^[a-zA-Z]+://(?:[a-zA-Z0-9.-]+|\d{1,3}(?:\.\d{1,3}){3}):\d{1,5}(?:/[a-zA-Z0-9._-]+)*$')
+        pattern = re.compile(r'^(?:(?P<protocol>[^:/?#]+://)?)?(?P<hostname>\$\{[^\}]+\}|[^:/?#]+)(?::(?P<port>\$\{[^\}]+\}|[^/?#]+))?(?:/(?P<subdomain>[^\?#]*))?')
         # Thank you ChatGTP for this weird regex pattern
         if not pattern.match(url):
             raise ValueError(f"Invalid URL format: {url}")
 
         return url
+    
+    def replace_hostname(self, url, new_hostname):
+        url = self._replace_inconfig(url)
+
+        # Regular expression to match the URL pattern
+        pattern = r'^(?:(?P<protocol>[^:/?#]+://)?)?(?P<hostname>\$\{[^\}]+\}|[^:/?#]+)(?::(?P<port>\$\{[^\}]+\}|[^/?#]+))?(?:/(?P<subdomain>[^\?#]*))?'
+        match = re.match(pattern, url) 
+
+        
+        if match:
+            protocol = match.group("protocol") or ""
+            hostname = match.group("hostname") or ""
+            port = match.group("port") or ""
+            subdomain = match.group("subdomain") or ""
+            self.logger.info(f"Protocol: {protocol}")
+            self.logger.info(f"hostname: {hostname}")
+            self.logger.info(f"port: {port}")
+            self.logger.info(f"subdomain: {subdomain}")
+
+            protocol = protocol.strip() if protocol else ""
+            hostname = hostname.strip() if hostname else ""
+            port = f":{port.strip()}" if port else ""
+            subdomain = f"/{subdomain.strip()}" if subdomain else ""
+            #print(f"  Protocol: {protocol}")
+            #print(f"  Hostname: {hostname}")
+            #print(f"  Port: {port}")
+            #print(f"  Subdomain: {subdomain}")
             
+            # Reconstruct the URL with the new hostname
+            updated_url = f"{protocol}{new_hostname}{port}{subdomain}"
+            self.logger.info(f"updated_url: {updated_url}")
+            
+            return updated_url
+        else:
+            raise ValueError("Invalid URL format")
+        
+        
     def __setattr__(self, name, value):
         if hasattr(self, "_initialized") and self._initialized:
             raise AttributeError(f"Cannot modify attribute '{name}' after initialization.")

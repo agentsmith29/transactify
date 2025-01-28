@@ -2,6 +2,7 @@
 set -e
 
 echo "Sourcing the entrypoint_template.sh from ${APP_DIR}/../entrypoint_template.sh"
+export APP_NAMES="terminal"
 source ${APP_DIR}/../common/scripts/entrypoint_template.sh
 
 echo "Applying migrations for application $APP_NAME ..."

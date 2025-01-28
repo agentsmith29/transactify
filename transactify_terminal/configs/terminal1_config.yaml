@@ -1,10 +1,10 @@
 ENV: "../../.env"  # Path to the .env file for global environment variable resolution
 
 database:
-  RESET: False  # Deletes and recreates the database (dangerous)
+  RESET: True  # Deletes and recreates the database (dangerous)
   REMIGRATE: True  # Remigrates the database
   
-  HOST: "${ENV.PROJECT_HOST}"                       # Database server (docker image name)
+  HOST: "${ENV.DB_HOST}"                       # Database server (docker image name)
   PORT: "${ENV.DB_PORT}"               # Database port
   USER: "${ENV.DB_USER}"
   PASSWORD: "${ENV.DB_PASSWORD}"

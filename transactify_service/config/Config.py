@@ -19,7 +19,8 @@ class DatabaseConfig(BaseConfigField):
         self.PORT = self.assign_from_config("PORT")
         self.USER = self.assign_from_config("USER")
         self.PASSWORD = self.assign_from_config("PASSWORD")
-
+    
+        
 class WebService(BaseConfigField):
     def __init__(self, *args, **kwargs):
         super().__init__(field_name="webservice", *args, **kwargs)
@@ -41,18 +42,32 @@ class TerminalConfig(BaseConfigField):
     def __init__(self, *args, **kwargs):
         super().__init__(field_name="terminal", *args, **kwargs)
         self.docker_socket_helper = DockerSocketHelper(self.logger)
-        self.TERMINAL_SERVICE = self.assign_from_config("TERMINAL_SERVICE")
+        self.TERMINAL_SERVICE = self.assign_from_config("TERMINAL_SERVICE")        
         self.TERMINAL_CONTAINER_NAME = self.assign_direct(
             self.docker_socket_helper.container_name_from_service(self.TERMINAL_SERVICE)
         )
         self.TERMINAL_CONTAINER_ID = str(self.assign_direct(
-            self.docker_socket_helper.container_id_from_service(self.TERMINAL_SERVICE)
-        ))
-
-        self.TERMINAL_SERVICE_URL = self.assign_from_config("TERMINAL_SERVICE_URL", 
-                                                            lambda_apply_func=lambda url: self.wrap_url(url, f"http"))
-        self.TERMINAL_WEBSOCKET_URL = self.assign_from_config("TERMINAL_WEBSOCKET_URL", 
-                                                                lambda_apply_func=lambda url: self.wrap_url(url, f"ws"))
+            self.docker_socket_helper.container_id_from_service(self.TERMINAL_SERVICE))
+            )
+        self.TERMINAL_SERVICE_URL = str(self.assign_from_config(
+            "TERMINAL_SERVICE_URL", 
+            lambda_apply_func=lambda url: self.wrap_url(url, f"http")
+            ))
+        self.TERMINAL_WEBSOCKET_URL = self.assign_from_config(
+            "TERMINAL_WEBSOCKET_URL", 
+            lambda_apply_func=lambda url: self.wrap_url(url, f"ws"))
+        
+        if self.TERMINAL_CONTAINER_NAME is not None and self.TERMINAL_CONTAINER_NAME != "" :
+            rurl = self.replace_hostname(str(self.TERMINAL_SERVICE_URL), str(self.TERMINAL_CONTAINER_NAME))
+            wsurl = self.replace_hostname(str(self.TERMINAL_WEBSOCKET_URL), str(self.TERMINAL_CONTAINER_NAME))
+            self.IS_DOCKER_CONTAINER = self.assign_direct(False)
+            self.TERMINAL_SERVICE_URL_INTERNAL = self.assign_direct(rurl, lambda_apply_func=lambda url: self.wrap_url(url, f"http"))
+            self.TERMINAL_WEBSOCKET_URL_INTERNAL = self.assign_direct(wsurl, lambda_apply_func=lambda url: self.wrap_url(url, f"ws"))
+        else:
+            self.IS_DOCKER_CONTAINER = self.assign_direct(True)
+            self.TERMINAL_SERVICE_URL_INTERNAL = self.assign_direct(self.TERMINAL_SERVICE_URL)
+            self.TERMINAL_WEBSOCKET_URL_INTERNAL = self.assign_direct(self.TERMINAL_WEBSOCKET_URL)        
+      
         self.TERMINAL_SELECTION_BUTTONS = self.assign_from_config("TERMINAL_SELECTION_BUTTONS", "A")
 
 class ContainerConfig(BaseConfigField):

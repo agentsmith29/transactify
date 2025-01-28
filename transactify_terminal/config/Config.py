@@ -18,10 +18,13 @@ class DatabaseConfig(BaseConfigField):
         self.RESET = self.assign_from_config("RESET", "false")
         self.REMIGRATE = self.assign_from_config("REMIGRATE", "false")
         self.NAME = self.assign_from_config("NAME")
+       
         self.HOST = self.assign_from_config("HOST")
         self.PORT = self.assign_from_config("PORT")
         self.USER = self.assign_from_config("USER")
         self.PASSWORD = self.assign_from_config("PASSWORD")
+
+    
 
 class WebService(BaseConfigField):
     def __init__(self, *args, **kwargs):

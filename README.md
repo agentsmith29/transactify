@@ -326,3 +326,24 @@ Inside gdb, I ran the program to trace the error:
 The root cause turned out to be related to conda dependencies. I resolved the problem by updating all packages with this command:
 
 ```conda update --all```
+
+# Automatically start a hotstop on no wifi connection
+```bash
+export SSID="Transactify";
+export PASSWORD="password123";
+sudo nmcli con add con-name hotspot ifname wlan0 type wifi ssid "Transactify";
+sudo nmcli con modify hotspot wifi-sec.key-mgmt wpa-psk;
+sudo nmcli con modify hotspot wifi-sec.psk "PASSWORD123"
+sudo nmcli con modify hotspot 802-11-wireless.mode ap 802-11-wireless.band bg;
+sudo nmcli con modify hotspot ipv4.addresses 192.168.10.1/24 ipv4.method shared;
+sudo nmcli con up hotspot;
+```
+Edit the dhcpcd file:
+```
+sudo nano /etc/dhcpcd.conf
+```
+Scroll down, and at the bottom of the file, add:
+```
+denyinterfaces wlan0
+```
+Your terminal window should look similar to the image below.

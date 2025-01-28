@@ -2,6 +2,7 @@
 set -e
 
 echo "Sourcing the entrypoint_template.sh from ${APP_DIR}/../entrypoint_template.sh"
+export APP_NAMES="store"
 source ${APP_DIR}/../common/scripts/entrypoint_template.sh
 
 # Step 7: Start the server

@@ -116,8 +116,8 @@ services:
     depends_on:
       donknabberello:
         condition: service_started
-      doncaramello:
-        condition: service_started
+      #doncaramello:
+      #  condition: service_started
       terminal1:
         condition: service_healthy
     # COmmand to remove all nginx.*.conf files bevor starting the container using the default entrypoint
@@ -126,10 +126,6 @@ services:
     #  "-c",
     #  "rm -f /etc/nginx/conf.d/nginx.*.conf && /docker-entrypoint.sh;"
     #]
-    
-    
-    
-
 
 
 volumes:

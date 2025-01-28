@@ -1,4 +1,5 @@
 export APP_DIR="."
+export CONFIG_FILE="configs/store_config_host.yaml"
 ./entrypoint.sh
 
 

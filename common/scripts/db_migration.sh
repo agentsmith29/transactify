@@ -9,12 +9,31 @@ PYTHON_EXEC=python
 MANAGE_PY="python manage.py"
 
 
-echo_inf "Applying migrations for application $APP_NAME ..."
-$MANAGE_PY migrate $APP_NAME || {
-    echo_err "Failed to apply $APP_NAME migrations for the default database. Exiting."
+# Iterate through each application name
+for APP_NAME in $APP_NAMES; do
+    echo "Applying migrations for application $APP_NAME ..."
+    $MANAGE_PY makemigrations $APP_NAME || {
+        echo "Failed to apply $APP_NAME migrations for the default database. Exiting."
+        exit 1
+    }
+    echo "Migrations for $APP_NAME applied successfully."
+
+    echo "Applying migrations for application $APP_NAME ..."
+    $MANAGE_PY migrate $APP_NAME || {
+        echo "Failed to apply $APP_NAME migrations for the default database. Exiting."
+        exit 1
+    }
+    echo "Migrations for $APP_NAME applied successfully."
+
+
+done
+
+echo_inf "Make all migrations"
+$MANAGE_PY makemigrations || {
+    echo_err "Failed to apply migrations for the default database. Exiting."
     exit 1
-} 
-echo_ok "Migrations for $APP_NAME applied successfully."
+}
+echo_ok "All migrations made successfully."
 
 # Step 3: Run migrations for the default database
 echo_inf "Applying migrations for the default database..."

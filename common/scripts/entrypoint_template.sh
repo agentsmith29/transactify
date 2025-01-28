@@ -164,7 +164,7 @@ chmod +x $SH_MAKE_STORE_MIGRATION
 echo_inf "Database remigrate is set to $REMIGRATE"
 if [ "$REMIGRATE" = "true" ]; then
     echo_warn "Remigrating the database with script $SH_MAKE_STORE_MIGRATION..."
-    $SH_MAKE_STORE_MIGRATION || {
+    $SH_MAKE_STORE_MIGRATION $APP_NAMES || {
         echo_err "Failed to remigrate the database. Exiting."
         exit 1
     }

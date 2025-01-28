@@ -49,7 +49,7 @@ class StoreConfig(AppConfig):
                     logger.error(f"Failed to mock store content: {e}")
 
             # WebSocket configuration
-            ws_url = f"{CONFIG.terminal.TERMINAL_WEBSOCKET_URL}/configure"
+            ws_url = f"{CONFIG.terminal.TERMINAL_WEBSOCKET_URL_INTERNAL}/configure"
             logger.info(f"Push configureation to terminal: {CONFIG.webservice.SERVICE_NAME} to {ws_url}")
             push_store_conf = {
                 "cmd": "register_store",

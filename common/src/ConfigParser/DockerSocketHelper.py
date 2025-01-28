@@ -104,7 +104,7 @@ class DockerSocketHelper():
             if container_name and len(container_name) > 0:
                 container_name = container_name[0].strip("/")
                 self.logger.info(f"Container name: {container_name} for service {service_name}")
-                return container_name
+                return container_name.strip()
             else:
                 self.logger.warning(f"No containers found for service {service_name}")
                 return None
@@ -125,7 +125,7 @@ class DockerSocketHelper():
             container_id = self._container_info_from_service(service_name, key)
             if container_id:
                 self.logger.info(f"Container ID {container_id} for service {service_name}")
-                return container_id
+                return container_id.strip()
             else:
                 self.logger.warning(f"No containers found for service {service_name}")
                 return None
