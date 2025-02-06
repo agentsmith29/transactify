@@ -257,8 +257,13 @@
 <script src="{% static_assets 'js/pages/store.customer.js' %}"></script>
 <script src="{% static_assets 'js/vendor/apexcharts.min.js' %}"></script>
 <script>
+    const config = {
+        customerCardNumber: {{ customer.card_number }},
+        customerDetailUrl: ""
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-        window.manageCustomer = new ManageCustomer("{% url 'customers' %}");
+        window.manageCustomer = new ManageCustomer("{% url 'customers' %}", config);
         const csrftoken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
         const customerCardNumber = "{{ customer.card_number|default:'' }}";
 
@@ -267,7 +272,8 @@
         const purchasesData = {{ customer.chart_data.purchase|safe }};
         const categories = {{ customer.chart_data.timestamp|safe }};
         
-    
+       
+
 
         window.customerViewChart = new CustomerViewChart({
             chartElementId: 'balance-chart',

@@ -1,16 +1,14 @@
-class CustomerView {
-    constructor(page_url) {
+class ManageCustomer {
+    constructor(page_url, config) {
         this.page_url = page_url;
+        this.config = config;
         $(document).ready(() => {
-            this.toastManager = window.StoreManager.toastManager;
-            this.modalManager = window.StoreManager.modalManager;
-    
-            this.csrftoken = config.csrftoken;
-            this.customerCardNumber = config.customerCardNumber;
-            this.customerDetailUrl = config.customerDetailUrl;
+            this.csrftoken = document.cookie.match(/csrftoken=([^;]+)/)[1];
+            this.customerCardNumber = this.config.customerCardNumber;
+            this.customerDetailUrl = this.config.customerDetailUrl;
     
             // Initialize the WebSocket connection
-            this.webSocketHandler = window.StoreManager.webSocketHandler;
+            this.webSocketHandler = window.storeManager.webSocketHandler;
     
             // Bind event listeners
             this.initActions();
@@ -43,7 +41,7 @@ class CustomerView {
                     .then((response) => {
                         if (response.ok) {
                             console.log('Request successful');
-                            window.toastManager.info(
+                            window.storeManager.toastManager.info(
                                 'Submitted balance',
                                 'Balance has been added.',
                                 '',
@@ -52,7 +50,7 @@ class CustomerView {
                             return response.json();
                         } else {
                             console.error('Request failed:', response.status);
-                            window.toastManager.error(
+                            window.storeManager.toastManager.error(
                                 'Error',
                                 'An error occurred while updating balance.',
                                 'error',
@@ -66,7 +64,7 @@ class CustomerView {
                     })
                     .catch((error) => {
                         console.error('Error:', error);
-                        window.toastManager.error(
+                        window.storeManager.toastManager.error(
                             'Error',
                             'An error occurred while updating balance.',
                             'error',
