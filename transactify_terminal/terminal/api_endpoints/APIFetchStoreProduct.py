@@ -116,10 +116,14 @@ class APIFetchStoreProduct():
             api_url = f"{self.store.web_address}/api/purchase/"
             response = requests.post(api_url, json=payload, headers=headers)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error during purchase: {e}")
+            tb = traceback.format_exc()
+            raise e
         except Exception as e:
             self.logger.error(f"Unexpected error during purchase: {e}")
             tb = traceback.format_exc()
-            raise APIFetchException("Failed to make purchase", e, response, tb)
+            raise APIFetchException(f"Unexpected error during purchase: {e}", tb)
         
         self.logger.info(f"Purchase successful of {self.name} for {customer.card_number}")
         return response

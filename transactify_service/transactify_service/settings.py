@@ -79,16 +79,18 @@ SECRET_KEY = CONFIG.django.SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = CONFIG.django.DEBUG
 
+TRUSTED_HOSTS = ["127.0.0.1", "localhost", "*.local",
+                 f"{CONFIG.webservice.SERVICE_WEB_HOST}", f"{CONFIG.webservice.SERVICE_NAME}",
+                 f"{CONFIG.webservice.SERVICE_WEB_HOST}", f"{CONFIG.webservice.SERVICE_NAME}",
+                 f"{CONFIG.container.CONTAINER_NAME}", f"{CONFIG.container.HOSTNAME}",
+                 f"{CONFIG.container.CONTAINER_NAME}", f"{CONFIG.container.HOSTNAME}",
+                 f"{CONFIG.container.CONTAINER_ID}"]
+ALLOWED_HOSTS = []
+for th in TRUSTED_HOSTS:
+    ALLOWED_HOSTS.append(th)
+    ALLOWED_HOSTS.append(f"{th}.local")
 
-ALLOWED_HOSTS = [
-    CONFIG.container.HOSTNAME,
-    CONFIG.container.CONTAINER_NAME,
-    #
-    CONFIG.webservice.SERVICE_NAME,
-    CONFIG.webservice.SERVICE_WEB_HOST,
-    #
-    'localhost', '127.0.0.1'
-] 
+
 logger.info(f"Allowed hosts: {ALLOWED_HOSTS}.".replace('[','').replace(']',''))
 
 
@@ -123,26 +125,24 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://127.0.0.1",
-    "http://localhost",
-    "http://127.0.0.1:8000",
-    "http://localhost:8000",
-    f"http://127.0.0.1:{CONFIG.webservice.SERVICE_WEB_PORT}",
-    f"http://localhost:{CONFIG.webservice.SERVICE_WEB_PORT}",
-    f"http://{CONFIG.webservice.SERVICE_WEB_HOST}",
-    f"http://{CONFIG.webservice.SERVICE_WEB_HOST}:{CONFIG.webservice.SERVICE_WEB_PORT}",
-    f"https://{CONFIG.webservice.SERVICE_WEB_HOST}",
-    f"https://{CONFIG.webservice.SERVICE_WEB_HOST}:{CONFIG.webservice.SERVICE_WEB_PORT}",
-    f"http://{CONFIG.webservice.SERVICE_NAME}",
-    f"http://{CONFIG.webservice.SERVICE_NAME}:{CONFIG.webservice.SERVICE_WEB_PORT}",
-    f"https://{CONFIG.container.CONTAINER_NAME}",
-    f"https://{CONFIG.container.CONTAINER_NAME}:{CONFIG.webservice.SERVICE_WEB_PORT}",
-]
+
+CSRF_TRUSTED_ORIGINS = []
+for host in TRUSTED_HOSTS:
+    CSRF_TRUSTED_ORIGINS.append(f"http://{host}")
+    CSRF_TRUSTED_ORIGINS.append(f"https://{host}")
+    CSRF_TRUSTED_ORIGINS.append(f"http://{host}:{CONFIG.webservice.SERVICE_WEB_PORT}")
+    CSRF_TRUSTED_ORIGINS.append(f"https://{host}:{CONFIG.webservice.SERVICE_WEB_PORT}")
+    CSRF_TRUSTED_ORIGINS.append(f"http://{host}.local")
+    CSRF_TRUSTED_ORIGINS.append(f"https://{host}.local")
+    CSRF_TRUSTED_ORIGINS.append(f"http://{host}.local:{CONFIG.webservice.SERVICE_WEB_PORT}")
+    CSRF_TRUSTED_ORIGINS.append(f"https://{host}.local:{CONFIG.webservice.SERVICE_WEB_PORT}")
+
+# Apply the 
+
 logger.info(f"CSRF trusted origins: {CSRF_TRUSTED_ORIGINS}.")
 CSRF_FAILURE_VIEW = "transactify_service.views.custom_csrf_failure_view"
-USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')  # Set to 'http' if not using SSL
+#USE_X_FORWARDED_HOST = True
+#SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')  # Set to 'http' if not using SSL
 
 #SESSION_COOKIE_SECURE = True
 #CSRF_COOKIE_SECURE = True

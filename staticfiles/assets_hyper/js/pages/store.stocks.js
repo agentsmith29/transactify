@@ -4,9 +4,17 @@
 class ManageStock {
     constructor(page_url) {
         this.page_url = page_url;
-        this.initSocket();
-        this.initEventListeners();
-        this.initDataTables();
+        $(document).ready(() => {
+            this.initSocket();
+            this.initEventListeners();
+            this.initDataTables();
+            this.csrftoken = document.cookie.match(/csrftoken=([^;]+)/)[1];
+
+            this.toastManager = window.storeManager.toastManager;
+            this.modalManager = window.storeManager.modalManager;
+        });
+
+
     }
 
     initSocket() {
@@ -89,7 +97,7 @@ class ManageStock {
         for (const field of requiredFields) {
             const inputElement = form.querySelector(`[name="${field}"]`);
             if (!inputElement || !inputElement.value) {
-                window.storeManager.toastManager.error("Missing required field", `Please fill in the ${field.replace('_', ' ')}`, "Required fields cannot be empty.", false);
+                this.toastManager.error("Missing required field", `Please fill in the ${field.replace('_', ' ')}`, "Required fields cannot be empty.", false);
                 return;
             }
         }
@@ -118,7 +126,7 @@ class ManageStock {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
-                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'X-CSRFToken': this.csrftoken ,
                 'cmd': 'add_stock'
             },
             body: JSON.stringify({
@@ -155,6 +163,7 @@ class ManageStock {
 
         if (product) {
             const resellPrice = product.resell_price;
+            const stock_quantity = product.stock_quantity;
 
             // Update resell price, cost, and profit fields
             document.getElementById('resell_price').textContent = `€ ${parseFloat(resellPrice).toFixed(2)}`;
@@ -175,6 +184,7 @@ class ManageStock {
             const profit = resellPrice - cost;
             document.getElementById('cost').textContent = `€ ${cost.toFixed(2)}`;
             document.getElementById('profit').textContent = `€ ${profit.toFixed(2)}`;
+            document.getElementById('stock').textContent = `${stock_quantity}`;
         } else {
             console.error("Product not found for the selected EAN");
         }
@@ -206,6 +216,34 @@ class ManageStock {
             console.error("Invalid logic expression", error);
         }
     }
+
+    deleteRestockEntry(deleteRestockEntryID) {
+        fetch(this.page_url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json', // Ensure this header is correctly set
+                'X-CSRFToken': this.csrftoken , // Pass CSRF token here
+                'cmd': 'deleteRestockEntry' // Custom command header
+            },
+            body: JSON.stringify({ deleteRestockEntryID: deleteRestockEntryID })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                //location.reload();
+                this.toastManager.success(`Entry deleted successfully`, data.message, "", true);
+                
+            } else {
+                this.toastManager.error("Failed to deleted entry", data.message, "Please try again.", false);
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting entry:', error);
+            this.toastManager.error("Failed to deleted entry", error, "Please try again.", false);
+        });
+    }
+
 }
 
 // export

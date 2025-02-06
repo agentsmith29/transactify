@@ -64,7 +64,11 @@ class OLEDPageProduct(OLEDPage):
             # --- next view
             self.display_next(image, draw, OLEDStoreSelection.name, 5, store=self.store,)
         else:
-            draw.text((30, content_y_start + 25), f"Place NFC to buy from {product.store.name}", font=self.font_regular, fill=(255,255,255))
+            message = f"Place NFC to buy from {product.store.name} or press {self.BTN_BACK} to exit."
+            warped_text = self.wrap_text(message, 
+                                     self.font_small, 10, 255)
+            for line, y in warped_text:
+                draw.text((20, content_y_start + 25 + y), line, font=self.font_small, fill=(255,255,255))
         # Update the OLED display
         self.send_to_display(image)
         

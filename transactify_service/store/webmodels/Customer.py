@@ -16,6 +16,8 @@ from collections import defaultdict
 from store.helpers.deprecated import deprecated
 from store.webmodels.APIKey import APIKey
 
+from store.webmodels.CustomerConfig import CustomerConfig
+
 class Customer(models.Model):
     """
     Represents a customer shared across all stores.
@@ -38,7 +40,16 @@ class Customer(models.Model):
     total_purchases = models.PositiveIntegerField(default=0)
     last_changed = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    
+
+    # one_to_one =
+    config = models.OneToOneField(CustomerConfig, on_delete=models.CASCADE, related_name="customer")
+    # automatically create a CustomerConfig instance when creating a Customer instance
+   
+    def save(self, *args, **kwargs):
+        attr_config = getattr(self, 'config', None)
+        if not attr_config:
+            self.config = CustomerConfig.objects.create()
+        super().save(*args, **kwargs)
 
     def get_deposits(self, date: Union[datetime, tuple[datetime, datetime]] = None) -> models.QuerySet:
         """

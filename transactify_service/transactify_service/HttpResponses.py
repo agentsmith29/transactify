@@ -171,3 +171,16 @@ class HTTPResponses():
         code=901,
         http_status=status.HTTP_400_BAD_REQUEST
     )
+
+    HTTP_STATUS_RESTOCK_ENTRY_DELETE_FAILED = lambda error_msg: APIResponse.error(
+        message=f"Failed to delete restock entry: {error_msg}",
+        code=902,
+        http_status=status.HTTP_500_INTERNAL_SERVER_ERROR
+    )
+
+    HTTP_STATUS_RESTOCK_ENTRY_DELETE_SUCCESS = lambda: APIResponse.success(
+        message=f"Restock entry deleted successfully.",
+        code=903,
+        http_status=status.HTTP_200_OK
+    )
+    

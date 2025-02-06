@@ -55,11 +55,6 @@
                                                     </div>
                                                 </div>
                 <div class="mt-4">
-                <div>
-                    <!-- Checkbox for store_equity True or False -->
-                    <input type="checkbox" id="store_equity" name="store_equity" value="False">
-                    <label for="store_equity">Use Store Equity</label>
-                </div>
                 <div class="d-flex">
                     <button type="button" class="btn btn-primary" onclick="manage_stock.submitStockForm()">Add Stock</button>
                 </div>
@@ -93,6 +88,12 @@
                     <h4>
                         <small class="form-text text-muted">Profit</small>
                         <span id="profit" class="text-primary">
+                        <!-- display the selected product profit via javascript-->
+                         €
+                    </span></h4>
+                    <h4>
+                        <small class="form-text text-muted">Stock quatity</small>
+                        <span id="stock" class="text-primary">
                         <!-- display the selected product profit via javascript-->
                          €
                     </span></h4>
@@ -197,8 +198,8 @@
                                     <th>Quantity</th>
                                     <th>Cash</th>
                                     <th>Purchase Date</th>
-                                    <th>Price (€)</th>
-                                    <th>Cost (€)</th>
+                                    <th>Price</th>
+                                    <th>Cost</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -222,6 +223,11 @@
                                     <td>&euro; {{ restock.total_cost|floatformat:2 }}</td>
                                     <td>
                                         <a href="javascript:void(0);" class="action-icon"> <i class="mdi mdi-eye"></i></a>
+                                        {% if restock.undo_allowed %}
+                                        <a href='javascript: manage_stock.deleteRestockEntry("{{restock.id}}");' class="action-icon">
+                                            <i class="mdi mdi-history"></i>
+                                        </a>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -233,6 +239,7 @@
         </div> <!-- end col -->
     </div>
 </main>
+{% csrf_token %}
 {% endblock %}
 
 

@@ -42,6 +42,8 @@ class StoreConfig(AppConfig):
             logger.debug(f"The application is ready and everything is setup.")
             if os.environ.get('MIGRATE_HISTORICAL', '0') == '1':
                 logger.warning("Initializing mock store content... Set INIT_DATA=0 to disable.")
+                print(os.listdir('/app/webapp/store/data_generators'))
+                
                 from store.data_generators.add_historical_data import HistoricalData
                 try:
                     HistoricalData()
@@ -50,16 +52,28 @@ class StoreConfig(AppConfig):
 
             # WebSocket configuration
             ws_url = f"{CONFIG.terminal.TERMINAL_WEBSOCKET_URL_INTERNAL}/configure"
-            logger.info(f"Push configureation to terminal: {CONFIG.webservice.SERVICE_NAME} to {ws_url}")
-            push_store_conf = {
-                "cmd": "register_store",
-                "params": {
-                    "name": CONFIG.webservice.FRIENDLY_NAME,
-                    "address": CONFIG.webservice.SERVICE_URL,
-                    "docker_container": CONFIG.container.CONTAINER_NAME,
-                    "terminal_button": CONFIG.terminal.TERMINAL_SELECTION_BUTTONS,
+            logger.info(f"Push configureation to terminal: {CONFIG.webservice.SERVICE_NAME} to {ws_url}. {CONFIG.terminal.IS_DOCKER_CONTAINER:}")
+            if CONFIG.terminal.IS_DOCKER_CONTAINER:
+                push_store_conf = {
+                    "cmd": "register_store",
+                    "params": {
+                        "name": CONFIG.webservice.FRIENDLY_NAME,
+                        "address": CONFIG.webservice.SERVICE_URL_INTERNAL,
+                        "docker_container": CONFIG.container.CONTAINER_NAME,
+                        "terminal_button": CONFIG.terminal.TERMINAL_SELECTION_BUTTONS,
+                    }
                 }
-            }
+            else:
+                push_store_conf = {
+                    "cmd": "register_store",
+                    "params": {
+                        "name": CONFIG.webservice.FRIENDLY_NAME,
+                        "address": CONFIG.webservice.SERVICE_URL,
+                        "docker_container": CONFIG.container.CONTAINER_NAME,
+                        "terminal_button": CONFIG.terminal.TERMINAL_SELECTION_BUTTONS,
+                    }
+                }
+
             logger.debug(f"Pushing configuration: {push_store_conf}")
             
             try:

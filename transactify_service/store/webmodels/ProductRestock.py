@@ -25,6 +25,8 @@ class ProductRestock(models.Model):
     purchase_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_cost = models.DecimalField(max_digits=10, decimal_places=2)
     restock_date = models.DateTimeField(auto_now_add=True)
+
+    undo_allowed = models.BooleanField(default=True)
    
     cash_movement_type = models.ForeignKey(StoreCashMovement, on_delete=models.CASCADE, null=True)
 

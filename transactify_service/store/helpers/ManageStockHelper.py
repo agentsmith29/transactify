@@ -92,7 +92,7 @@ class StoreHelper:
                 logger.info(f"Customer information: Name: {customer.user.first_name} {customer.user.last_name}, Balance: {customer.balance}")
             except Customer.DoesNotExist:
                 logger.error(f"Customer with card number {card_number} not found.")
-                raise HelperException(f"", HTTPResponses.HTTP_STATUS_CUSTOMER_NOT_FOUND(card_number))
+                raise HelperException(f"Customer with card number {card_number} not found.", HTTPResponses.HTTP_STATUS_CUSTOMER_NOT_FOUND(card_number))
 
             #balance = customer.get_balance(CustomerBalance)  # Change No. #1: Ensure get_balance handles potential None or failure gracefully.
             #if balance is None:
@@ -108,9 +108,15 @@ class StoreHelper:
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_NOT_FOUND(ean))
 
             required_balance = quantity * product.final_price
+            
+            if customer.config.auto_deposit or CONFIG.customer.AUTO_DEPOSIT:
+                StoreHelper.customer_add_deposit(customer, required_balance, logger)
+
+            
             if customer.balance < required_balance:
                 logger.warning(f"Insufficient balance for customer {card_number}.")
-                raise HelperException(f"", HTTPResponses.HTTP_STATUS_INSUFFICIENT_BALANCE(card_number, required_balance, customer.balance))
+                raise HelperException(f"Insufficient balance for customer {card_number}.",
+                                       HTTPResponses.HTTP_STATUS_INSUFFICIENT_BALANCE(card_number, required_balance, customer.balance))
 
             try:
                 left_in_stock = StoreHelper.get_stock_quantity(product, logger)
@@ -123,6 +129,8 @@ class StoreHelper:
                 logger.warning(f"Insufficient stock for product {product.name}.")
                 raise HelperException(f"Insufficient stock for product {product.name}.", 
                                       HTTPResponses.HTTP_STATUS_INSUFFICIENT_STOCK(product.name, left_in_stock, quantity))
+
+
 
             try:
                 #for i in range(quantity):
@@ -290,6 +298,13 @@ class StoreHelper:
                 total_cost=total_cost,
                 cash_movement_type=cash_movement
             )
+            # get the previous ProductRestock and set undo_allowed to False
+            previous_restock = ProductRestock.get_all_restocks(product).exclude(id=product_restock.id).last()
+            if previous_restock:
+                previous_restock.undo_allowed = False
+                previous_restock.save()
+                logger.info(f"Previous restock {previous_restock.id} set to not undoable.")
+
             logger.debug(f"Creating new ProductRestock record for product {product.name}: {product_restock}")
         except Exception as e:
             logger.error(f"Error during restocking. Cannot create ProductRestock. Error: {e}.\nTraceback: {traceback.format_exc()}")
@@ -318,6 +333,71 @@ class StoreHelper:
         else:
             logger.info(f"Product restocked: {product.name} | Stock: {product.stock_quantity} (was {old_stock_quantity})")
             return HTTPResponses.HTTP_STATUS_RESTOCK_SUCCESS(product.name), product_restock
+
+    
+    @staticmethod
+    @transaction.atomic
+    @journal_command()
+    def delete_restock_entry(restock_id: int, auth_user: User,  logger: logging.Logger, used_store_equity: bool = True,  ) -> tuple[Response, ProductRestock]:
+        """
+        Remove a restock entry, update stock levels accordingly, and handle any necessary store cash adjustments.
+        """
+        try:
+            restock = ProductRestock.objects.get(id=restock_id)
+        except Exception as e:
+            logger.error(f"Error retrieving restock entry: {e}\nTraceback: {traceback.format_exc()}")
+            raise HelperException(f"", HTTPResponses.HTTP_STATUS_RESTOCK_FAILED(e)) 
+        
+        # Check if it is allowed to delete the object
+        if not restock.undo_allowed:
+            logger.error(f"Cannot remove restock entry {restock.id} for product {restock.product.name}.")
+            raise HelperException(f"Cannot remove restock entry {restock.id} for product {restock.product.name}.", 
+                                  HTTPResponses.HTTP_STATUS_RESTOCK_FAILED(f"Cannot remove restock entry {restock.id} for product {restock.product.name}"))
+
+
+        logger.info(f"Removing restock entry: {restock.id} for product {restock.product.name}")
+
+        try:
+            product = restock.product
+            old_stock_quantity = product.stock_quantity
+            calculated_stock_quantity = StoreHelper.get_stock_quantity(product, logger)
+        except Exception as e:
+            logger.error(f"Error retrieving product or calculating stock quantity: {e}\nTraceback: {traceback.format_exc()}")
+            raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_STOCK_UPDATE_FAILED(e))
+
+        if int(old_stock_quantity) != int(calculated_stock_quantity):
+            logger.error(f"Stock quantity mismatch for product {product.name}. Expected: {calculated_stock_quantity}, Actual: {old_stock_quantity}")
+            raise HelperException(f"Stock quantity mismatch for product {product.name}.", HTTPResponses.HTTP_STATUS_PRODUCT_STOCK_UPDATE_FAILED(product.name))
+
+        try:
+            restock_quantity = restock.quantity
+            product.stock_quantity -= restock_quantity
+            if product.stock_quantity < 0:
+                logger.warning(f"Stock quantity for product {product.name} would be negative. Resetting to zero.")
+                product.stock_quantity = 0
+            product.save()
+        except Exception as e:
+            logger.error(f"Error updating stock quantity after removing restock: {e}\nTraceback: {traceback.format_exc()}")
+            raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_STOCK_UPDATE_FAILED(e))
+
+        if used_store_equity:
+            try:
+                cash_movement = StoreCashMovement.objects.create(amount=restock.total_cost, user=auth_user)
+                cash_movement.deposit()
+                logger.info(f"Store equity refunded for removed restock: {restock.total_cost}")
+            except Exception as e:
+                logger.error(f"Error refunding store equity: {e}\nTraceback: {traceback.format_exc()}")
+                raise HelperException(str(e), HTTPResponses.HTTP_STATUS_RESTOCK_FAILED(e))
+        
+        try:
+            restock.delete()
+            logger.info(f"Restock entry {restock.id} successfully removed.")
+        except Exception as e:
+            logger.error(f"Error deleting restock entry: {e}\nTraceback: {traceback.format_exc()}")
+            raise HelperException(f"", HTTPResponses.HTTP_STATUS_RESTOCK_FAILED(e))
+        
+        return HTTPResponses.HTTP_STATUS_RESTOCK_ENTRY_DELETE_SUCCESS(), restock
+
 
     @staticmethod
     @transaction.atomic
@@ -405,9 +485,9 @@ class StoreHelper:
         return HTTPResponses.HTTP_STATUS_CUSTOMER_CREATE_SUCCESS(username), customer
 
     
+    
     # Private methods
     # =========================================================================================================
-
     @staticmethod
     @transaction.atomic
     @journal_command()
@@ -432,14 +512,16 @@ class StoreHelper:
         offextractor = None
         nutri_facts = {}
 
-        try:
-            # Attempt to create the extractor and fetch nutrition facts
-            offextractor = OFFExtractor(ean)
-            nutri_facts = offextractor.extract()
-        except Exception as e:
-            logger.error(f"Error during product creation: {e}. Skipping. (You need to manually add the nutrition facts)")
+        if CONFIG.webservice.HAS_INTERNET_ACCESS:
+            try:
+                # Attempt to create the extractor and fetch nutrition facts
+                offextractor = OFFExtractor(ean)
+                nutri_facts = offextractor.extract()
+            except Exception as e:
+                logger.error(f"Error during product creation: {e}. Skipping. (You need to manually add the nutrition facts)")
 
-        logger.info(f"Creating or retrieving product '{name}' with EAN '{ean}' (Resell Price: {resell_price})")
+            logger.info(f"Creating or retrieving product '{name}' with EAN '{ean}' (Resell Price: {resell_price})")
+
         try:
             product, created = StoreProduct.objects.get_or_create(ean=ean)
             product.name = name
@@ -447,7 +529,7 @@ class StoreHelper:
             product.discount = discount
 
             # Assign nutrition facts if available
-            if nutri_facts:
+            if nutri_facts and CONFIG.webservice.HAS_INTERNET_ACCESS:
                 product.nutri_score = nutri_facts.get("Nutri-Score")
                 product.energy_kcal = nutri_facts.get("Energy (kcal)")
                 product.energy_kj = nutri_facts.get("Energy (kJ)")

@@ -42,27 +42,33 @@ class ManageStockView(View):
             if 'cmd' in request.headers:
                 cmd = request.headers['cmd']
             else:
-                cmd = "add"
+                cmd = "add_stock"
 
             data = json.loads(request.body)
-            self.logger.debug(f"Post request recieved: {data}")
-        
-            ean = data.get('product_ean')
-            quantity = data.get('quantity')
-            purchase_price = data.get('purchase_price') 
-            store_equity = bool(data.get('store_equity'))
-            with transaction.atomic():
-                try:
-                    quantity = int(quantity)  # Validate Decimal conversion
-                    purchase_price = Decimal(purchase_price)
-                except Exception as e:
-                    self.logger.error(f"Invalid input for quantity or purchase_price: {e}")
-                    return JsonResponse({'success': False, 'message': f"Invalid input for quantity or purchase_price: {e}. Please enter a valid number."}, status=400)
-                response, product = StoreHelper.restock_product(ean, quantity, purchase_price, 
-                                                                request.user,                                                                
-                                                                self.logger, store_equity)
+            self.logger.debug(f"{cmd}: Post request recieved: {data}")
+
+            if cmd == "deleteRestockEntry":
+                delete_restock_entry_id = data.get('deleteRestockEntryID')
+                response, product = StoreHelper.delete_restock_entry(delete_restock_entry_id, request.user, self.logger)
                 data, status = response.json_data()
                 return JsonResponse(data=data, status=status)
+            elif cmd == "add_stock":    
+                ean = data.get('product_ean')
+                quantity = data.get('quantity')
+                purchase_price = data.get('purchase_price') 
+                store_equity = bool(data.get('store_equity'))
+                with transaction.atomic():
+                    try:
+                        quantity = int(quantity)  # Validate Decimal conversion
+                        purchase_price = Decimal(purchase_price)
+                    except Exception as e:
+                        self.logger.error(f"Invalid input for quantity or purchase_price: {e}")
+                        return JsonResponse({'success': False, 'message': f"Invalid input for quantity or purchase_price: {e}. Please enter a valid number."}, status=400)
+                    response, product = StoreHelper.restock_product(ean, quantity, purchase_price, 
+                                                                    request.user,                                                                
+                                                                    self.logger, store_equity)
+                    data, status = response.json_data()
+                    return JsonResponse(data=data, status=status)
         except Exception as e:
             # -- Comment 3: Catch generic exceptions and log them
             self.logger.error(f"Unexpected error: {e}")

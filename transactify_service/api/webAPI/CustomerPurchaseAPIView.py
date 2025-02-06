@@ -12,6 +12,8 @@ from api.authentication import APIKeyAuthentication
 import logging
 from transactify_service.settings import CONFIG
 
+from store.helpers.ManageStockHelper import HelperException
+
 class CustomerPurchaseAPIView(APIView):
     authentication_classes = [APIKeyAuthentication]
 
@@ -77,9 +79,14 @@ class CustomerPurchaseAPIView(APIView):
             response, customer = StoreHelper.customer_purchase(
                 ean, quantity, card_number, logger=self.logger
             )
+        except HelperException as he:
+            # Change No. #4: Handle exceptions from ManageStockHelper.
+            self.logger.error(f"An error occurred during the purchase: {str(he.message)}")
+            return he.response
+        
         except Exception as e:
             # Change No. #4: Handle unexpected exceptions from ManageStockHelper.
-            self.logger.error(f"An error occurred during the purchase: {str(e)}")
+            self.logger.error(f"Unknown error occurred during the purchase: {str(e)}")
             return Response(
                 {"error": f"An error occurred during the purchase: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

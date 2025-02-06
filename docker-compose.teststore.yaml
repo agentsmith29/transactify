@@ -1,0 +1,114 @@
+version: '3.9'
+
+services:
+  
+
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - 5432:${DB_PORT}
+  
+  terminal1:
+    build:
+      context: .
+      dockerfile: ./transactify_terminal/Dockerfile
+    # set the container name
+    container_name: terminal1
+    restart: always
+    tty: true        # docker run -t
+    privileged: true  # Grants access to devices and kernel features
+    cap_add:
+      - SYS_RAWIO  # Allows raw GPIO access
+    security_opt:
+      - apparmor:unconfined  # Unrestricted access to hardware
+    volumes:
+      # Configuration file for the store
+      - ./transactify_terminal/configs/terminal1_config.yaml:/app/webapp/configs/config.yaml
+      
+      - /run/docker.sock:/run/docker.sock:ro
+      - nginx_data:/etc/nginx/conf.d
+      - static_volume:/app/static
+    depends_on:
+      - db
+    healthcheck:
+      test: "curl http://127.0.0.1:${PROJECT_PORT}/terminal1/health"
+      start_period: 10s
+      interval: 10s
+      timeout: 10s
+      retries: 20
+    deploy:       # limit maximum number of containers to 1
+      replicas: 1 # Important for the terminal to work properly (only one terminal can be connected to the hardware)
+  
+  teststore:
+    build:
+      context: .
+      dockerfile: ./transactify_service/Dockerfile
+    # set the container name
+    container_name: teststore
+    restart: always
+    depends_on:
+      - db
+      - terminal1
+    volumes:
+      # Configuration file for the store
+      - .env:/app/.env
+      - ./transactify_service/configs/store_config.example.yaml:/app/webapp/configs/config.yaml
+      # Docker socket for container management
+      - /run/docker.sock:/run/docker.sock:ro
+      # Data: Nginx configuration and static files
+      - nginx_data:/etc/nginx/conf.d
+      - static_volume:/app/static
+    healthcheck:
+      test: "curl http://127.0.0.1:${PROJECT_PORT}/donknabberello/health"
+      start_period: 10s
+      interval: 10s
+      timeout: 10s
+      retries: 20
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    #depends_on:
+    #  - django
+
+  nginx:
+    image: nginx:latest
+    restart: always
+    volumes:
+      #- static_volume:/static
+      - ./staticfiles:/static
+      - ./common/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - nginx_data:/etc/nginx/conf.d
+      
+      - /proc/sysrq-trigger:/sysrq
+      # - ./nginx/nginx.sh:/docker-entrypoint.d/nginx.sh
+      #- ./nginx/nginx.donknabberello.conf:/etc/nginx/nginx.donknabberello.conf
+    ports:
+      - 8000:8000
+    depends_on:
+      teststore:
+        condition: service_started
+      terminal1:
+        condition: service_healthy
+    # COmmand to remove all nginx.*.conf files bevor starting the container using the default entrypoint
+    #entrypoint: [
+    #  "/bin/bash",
+    #  "-c",
+    #  "rm -f /etc/nginx/conf.d/nginx.*.conf && /docker-entrypoint.sh;"
+    #]
+
+
+volumes:
+  nginx_data:
+  postgres_data:
+  static_volume:
+  pgdata:

@@ -1,14 +1,63 @@
+class OFFParser {
+    constructor() {
+        this.apiBase = "https://world.openfoodfacts.org/api/v2/product/"
+        this.apiTestURL = "https://world.openfoodfacts.org/api/v2/status.json";
+        this.apiAvailable = false;
+
+        // Check API availability when the class is initialized
+        this.checkAPIAvailability();
+    }
+
+    async checkAPIAvailability() {
+        try {
+            const response = await fetch(this.apiTestURL, { method: "HEAD" });
+            this.apiAvailable = response.ok;
+            console.log(`Open Food Facts API available: ${this.apiAvailable}`);
+        } catch (error) {
+            console.warn("Open Food Facts API is unreachable:", error);
+            window.storeManager.toastManager.error("Barcode recieved", `Open Food Facts API is unreachable: ${error}`, "", false);
+            this.apiAvailable = false;
+        }
+    }
+
+    async fetchProduct(barcode) {
+        try {
+            const response = await fetch(`${this.apiBase}${barcode}.json`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+
+            if (data.status === 1 && data.product) {
+                return data.product.product_name_de || 
+                    data.product.product_name_en || 
+                    data.product.product_name || 
+                    "Unknown Product";
+            } else {
+                console.warn("Product not found in Open Food Facts.");
+                return "Product Not Found";
+            }
+        } catch (error) {
+            console.error("Error fetching product data:", error);
+            return "Error fetching data";
+        }
+    }
+}
+
 class ManageProducts {
     constructor(page_url) {
         this.page_url = page_url;
         $(document).ready(() => {
             this.initSocket();
             this.initDataTables();
+            this.offParser = new OFFParser();
+            this.csrftoken = document.cookie.match(/csrftoken=([^;]+)/)[1];
+        
         });
     }
 
     initSocket() {
-        window.storeManager.webSocketHandler.onmessage = (event) => {
+        window.storeManager.webSocketHandler.onmessage = async (event) => {
             try {
                 const data = JSON.parse(event.data);
                 console.log("Message received from server:", data);
@@ -21,6 +70,15 @@ class ManageProducts {
                         console.error("EAN field not found.");
                     }
                     window.storeManager.toastManager.info("Barcode recieved", `New scanned barcode: ${data.barcode}`, "", false);
+
+                    // Fetch product name and populate input field
+                    const productName = await this.offParser.fetchProduct(data.barcode);
+                    const nameField = document.getElementById("name");
+                    if (nameField) {
+                        nameField.value = productName;
+                    } else {
+                        console.error("Product name field not found.");
+                    }
                 }
             } catch (error) {
                 console.error("Error processing WebSocket message:", error);
@@ -53,16 +111,16 @@ class ManageProducts {
     }
 
     submitProductForm() {
+ 
         const form = document.getElementById('addProductForm');
         const formData = new FormData(form);
-        const csrftoken = document.cookie.match(/csrftoken=([^;]+)/)[1];
-    
+       
         fetch(this.page_url, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json', // Ensure this header is set correctly
-                'X-CSRFToken': csrftoken, //formData.get('csrfmiddlewaretoken'), // Extract CSRF token
+                'X-CSRFToken': this.csrftoken, //formData.get('csrfmiddlewaretoken'), // Extract CSRF token
                 'cmd': 'add' // Pass additional command header
             },
             body: JSON.stringify({
@@ -93,18 +151,20 @@ class ManageProducts {
             });
     }
 
-    
 
     deleteProduct(ean) {
+        const form = document.getElementById('deleteProductForm');
+        const formData = new FormData(form);
+
         fetch(this.page_url, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json', // Ensure this header is correctly set
-                'X-CSRFToken': formData.get('csrfmiddlewaretoken'), // Pass CSRF token here
+                'X-CSRFToken': this.csrftoken, // Pass CSRF token here
                 'cmd': 'add' // Custom command header
             },
-            body: JSON.stringify({ product_ean: ean })
+            body: JSON.stringify({ product_ean: formData.get('product_ean') })
         })
         .then(response => response.json())
         .then(data => {
@@ -130,7 +190,7 @@ class ManageProducts {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
-                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'X-CSRFToken': this.csrftoken,
                 'cmd': 'edit'
             },
             body: JSON.stringify({

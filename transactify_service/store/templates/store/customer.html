@@ -257,23 +257,26 @@
 <script src="{% static_assets 'js/pages/store.customer.js' %}"></script>
 <script src="{% static_assets 'js/vendor/apexcharts.min.js' %}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const csrftoken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-    const customerCardNumber = "{{ customer.card_number|default:'' }}";
+    document.addEventListener('DOMContentLoaded', () => {
+        window.manageCustomer = new ManageCustomer("{% url 'customers' %}");
+        const csrftoken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        const customerCardNumber = "{{ customer.card_number|default:'' }}";
 
-    const balanceData = {{ customer.chart_data.balance|safe }};
-    const depositData = {{ customer.chart_data.deposit|safe }};
-    const purchasesData = {{ customer.chart_data.purchase|safe }};
-    const categories = {{ customer.chart_data.timestamp|safe }};
+        const balanceData = {{ customer.chart_data.balance|safe }};
+        const depositData = {{ customer.chart_data.deposit|safe }};
+        const purchasesData = {{ customer.chart_data.purchase|safe }};
+        const categories = {{ customer.chart_data.timestamp|safe }};
+        
+    
 
-    window.customerViewChart = new CustomerViewChart({
-        chartElementId: 'balance-chart',
-        balanceData: balanceData,
-        depositData: depositData,
-        purchasesData: purchasesData,
-        categories: categories,
-        colors: ['#4caf50', '#f44336', '#2196f3'],
+        window.customerViewChart = new CustomerViewChart({
+            chartElementId: 'balance-chart',
+            balanceData: balanceData,
+            depositData: depositData,
+            purchasesData: purchasesData,
+            categories: categories,
+            colors: ['#4caf50', '#f44336', '#2196f3'],
+        });
     });
-});
 </script>
 {% endblock %}

@@ -26,21 +26,23 @@ class Product():
       
 
 class HistoricalData():
-    CONST_Alesto_Cruspies_überzogene_Erdnüsse_Paprika="2005702"
-    CONST_Alesto_Erdnüsse_pikant_gewürzt="2005672"
-    CONST_Alesto_Studentenfutter_Classic="2005726"
+    CONST_Alesto_Cruspies_überzogene_Erdnüsse_Paprika="20005702"
+    CONST_Alesto_Erdnüsse_pikant_gewürzt="20005672"
+    CONST_Alesto_Studentenfutter_Classic="20005726"
     CONST_Alesto_Nussmix_mit_Makadamia="20772970"
-    CONST_Alesto_Nuts_Royal="250047238"
+    CONST_Alesto_Nuts_Royal="20047238"
     CONST_Alesto_Nussmix_mit_Pistazie="20559625"
     CONST_Alesto_Nuss_Frucht_Mix="20815394"
     CONST_Alesto_Cashew_Cranberry_Mix="20815400"
     CONST_Alesto_Cashew_Erdnuss_Mix__Honig_Salz_="20333737"
-    CONST_SnackFun_Teigumantelte_Erdnüsse="409920000442"
+
+    CONST_SnackFun_Teigumantelte_Erdnüsse="409920000442" 
     CONST_SnackFun_Teigumantelte_Erdnüsse__Wasabi_="409920000466"
     CONST_SnackFun_Pistazien__gesalzen_="4099200046686"
     CONST_SnackFun_Pistazien__ungesalzen_="4099200046687"
     CONST_SnackFun_Macadamia="4099200046754"
     CONST_SnackFun_Erdnüsse="4099200046730"
+    
     CONST_Bio_Natura_Cashew_Cranberry="4104420026681"
     CONST_Bio_Natura_Studentenfutter="4061462405839"
     CONST_Asia_Snack_Shogun_Mix="4047247108225"
@@ -55,26 +57,26 @@ class HistoricalData():
         self.email = "anon.ymous@store.com"
         self.card_number = "NoCardNumber"
 
-        # Add the products
+        # Add the products  
         products = [
-            Product('Alesto Cruspies überzogene Erdnüsse Paprika', self.CONST_Alesto_Cruspies_überzogene_Erdnüsse_Paprika, 200, 1.5),
-            Product('Alesto Erdnüsse pikant gewürzt', self.CONST_Alesto_Erdnüsse_pikant_gewürzt, 150, 1.5),
-            Product('Alesto Studentenfutter Classic', self.CONST_Alesto_Studentenfutter_Classic, 200, 2.5),
-            Product('Alesto Nussmix mit Makadamia', self.CONST_Alesto_Nussmix_mit_Makadamia, 200, 3.2),
-            Product('Alesto Nuts Royal', self.CONST_Alesto_Nuts_Royal, 200, 3.2),
-            Product('Alesto Nussmix mit Pistazie', self.CONST_Alesto_Nussmix_mit_Pistazie, 200, 3.2),
-            Product('Alesto Nuss-Frucht-Mix', self.CONST_Alesto_Nuss_Frucht_Mix, 200, 2.5),
-            Product('Alesto Cashew-Cranberry-Mix', self.CONST_Alesto_Cashew_Cranberry_Mix, 200, 2.5),
-            Product('Alesto Cashew-Erdnuss-Mix (Honig Salz)', self.CONST_Alesto_Cashew_Erdnuss_Mix__Honig_Salz_, 200, 2.5),
-            Product('SnackFun Teigumantelte Erdnüsse', self.CONST_SnackFun_Teigumantelte_Erdnüsse, 200, 1.5),
-            Product('SnackFun Teigumantelte Erdnüsse (Wasabi)', self.CONST_SnackFun_Teigumantelte_Erdnüsse__Wasabi_, 200, 1.5),
-            Product('SnackFun Pistazien (gesalzen)', self.CONST_SnackFun_Pistazien__gesalzen_, 250, 4.5),
-            Product('SnackFun Pistazien (ungesalzen)', self.CONST_SnackFun_Pistazien__ungesalzen_, 250, 4.5),
-            Product('SnackFun Macadamia', self.CONST_SnackFun_Macadamia, 125, 3.5),
-            Product('SnackFun Erdnüsse', self.CONST_SnackFun_Erdnüsse, 500, 3.2),
-            Product('Bio Natura Cashew-Cranberry', self.CONST_Bio_Natura_Cashew_Cranberry, 300, 4.5),
-            Product('Bio Natura Studentenfutter', self.CONST_Bio_Natura_Studentenfutter, 300, 4.5),
-            Product('Asia-Snack Shogun Mix', self.CONST_Asia_Snack_Shogun_Mix, 150, 2.0),
+            Product('Cruspies Paprika', self.CONST_Alesto_Cruspies_überzogene_Erdnüsse_Paprika, 200, 1.5),
+            Product('Erdnüsse pikant gewürzt', self.CONST_Alesto_Erdnüsse_pikant_gewürzt, 150, 1.5),
+            Product('Studentenfutter Classic', self.CONST_Alesto_Studentenfutter_Classic, 200, 2.5),
+            Product('Nussmix mit Makadamia', self.CONST_Alesto_Nussmix_mit_Makadamia, 200, 3.2),
+            Product('Nuts Royal', self.CONST_Alesto_Nuts_Royal, 200, 3.2),
+            Product('Nussmix mit Pistazie', self.CONST_Alesto_Nussmix_mit_Pistazie, 200, 3.2),
+            Product('Nuss-Frucht-Mix', self.CONST_Alesto_Nuss_Frucht_Mix, 200, 2.5),
+            Product('Cashew-Cranberry-Mix', self.CONST_Alesto_Cashew_Cranberry_Mix, 200, 2.5),
+            Product('Cashew-Erdnuss-Mix (Honig Salz)', self.CONST_Alesto_Cashew_Erdnuss_Mix__Honig_Salz_, 200, 2.5),
+            Product('Teigumantelte Erdnüsse', self.CONST_SnackFun_Teigumantelte_Erdnüsse, 200, 1.5),
+            Product('Teigumantelte Erdnüsse (Wasabi)', self.CONST_SnackFun_Teigumantelte_Erdnüsse__Wasabi_, 200, 1.5),
+            Product('Pistazien (gesalzen)', self.CONST_SnackFun_Pistazien__gesalzen_, 250, 4.5),
+            Product('Pistazien (ungesalzen)', self.CONST_SnackFun_Pistazien__ungesalzen_, 250, 4.5),
+            Product('Macadamia', self.CONST_SnackFun_Macadamia, 125, 3.5),
+            Product('Erdnüsse', self.CONST_SnackFun_Erdnüsse, 500, 3.2),
+            Product('Bio Cashew-Cranberry', self.CONST_Bio_Natura_Cashew_Cranberry, 300, 4.5),
+            Product('Bio Studentenfutter', self.CONST_Bio_Natura_Studentenfutter, 300, 4.5),
+            Product('Shogun Mix', self.CONST_Asia_Snack_Shogun_Mix, 150, 2.0),
             Product('ZZM Apfelchips', self.CONST_ZZM_Apfelchips, 100, 3.7)
         ]
         self.date = datetime.strptime('27.04.2024', '%d.%m.%Y') + debug_offset_date
@@ -85,6 +87,7 @@ class HistoricalData():
         for product in products:
             self.add_product(product.ean, product.name, product.resell_price)
 
+        return
         # Alesto Cruspies überzogene Erdnüsse Paprika	2005702	2	 € 0,99 
         # Alesto Erdnüsse pikant gewürzt	2005672	2	 € 0,89 
         # Alesto Studentenfutter Classic	20333737	2	 € 1,99 

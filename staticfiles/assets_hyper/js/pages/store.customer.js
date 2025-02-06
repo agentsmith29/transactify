@@ -1,24 +1,23 @@
-!(function ($) {
-    "use strict";
-
-    // CustomerView class
-    function CustomerView(config) {
-        // Initialize components with configuration
-        this.toastManager = window.StoreManager.toastManager;
-        this.modalManager = window.StoreManager.modalManager;
-
-        this.csrftoken = config.csrftoken;
-        this.customerCardNumber = config.customerCardNumber;
-        this.customerDetailUrl = config.customerDetailUrl;
-
-        // Initialize the WebSocket connection
-        this.webSocketHandler = window.StoreManager.webSocketHandler;
-
-        // Bind event listeners
-        this.initActions();
+class CustomerView {
+    constructor(page_url) {
+        this.page_url = page_url;
+        $(document).ready(() => {
+            this.toastManager = window.StoreManager.toastManager;
+            this.modalManager = window.StoreManager.modalManager;
+    
+            this.csrftoken = config.csrftoken;
+            this.customerCardNumber = config.customerCardNumber;
+            this.customerDetailUrl = config.customerDetailUrl;
+    
+            // Initialize the WebSocket connection
+            this.webSocketHandler = window.StoreManager.webSocketHandler;
+    
+            // Bind event listeners
+            this.initActions();
+        });
     }
 
-    CustomerView.prototype.initActions = function () {
+    initActions() {
         const self = this;
         const updateForm = document.getElementById('updateBalanceForm');
 
@@ -80,9 +79,7 @@
             });
         }
     };
-
-    // Export CustomerView
-    window.CustomerView = CustomerView;
+}
 
     // CustomerViewChart class
     class CustomerViewChart {
@@ -163,46 +160,41 @@
                 activeEl.target.classList.add('active');
             };
         
-            // Event listeners for time range buttons
-            document.querySelector('#one_month').addEventListener('click', (e) => {
-                resetCssClasses(e);
-                const now = new Date().getTime();
-                const oneMonthAgo = now - 30 * 24 * 60 * 60 * 1000;
-                chart.zoomX(oneMonthAgo, now);
-            });
+            // // Event listeners for time range buttons
+            // document.querySelector('#one_month').addEventListener('click', (e) => {
+            //     resetCssClasses(e);
+            //     const now = new Date().getTime();
+            //     const oneMonthAgo = now - 30 * 24 * 60 * 60 * 1000;
+            //     chart.zoomX(oneMonthAgo, now);
+            // });
         
-            document.querySelector('#six_months').addEventListener('click', (e) => {
-                resetCssClasses(e);
-                const now = new Date().getTime();
-                const sixMonthsAgo = now - 6 * 30 * 24 * 60 * 60 * 1000;
-                chart.zoomX(sixMonthsAgo, now);
-            });
+            // document.querySelector('#six_months').addEventListener('click', (e) => {
+            //     resetCssClasses(e);
+            //     const now = new Date().getTime();
+            //     const sixMonthsAgo = now - 6 * 30 * 24 * 60 * 60 * 1000;
+            //     chart.zoomX(sixMonthsAgo, now);
+            // });
         
-            document.querySelector('#one_year').addEventListener('click', (e) => {
-                resetCssClasses(e);
-                const now = new Date().getTime();
-                const oneYearAgo = now - 12 * 30 * 24 * 60 * 60 * 1000;
-                chart.zoomX(oneYearAgo, now);
-            });
+            // document.querySelector('#one_year').addEventListener('click', (e) => {
+            //     resetCssClasses(e);
+            //     const now = new Date().getTime();
+            //     const oneYearAgo = now - 12 * 30 * 24 * 60 * 60 * 1000;
+            //     chart.zoomX(oneYearAgo, now);
+            // });
         
-            document.querySelector('#all').addEventListener('click', (e) => {
-                resetCssClasses(e);
-                chart.resetZoom();
-            });
+            // document.querySelector('#all').addEventListener('click', (e) => {
+            //     resetCssClasses(e);
+            //     chart.resetZoom();
+            // });
         
-            // Add a slider for interactive zooming
-            const slider = document.getElementById('zoom-slider');
-            slider.addEventListener('input', (e) => {
-                const value = e.target.value;
-                const now = new Date().getTime();
-                const range = (value / 100) * (now - this.categories[0]);
-                chart.zoomX(now - range, now);
-            });
+            // // Add a slider for interactive zooming
+            // const slider = document.getElementById('zoom-slider');
+            // slider.addEventListener('input', (e) => {
+            //     const value = e.target.value;
+            //     const now = new Date().getTime();
+            //     const range = (value / 100) * (now - this.categories[0]);
+            //     chart.zoomX(now - range, now);
+            // });
         }
         
     }
-
-    // Export CustomerViewChart
-    window.CustomerView = CustomerView;
-    window.CustomerViewChart = CustomerViewChart;
-})(window.jQuery);

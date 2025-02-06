@@ -67,10 +67,13 @@ class ManageCustomersView(View, LoginRequiredMixin):
                 response = HTTPResponses.HTTP_STATUS_CUSTOMER_NOT_FOUND(username)
                 data, status = response.json_data()
                 return JsonResponse(data, status=status)
+            
+            customer.config.customer_enabled = False
+            customer.save()
 
-            customer.delete()
-            # also delete the user
-            # user = User.objects.filter(username=username).first()
+        #     customer.delete()
+        #     # also delete the user
+        #     # user = User.objects.filter(username=username).first()
 
             response = HTTPResponses.HTTP_STATUS_CUSTOMER_DELETED(username)
             data, status = response.json_data()

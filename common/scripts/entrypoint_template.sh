@@ -142,9 +142,9 @@ if [ -z "$DB_RESET" ]; then
 fi
 
 # if statement to check if REMIGRATE is set to true
-echo_inf "Database reset is set to $DB_RESET"
+echo_inf "Database reset is set to ${DB_RESET,,}"
 chmod +x $SH_RESET_DATABSE_SCRIPT
-if [ "$DB_RESET" = "True" ]; then
+if [[ "${DB_RESET,,}" == "true" ]]; then
     echo_warn "Resetting and remigrating the database with script $SH_RESET_DATABSE_SCRIPT."
     $SH_RESET_DATABSE_SCRIPT || {
         echo_err "Failed to reset and remigrate the database. Exiting."
@@ -161,13 +161,15 @@ fi
 
 # if statement to check if REMIGRATE is set to true
 chmod +x $SH_MAKE_STORE_MIGRATION
-echo_inf "Database remigrate is set to $REMIGRATE"
-if [ "$REMIGRATE" = "true" ]; then
+echo_inf "Database remigrate is set to ${REMIGRATE,,}"
+if [[ "${REMIGRATE,,}" == "true" ]]; then
     echo_warn "Remigrating the database with script $SH_MAKE_STORE_MIGRATION..."
     $SH_MAKE_STORE_MIGRATION $APP_NAMES || {
         echo_err "Failed to remigrate the database. Exiting."
         exit 1
     }
+else
+    echo_inf "Remigrating the database skipped."
 fi
 echo_ok "Database migration completed successfully."
 

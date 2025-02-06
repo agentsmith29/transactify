@@ -40,7 +40,7 @@ class OLEDPage():
     BTN_OKAY = "F"
     BTN_BACK = "E"
     APP_DIR = os.getenv("APP_DIR", "/app")
-    ICONS=f"${APP_DIR}/../static/icons"
+    ICONS=f"{APP_DIR}/../static/icons"
     
     def store_context():
         """

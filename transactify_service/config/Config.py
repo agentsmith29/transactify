@@ -24,12 +24,26 @@ class DatabaseConfig(BaseConfigField):
 class WebService(BaseConfigField):
     def __init__(self, *args, **kwargs):
         super().__init__(field_name="webservice", *args, **kwargs)
+        self.docker_socket_helper = DockerSocketHelper(self.logger)
         self.SERVICE_NAME = self.assign_from_config("SERVICE_NAME")
         self.FRIENDLY_NAME = self.assign_from_config("FRIENDLY_NAME", self.SERVICE_NAME)
+        self.CONTAINER_NAME = self.assign_direct(
+            self.docker_socket_helper.container_name_from_service(self.SERVICE_NAME)
+        )
+        self.CONTAINER_ID = self.assign_direct(
+            self.docker_socket_helper.container_id_from_service(self.SERVICE_NAME)
+        )
         self.SERVICE_WEB_PORT = self.assign_from_config("SERVICE_WEB_PORT")
         self.SERVICE_WEB_HOST = self.assign_from_config("SERVICE_WEB_HOST")
-        self.SERVICE_URL = self.assign_direct(f"http://{self.SERVICE_WEB_HOST}:{self.SERVICE_WEB_PORT}/{self.SERVICE_NAME}")
+        if self.SERVICE_WEB_PORT and self.SERVICE_WEB_PORT != "":
+            self.SERVICE_URL = self.assign_direct(f"http://{self.SERVICE_WEB_HOST}:{self.SERVICE_WEB_PORT}/{self.SERVICE_NAME}")
+            self.SERVICE_URL_INTERNAL = self.assign_direct(f"http://{self.CONTAINER_NAME}:{self.SERVICE_WEB_PORT}/{self.SERVICE_NAME}")
+        else:
+            self.SERVICE_URL = self.assign_direct(f"http://{self.SERVICE_WEB_HOST}/{self.SERVICE_NAME}")
+            self.SERVICE_URL_INTERNAL = self.assign_direct(f"http://{self.CONTAINER_NAME}/{self.SERVICE_NAME}")
+
         self.JOURNAL_FILE = self.assign_from_config("JOURNAL_FILE", f"./journal_{self.SERVICE_NAME}.py")
+        self.HAS_INTERNET_ACCESS = self.assign_direct(False)
 
 class AdminConfig(BaseConfigField):
     def __init__(self, *args, **kwargs):
@@ -56,15 +70,15 @@ class TerminalConfig(BaseConfigField):
         self.TERMINAL_WEBSOCKET_URL = self.assign_from_config(
             "TERMINAL_WEBSOCKET_URL", 
             lambda_apply_func=lambda url: self.wrap_url(url, f"ws"))
-        
+        self.IS_DOCKER_CONTAINER = None
         if self.TERMINAL_CONTAINER_NAME is not None and self.TERMINAL_CONTAINER_NAME != "" :
             rurl = self.replace_hostname(str(self.TERMINAL_SERVICE_URL), str(self.TERMINAL_CONTAINER_NAME))
             wsurl = self.replace_hostname(str(self.TERMINAL_WEBSOCKET_URL), str(self.TERMINAL_CONTAINER_NAME))
-            self.IS_DOCKER_CONTAINER = self.assign_direct(False)
+            self.IS_DOCKER_CONTAINER = self.assign_direct(True)
             self.TERMINAL_SERVICE_URL_INTERNAL = self.assign_direct(rurl, lambda_apply_func=lambda url: self.wrap_url(url, f"http"))
             self.TERMINAL_WEBSOCKET_URL_INTERNAL = self.assign_direct(wsurl, lambda_apply_func=lambda url: self.wrap_url(url, f"ws"))
         else:
-            self.IS_DOCKER_CONTAINER = self.assign_direct(True)
+            self.IS_DOCKER_CONTAINER = self.assign_direct(False)
             self.TERMINAL_SERVICE_URL_INTERNAL = self.assign_direct(self.TERMINAL_SERVICE_URL)
             self.TERMINAL_WEBSOCKET_URL_INTERNAL = self.assign_direct(self.TERMINAL_WEBSOCKET_URL)        
       
@@ -96,6 +110,11 @@ class DjangoConfig(BaseConfigField):
             self.STATIC_WEBSERVER = str(self.assign_from_config("STATIC_WEBSERVER", None, required=False,
                                                                 lambda_apply_func=lambda url: self.wrap_url(url, f"http")))
 
+class CustomerConfig(BaseConfigField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(field_name="customer", *args, **kwargs)
+        self.AUTO_DEPOSIT = self.assign_from_config("AUTO_DEPOSIT", "false")
+      
 class Config(ConfigParser):
     def __init__(self, config_file: str, *args, **kwargs):
         super().__init__(config_file, *args, **kwargs)
@@ -106,6 +125,7 @@ class Config(ConfigParser):
         self.terminal: TerminalConfig = self.load(TerminalConfig)
         self.container: ContainerConfig = self.load(ContainerConfig)
         self.django: DjangoConfig = self.load(DjangoConfig, field_name="django")  
+        self.customer: CustomerConfig = self.load(CustomerConfig)
 
 
 if __name__ == "__main__":

@@ -10,6 +10,8 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     ports:
       - 5432:${DB_PORT}
   
@@ -17,6 +19,8 @@ services:
     build:
       context: .
       dockerfile: ./transactify_terminal/Dockerfile
+    # set the container name
+    container_name: terminal1
     restart: always
     tty: true        # docker run -t
     privileged: true  # Grants access to devices and kernel features
@@ -38,7 +42,7 @@ services:
       start_period: 10s
       interval: 10s
       timeout: 10s
-      retries: 10
+      retries: 20
     deploy:       # limit maximum number of containers to 1
       replicas: 1 # Important for the terminal to work properly (only one terminal can be connected to the hardware)
   
@@ -46,13 +50,18 @@ services:
     build:
       context: .
       dockerfile: ./transactify_service/Dockerfile
+    # set the container name
+    container_name: donknabberello
     restart: always
     depends_on:
       - db
       - terminal1
+    environment:
+      - MIGRATE_HISTORICAL=1
     volumes:
       # Configuration file for the store
       - .env:/app/.env
+      #- ./transactify_service/configs/historical_data_donknabberello.py:/app/webapp/store/data_generators #/add_historical_data.py
       - ./transactify_service/configs/store_config_donknabberello.yaml:/app/webapp/configs/config.yaml
       # Docker socket for container management
       - /run/docker.sock:/run/docker.sock:ro
@@ -64,13 +73,16 @@ services:
       start_period: 10s
       interval: 10s
       timeout: 10s
-      retries: 10
+      retries: 20
 
   doncaramello:
     build:
       context: .
       dockerfile: ./transactify_service/Dockerfile
     restart: always
+    container_name: doncaramello
+    environment:
+      - MIGRATE_HISTORICAL=0
     depends_on:
       - db
       - terminal1
@@ -88,7 +100,7 @@ services:
       start_period: 10s
       interval: 10s
       timeout: 10s
-      retries: 10
+      retries: 20
 
 
   adminer:
@@ -103,8 +115,8 @@ services:
     image: nginx:latest
     restart: always
     volumes:
-      - static_volume:/static
-      #- ./staticfiles:/static
+      #- static_volume:/static
+      - ./staticfiles:/static
       - ./common/nginx/nginx.conf:/etc/nginx/nginx.conf
       - nginx_data:/etc/nginx/conf.d
       
@@ -117,7 +129,8 @@ services:
       donknabberello:
         condition: service_started
       #doncaramello:
-      #  condition: service_started
+      #  condition: service_healthy
+
       terminal1:
         condition: service_healthy
     # COmmand to remove all nginx.*.conf files bevor starting the container using the default entrypoint
@@ -132,3 +145,4 @@ volumes:
   nginx_data:
   postgres_data:
   static_volume:
+  pgdata:

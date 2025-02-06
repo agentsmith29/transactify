@@ -115,11 +115,14 @@ class CustomerPurchase(models.Model):
                 quantity_to_allocate -= inventory.remaining_quantity
                 inventory.remaining_quantity = 0
                 inventory.save()
+            # set the underlaying ProductRestoc to undoable=false
+            inventory.restock.undo_allowed = False
 
         self.expenses = total_cost
         self.revenue = self.purchase_price * self.quantity
         self.profit = self.revenue - self.expenses
         logger.info(f"Revenue: {self.profit}, Expenses: {self.expenses}, Profit: {self.profit}")
+        
         self.save()
 
     def save(self, *args, **kwargs):

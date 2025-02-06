@@ -84,11 +84,11 @@
                                         </div>
                                     </th>
                                     <th>Name</th>
+                                    <th>Status</th>       
                                     <th>Username</th>                                    
                                     <th>Card Number</th>
                                     <th>Email</th>
                                     <th>Create date</th>
-                                    <th>Active</th>
                                     <th colspan="2">Balance (€)</th>
                                     <th style="width: 75px;">Action</th>
                                 </tr>
@@ -108,17 +108,19 @@
                                             {{ customer.user.first_name }} {{ customer.user.last_name }}
                                         </a>
                                     </td>
+                                    <td>
+                                        {% if customer.config.customer_enabled == False %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                        {% else %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ customer.user.username }}</td>
                                     <td>{{ customer.card_number }}</td>
                                     <td>{{ customer.user.email }}</td>
                                     <td>{{ customer.issued_at }}</td>
-                                    <td>
-                                        {{ customer.balance }}
-                                    </td>
-                                    <td>
-                                        <div class="spark-chart" data-dataset="{{ customer.chart_data_json|escapejs }}"></div>
-
-                                    </td>
+                                    <td>{{ customer.balance }}</td>
+                                    <td><div class="spark-chart" data-dataset="{{ customer.chart_data_json|escapejs }}"></div></td>
                                     <td>
                                         <a href="{% url 'customer' customer.card_number %}" class="action-icon">
                                             <i class="mdi mdi-square-edit-outline"></i>
