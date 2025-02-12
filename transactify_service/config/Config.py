@@ -114,7 +114,16 @@ class CustomerConfig(BaseConfigField):
     def __init__(self, *args, **kwargs):
         super().__init__(field_name="customer", *args, **kwargs)
         self.AUTO_DEPOSIT = self.assign_from_config("AUTO_DEPOSIT", "false")
-      
+
+class GmailConfig(BaseConfigField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(field_name="gmail", *args, **kwargs)
+        self.host = self.assign_from_config("HOST", "smtp.gmail.com")
+        self.host_user =self.assign_from_config("USER")
+        self.host_password =self.assign_from_config("PASSWORD")
+        self.port = self.assign_from_config("PORT")
+        self.use_tls = bool(self.assign_from_config("TLS"))
+
 class Config(ConfigParser):
     def __init__(self, config_file: str, *args, **kwargs):
         super().__init__(config_file, *args, **kwargs)
@@ -126,6 +135,8 @@ class Config(ConfigParser):
         self.container: ContainerConfig = self.load(ContainerConfig)
         self.django: DjangoConfig = self.load(DjangoConfig, field_name="django")  
         self.customer: CustomerConfig = self.load(CustomerConfig)
+        self.gmail_config: GmailConfig = self.load(GmailConfig)
+
 
 
 if __name__ == "__main__":

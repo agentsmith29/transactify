@@ -9,6 +9,7 @@ from ..webmodels.StoreProduct import StoreProduct
 from ..webmodels.CustomerPurchase import CustomerPurchase
 from ..webmodels.CustomerDeposit import CustomerDeposit
 #from ..webmodels.CustomerBalance import CustomerBalance
+from ..webmodels.CustomerConfig import CustomerConfig
 from ..webmodels.ProductRestock import ProductRestock
 from django.contrib.auth.models import User, Group
 
@@ -31,6 +32,7 @@ from transactify_service.settings import CONFIG
 from store.helpers.OFFExtractor import OFFExtractor
 
 from django.utils import timezone
+from store.helpers.EmailHelper import EmailHelper
 
 class StoreHelper:
 
@@ -109,7 +111,7 @@ class StoreHelper:
 
             required_balance = quantity * product.final_price
             
-            if customer.config.auto_deposit or CONFIG.customer.AUTO_DEPOSIT:
+            if customer.config.auto_deposit:
                 StoreHelper.customer_add_deposit(customer, required_balance, logger)
 
             
@@ -157,6 +159,10 @@ class StoreHelper:
                              f"\nTraceback: {traceback.format_exc()}")
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_STOCK_UPDATE_FAILED(e))
 
+            EmailHelper.send_email(card_number=card_number, 
+                subject="Thank you for your purchase!", 
+                html_message=f"Thank you for your purchase: {product.name}", 
+                logger=logger)
             logger.info(f"Purchase successful. Updated stock for {product.name}: {product.stock_quantity} (was {old_stock_quantity})")
             return HTTPResponses.HTTP_STATUS_PURCHASE_SUCCESS(product.name), customer_purchase  # Change No. #3: Return actual customer object.
 
@@ -484,7 +490,125 @@ class StoreHelper:
         logger.info(f"Customer record created for {username}.")
         return HTTPResponses.HTTP_STATUS_CUSTOMER_CREATE_SUCCESS(username), customer
 
-    
+
+    @staticmethod
+    @transaction.atomic
+    def update_customer_details(card_number: str, first_name: str = None,  
+                                last_name: str = None, email: str = None, password: str = None, logger: logging.Logger = None
+    ) -> tuple[Response, Customer]:
+        """
+        Update customer details including first name, last name, email, and password.
+        
+        Args:
+            card_number (str): The unique ID (or card number) of the customer.
+            first_name (str, optional): The new first name.
+            last_name (str, optional): The new last name.
+            email (str, optional): The new email.
+            password (str, optional): The new password.
+            logger (logging.Logger, optional): Logger instance for detailed logging.
+
+        Returns:
+            tuple: (Response, Customer) - HTTP Response status and updated customer instance.
+        """
+        if logger is None:
+            logger = logging.getLogger(__name__)
+
+        logger.info(f"Initiating update for customer ID: {card_number}.")
+
+        # Fetch the customer record
+        try:
+            customer = Customer.objects.get(card_number=card_number)
+            user = customer.user
+            logger.info(f"Customer record found: {user.username} (Card Number: {card_number}).")
+        except Customer.DoesNotExist:
+            msg = f"Customer with ID {card_number} not found."
+            logger.error(msg)
+            return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(card_number, msg), None
+        except Exception as e:
+            msg = f"Unexpected error retrieving customer {card_number}: {e}."
+            logger.error(f"{msg}\n\nTraceback:\n{traceback.format_exc()}\n")
+            return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(card_number, msg), None
+
+        updated_fields = {}
+
+        try:
+            # Apply changes if parameters are provided
+            if first_name is not None:
+                user.first_name = first_name.strip()
+                updated_fields["first_name"] = first_name.strip()
+            
+            if last_name is not None:
+                user.last_name = last_name.strip()
+                updated_fields["last_name"] = last_name.strip()
+            
+            if email is not None:
+                if User.objects.filter(email=email).exclude(pk=user.pk).exists():
+                    msg = f"Email {email} is already in use by another customer."
+                    logger.error(msg)
+                    return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(card_number, msg), None
+                
+                user.email = email.strip()
+                updated_fields["email"] = email.strip()
+            
+            if password is not None:
+                user.set_password(password)
+                updated_fields["password"] = "UPDATED"  # Avoid logging raw passwords
+
+            if updated_fields:
+                user.save()
+                logger.info(f"Updated customer {card_number}: {updated_fields}.")
+            else:
+                logger.info(f"No updates applied for customer {card_number}. No parameters provided.")
+                return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_NO_CHANGES(card_number), customer
+
+        except Exception as e:
+            msg = f"Failed to update customer {card_number}: {e}."
+            logger.error(f"{msg}\n\nTraceback:\n{traceback.format_exc()}\n")
+            return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(card_number, msg), None
+
+        logger.info(f"Customer {card_number} update successful.")
+        return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_SUCCESS(card_number), customer
+
+    @staticmethod
+    @transaction.atomic
+    def update_customer_config(card_number: str, auto_deposit: bool, logger: logging.Logger = None) -> tuple[Response, CustomerConfig]:
+        """
+        Updates the customer's auto_deposit configuration.
+
+        Args:
+            customer_id (str): The unique customer ID.
+            auto_deposit (bool): Whether auto deposit should be enabled or disabled.
+            logger (logging.Logger, optional): Logger instance.
+
+        Returns:
+            tuple: (Response, CustomerConfig) - HTTP Response status and updated config instance.
+        """
+        if logger is None:
+            logger = logging.getLogger(__name__)
+
+        logger.info(f"Updating config for customer ID: {card_number}, auto_deposit: {auto_deposit}")
+
+        try:
+            customer = Customer.objects.get(card_number=card_number)
+            config, _ = CustomerConfig.objects.get_or_create(customer=customer)
+
+            # Update the auto_deposit field
+            config.auto_deposit = auto_deposit
+            config.save()
+
+            logger.info(f"Successfully updated auto_deposit to {auto_deposit} for customer {card_number}.")
+            return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_SUCCESS(card_number), config
+
+        except Customer.DoesNotExist:
+            msg = f"Customer with ID {card_number} not found."
+            logger.error(msg)
+            return HTTPResponses.HTTP_STATUS_CUSTOMER_NOT_FOUND(card_number), None
+
+        except Exception as e:
+            msg = f"Error updating config for customer {card_number}: {e}"
+            logger.error(f"{msg}\n\nTraceback:\n{traceback.format_exc()}\n")
+            return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(card_number, msg), None
+
     
     # Private methods
     # =========================================================================================================

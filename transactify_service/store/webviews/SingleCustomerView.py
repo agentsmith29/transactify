@@ -19,9 +19,11 @@ from django.utils.decorators import method_decorator
 from django.db import models
 from datetime import datetime, timedelta
 
-
+import traceback
 from transactify_service.settings import CONFIG
 import logging
+
+from store.helpers.EmailHelper import EmailHelper
 
 #from ..apps import hwcontroller
 @method_decorator(login_required, name='dispatch')
@@ -69,35 +71,63 @@ class SingleCustomerView(View):
         Handle POST requests to update the customer's balance by adding a deposit.
         """
         try:
-            # Parse JSON data from the request body
+            # check the header for field cmd
+            if 'cmd' in request.headers:
+                cmd = request.headers['cmd']
+            else:
+                cmd = "deposit"
+
             data = json.loads(request.body)
-            amount = data.get('deposit_amount')
+            self.logger.debug(f"Post request recieved: {data}")
 
-            if not amount or float(amount) <= 0:
-                return JsonResponse({'error': 'Invalid amount'}, status=400)
 
-            # Fetch the customer
-            customer = get_object_or_404(Customer, card_number=card_number)
-            
-            # Create a new deposit record
-            # Log the deposit
-            response, customer_deposit = StoreHelper.customer_add_deposit(customer, amount, self.logger )
+            if cmd == "deposit":
+                amount = data.get('deposit_amount')
+                if not amount or float(amount) <= 0:
+                    return JsonResponse({'error': 'Invalid amount'}, status=400)
 
-            # Update the customer's balance
-            #customer.increment_balance(CustomerBalance, amount)
-            #customer.save()
+                # Fetch the customer
+                customer = get_object_or_404(Customer, card_number=card_number)
+                response, customer_deposit = StoreHelper.customer_add_deposit(customer, amount, self.logger )
+                return JsonResponse({'message': 'Deposit successful'}, status=200)
+            elif cmd == "update":
+                first_name = data.get("first_name")
+                last_name = data.get("last_name")
+                email = data.get("email")
+                password = data.get("password")
 
-            #card_number, _ = asyncio.run(self.controller.nfc_write(
-            #    f"Deposit of EUR {amount} successful. New balance: EUR {customer.balance:.2f}"
-            #))
+                if not card_number:
+                    msg = "Customer ID is required for updating details."
+                    self.logger.error(msg)
+                    return JsonResponse({'error': 'Invalid JSON data'}, status=400)
 
-            #cn, text = asyncio.run(self.controller.nfc_read())
-            #print(f"Card number: {cn}, Text: {text}")
-            return JsonResponse({'message': 'Deposit successful'}, status=200)
+                response, updated_customer = StoreHelper.update_customer_details(
+                    card_number=card_number,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    password=password,
+                    logger=self.logger
+                )
 
-        except json.JSONDecodeError:
-            print("Invalid JSON data")
+
+                if "config" in data:
+                    config = data.get("config")
+                    auto_deposit = config.get("auto_deposit")
+                    response, updated_customer = StoreHelper.update_customer_config(
+                        card_number=card_number,
+                        auto_deposit=bool(auto_deposit),
+                        logger=self.logger
+                )
+                data, status = response.json_data()
+
+                return JsonResponse(data=data, status=status)
+
+
+        except json.JSONDecodeError as jse:
+            self.logger.error(f"Invalid JSON data: {jse}")
             return JsonResponse({'error': 'Invalid JSON data'}, status=400)
         except Exception as e:
-            print(f"An error occurred: {str(e)}")
+            self.logger.error(f"An error occurred: {str(e)}")
+            self.logger.error(f"Traceback:\n{traceback.format_exc()}\n")
             return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)

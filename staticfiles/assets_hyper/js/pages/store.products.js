@@ -225,7 +225,7 @@ class ManageProducts {
         // Use Bootstrap's modal API to show the modal
         const modal = new bootstrap.Modal('#editProductModal');
         modal.show();
-    
+
     }
     
     closeModal() {

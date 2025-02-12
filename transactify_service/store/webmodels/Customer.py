@@ -197,17 +197,19 @@ class Customer(models.Model):
             if current_month_val > 0:
                 return 100    
 
-        current_month_val = float(current_month_val)
-        previous_month_val = float(previous_month_val)
+        try:
+            current_month_val = float(current_month_val)
+            previous_month_val = float(previous_month_val)
 
-        if previous_month_val == 0 and current_month_val > 0:
+            if previous_month_val == 0 and current_month_val > 0:
+                return 100
+            elif previous_month_val == 0 and current_month_val == 0:
+                return 0
+            else:
+                # Calculate percentage change
+                percentage_change = ((current_month_val - previous_month_val) / previous_month_val) * 100
+        except ZeroDivisionError:
             return 100
-        elif previous_month_val == 0 and current_month_val == 0:
-            return 0
-        else:
-            # Calculate percentage change
-            percentage_change = ((current_month_val - previous_month_val) / previous_month_val) * 100
-
         return round(percentage_change, 2)
 
     def get_monthly_purchase_percentage_change(self) -> float:

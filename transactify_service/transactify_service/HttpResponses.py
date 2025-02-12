@@ -39,6 +39,28 @@ class HTTPResponses():
         http_status=status.HTTP_500_INTERNAL_SERVER_ERROR
     )
 
+    HTTP_STATUS_CUSTOMER_UPDATE_SUCCESS = lambda customer_id: APIResponse.success(
+        message=f"Customer {customer_id} updated successfully.",
+        code=0,
+        http_status=status.HTTP_200_OK
+    )
+
+    HTTP_STATUS_CUSTOMER_UPDATE_FAILED = lambda customer_id, error_msg: APIResponse.error(
+        message=f"Failed to update customer {customer_id}: {error_msg}",
+        code=13,
+        http_status=status.HTTP_400_BAD_REQUEST
+    )
+
+    HTTP_STATUS_CUSTOMER_UPDATE_NO_CHANGES = lambda customer_id: APIResponse.success(
+        message=f"No updates applied for customer {customer_id}. No changes detected.",
+        code=1,
+        http_status=status.HTTP_204_NO_CONTENT
+    )
+
+
+
+
+
 
 
 

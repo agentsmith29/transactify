@@ -347,3 +347,36 @@ Scroll down, and at the bottom of the file, add:
 denyinterfaces wlan0
 ```
 Your terminal window should look similar to the image below.
+
+## Setting up your terminal
+You can use a different subnet like 192.168.1.2/24, but you'll need to properly route traffic between the two subnets.
+ Right now, your network (e.g. 129.27.131.x) and the new subnet (192.168.1.x) won’t communicate without explicit routing.
+
+### How to Make It Work
+If you set your Raspberry Pi to 192.168.1.2/24 and the PC's IP is 129.27.131.27, you need to:
+
+#### Step 1: Assign the PC an IP on both subnets.
+Enable routing between subnets. Ensure NAT works correctly. You need to configure your PC to use both IPs:
+
+Keep 129.27.131.27 (your current static IP).
+Add 192.168.1.1 as an alias for routing.
+```powershell
+New-NetIPAddress -InterfaceAlias "Ethernet" -IPAddress 192.168.1.1 -PrefixLength 24
+```
+
+#### Step 2: Configure Raspberry Pi
+```
+sudo nmcli con modify "IPv4 Static" ipv4.addresses 192.168.1.2/24 ipv4.gateway 192.168.1.1 ipv4.dns 129.27.131.25 ipv4.method manual
+sudo nmcli connection down "IPv4 Static"; sudo nmcli connection up "IPv4 Static"
+```
+
+#### Step 3:
+```
+netsh interface ipv4 set global icmpredirects=disabled
+```
+#### Step 4:
+
+```powershell
+New-NetNAT -Name "PiNAT" -InternalIPInterfaceAddressPrefix 192.168.1.0/24
+```
+

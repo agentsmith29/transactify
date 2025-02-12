@@ -57,7 +57,7 @@ services:
       - db
       - terminal1
     environment:
-      - MIGRATE_HISTORICAL=1
+      - MIGRATE_HISTORICAL=0
     volumes:
       # Configuration file for the store
       - .env:/app/.env

@@ -22,6 +22,7 @@ from django.contrib.auth.models import User
     
 from transactify_service.settings import CONFIG
 import logging
+from store.helpers.EmailHelper import EmailHelper
 
 class ManageCustomersView(View, LoginRequiredMixin):
     """Class-based view to handle customer-related operations."""
@@ -30,7 +31,6 @@ class ManageCustomersView(View, LoginRequiredMixin):
     def __init__(self, **kwargs):
         self.logger = logging.getLogger(f"{CONFIG.webservice.SERVICE_NAME}.webviews.{self.__class__.__name__}")
         super().__init__(**kwargs)
-
 
     def fetch_nfc_data(self):
         """Fetch NFC data synchronously using requests."""
@@ -93,7 +93,6 @@ class ManageCustomersView(View, LoginRequiredMixin):
         customers = self.get_all_customers()
         return render(request, self.template_name, {'customers': customers})
         
-
     @method_decorator(ensure_csrf_cookie)
     def post(self, request):
         """Handle POST requests to add a new customer."""
@@ -137,8 +136,15 @@ class ManageCustomersView(View, LoginRequiredMixin):
                 username, first_name, last_name, email, balance, card_number, self.logger
             )
             data, status = response.json_data()
+            
+            try:
+                EmailHelper.send_email(card_number=card_number, 
+                                subject="Your account has been created!", 
+                                html_message="Account created successfully", 
+                                logger=self.logger)
+            except Exception as e:
+                self.logger.error(f"Error sending email to {customer.user.email}: {e}")
             return JsonResponse(data, status=status)
-
         except Exception as e:
             self.logger.error("Error creating a new customer.")
             tb = traceback.format_exc()

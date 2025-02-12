@@ -33,6 +33,7 @@ class ManageCustomer {
                         'Content-Type': 'application/json',
                         'X-CSRFTOKEN': self.csrftoken,
                         'X-Requested-With': 'XMLHttpRequest', // Identify as AJAX request
+                        'cmd': 'deposit'
                     },
                     body: JSON.stringify({
                         deposit_amount: depositAmount,
@@ -77,122 +78,146 @@ class ManageCustomer {
             });
         }
     };
+
+    parseBool(value) {
+        return  value === "True" || value === "true" || value === "on" || value === 1 || value === "1";
+    }
+
+    openEditModal(first_name, last_name, email, auto_deposit) {
+        document.getElementById("modal_first_name").value = first_name;
+        document.getElementById("modal_last_name").value = last_name;
+        document.getElementById("modal_email").value = email;
+        // Set auto_deposit checkbox based on customer.config.auto_deposit
+        document.getElementById("modal_auto_deposit").checked = this.parseBool(auto_deposit);
+
+        // Open the modal
+        const modal = new bootstrap.Modal('#editCustomerModal');
+        modal.show();
+    }
+
+
+    
+    submitEditForm() {
+        const form = document.getElementById("editCustomerForm");
+        const formData = new FormData(form);
+      
+
+        fetch(this.page_url, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+                'cmd': 'update' // Pass additional command header
+            },
+            body: JSON.stringify({
+                first_name: formData.get('first_name'),
+                last_name: formData.get('last_name'),
+                email: formData.get('email'),
+                config: {
+                    auto_deposit: this.parseBool(formData.get('auto_deposit'))
+                }
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.storeManager.toastManager.info(
+                    "Success",
+                    "Customer updated successfully.",
+                    "",
+                    true
+                );
+                location.reload();
+            } else {
+                window.storeManager.toastManager.error(
+                    "Error",
+                    "Error updating customer: " + data.error,
+                    "error",
+                    false
+                );
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    }
 }
 
-    // CustomerViewChart class
-    class CustomerViewChart {
-        constructor({ balanceData, depositData, purchasesData, categories, chartElementId, colors }) {
-            this.balanceData = balanceData || [];
-            this.depositData = depositData || [];
-            this.purchasesData = purchasesData || [];
-            this.categories = categories || [];
-            this.chartElementId = chartElementId || 'chart';
-            this.colors = colors || ['#4caf50', '#f44336', '#2196f3'];
-            this.initChart();
-        }
-
-        initChart() {
-            const options = {
-                chart: {
-                    height: 256,
-                    type: 'area',
-                    zoom: {
-                        autoScaleYaxis: true,
-                        enabled: true,
-                    },
-                },
-                series: [
-                    {
-                        name: 'Balance',
-                        data: this.balanceData,
-                        type: 'area',
-                    },
-                    {
-                        name: 'Deposits',
-                        data: this.depositData,
-                        type: 'column',
-                    },
-                    {
-                        name: 'Purchases',
-                        data: this.purchasesData,
-                        type: 'column',
-                    },
-                ],
-                dataLabels: {
-                    enabled: false,
-                },
-                tooltip: {
-                    x: {
-                        format: 'dd MMM yyyy',
-                    },
-                },
-                xaxis: {
-                    type: 'datetime',
-                    categories: this.categories,
-                    tickAmount: 6,
-                },
-                fill: {
-                    type: 'gradient',
-                    gradient: {
-                        shadeIntensity: 1,
-                        opacityFrom: 0.7,
-                        opacityTo: 0.9,
-                        stops: [0, 100],
-                    },
-                },
-                colors: this.colors,
-            };
-        
-            const chart = new ApexCharts(
-                document.querySelector(`#${this.chartElementId}`),
-                options
-            );
-            chart.render();
-        
-            // Helper function to reset active class for buttons
-            const resetCssClasses = (activeEl) => {
-                const els = document.querySelectorAll('.time-filter button');
-                els.forEach((el) => {
-                    el.classList.remove('active');
-                });
-                activeEl.target.classList.add('active');
-            };
-        
-            // // Event listeners for time range buttons
-            // document.querySelector('#one_month').addEventListener('click', (e) => {
-            //     resetCssClasses(e);
-            //     const now = new Date().getTime();
-            //     const oneMonthAgo = now - 30 * 24 * 60 * 60 * 1000;
-            //     chart.zoomX(oneMonthAgo, now);
-            // });
-        
-            // document.querySelector('#six_months').addEventListener('click', (e) => {
-            //     resetCssClasses(e);
-            //     const now = new Date().getTime();
-            //     const sixMonthsAgo = now - 6 * 30 * 24 * 60 * 60 * 1000;
-            //     chart.zoomX(sixMonthsAgo, now);
-            // });
-        
-            // document.querySelector('#one_year').addEventListener('click', (e) => {
-            //     resetCssClasses(e);
-            //     const now = new Date().getTime();
-            //     const oneYearAgo = now - 12 * 30 * 24 * 60 * 60 * 1000;
-            //     chart.zoomX(oneYearAgo, now);
-            // });
-        
-            // document.querySelector('#all').addEventListener('click', (e) => {
-            //     resetCssClasses(e);
-            //     chart.resetZoom();
-            // });
-        
-            // // Add a slider for interactive zooming
-            // const slider = document.getElementById('zoom-slider');
-            // slider.addEventListener('input', (e) => {
-            //     const value = e.target.value;
-            //     const now = new Date().getTime();
-            //     const range = (value / 100) * (now - this.categories[0]);
-            //     chart.zoomX(now - range, now);
-            // });
-        }
-        
+// CustomerViewChart class
+class CustomerViewChart {
+    constructor({ balanceData, depositData, purchasesData, categories, chartElementId, colors }) {
+        this.balanceData = balanceData || [];
+        this.depositData = depositData || [];
+        this.purchasesData = purchasesData || [];
+        this.categories = categories || [];
+        this.chartElementId = chartElementId || 'chart';
+        this.colors = colors || ['#4caf50', '#f44336', '#2196f3'];
+        this.initChart();
     }
+
+    initChart() {
+        const options = {
+            chart: {
+                height: 256,
+                type: 'area',
+                zoom: {
+                    autoScaleYaxis: true,
+                    enabled: true,
+                },
+            },
+            series: [
+                {
+                    name: 'Balance',
+                    data: this.balanceData,
+                    type: 'area',
+                },
+                {
+                    name: 'Deposits',
+                    data: this.depositData,
+                    type: 'column',
+                },
+                {
+                    name: 'Purchases',
+                    data: this.purchasesData,
+                    type: 'column',
+                },
+            ],
+            dataLabels: {
+                enabled: false,
+            },
+            tooltip: {
+                x: {
+                    format: 'dd MMM yyyy',
+                },
+            },
+            xaxis: {
+                type: 'datetime',
+                categories: this.categories,
+                tickAmount: 6,
+            },
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.7,
+                    opacityTo: 0.9,
+                    stops: [0, 100],
+                },
+            },
+            colors: this.colors,
+        };
+    
+        const chart = new ApexCharts(
+            document.querySelector(`#${this.chartElementId}`),
+            options
+        );
+        chart.render();
+    
+        // Helper function to reset active class for buttons
+        const resetCssClasses = (activeEl) => {
+            const els = document.querySelectorAll('.time-filter button');
+            els.forEach((el) => {
+                el.classList.remove('active');
+            });
+            activeEl.target.classList.add('active');
+        };
+    }
+}
+
