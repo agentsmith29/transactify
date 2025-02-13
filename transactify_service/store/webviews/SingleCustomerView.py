@@ -24,6 +24,8 @@ from transactify_service.settings import CONFIG
 import logging
 
 from store.helpers.EmailHelper import EmailHelper
+from store.mail_html_templates.MailTemplate import MailTemplate
+from store.helpers.EmailHelper import EmailHelper
 
 #from ..apps import hwcontroller
 @method_decorator(login_required, name='dispatch')
@@ -46,7 +48,10 @@ class SingleCustomerView(View):
         customer = get_object_or_404(Customer, card_number=card_number)
         balance = customer.balance
 
-
+        _sent_mails = EmailHelper.get_sent_email(card_number=card_number, logger=self.logger)
+        _recieved_mails = EmailHelper.get_received_email(card_number=card_number, logger=self.logger)
+        print(f"Sent mails: {_sent_mails}")
+        
         return render(request, self.template_name, {
             'auth_user': request.user,
             'customer': customer,
@@ -62,6 +67,8 @@ class SingleCustomerView(View):
             # percetgae change in the last month
             'deposit_change_percent': customer.get_monthly_deposit_percentage_change(),
             'purchase_change_percent': customer.get_monthly_purchase_percentage_change(),
+            'sent_emails': _sent_mails,
+            'recieved_emails': _recieved_mails,
             #'chart_data': customer.chart_data
         })
    
@@ -122,7 +129,14 @@ class SingleCustomerView(View):
                 data, status = response.json_data()
 
                 return JsonResponse(data=data, status=status)
-
+            elif cmd == "send_email":
+                subject = data.get('subject')
+                html_message = data.get('html_message')
+                
+                if not subject or not html_message:
+                    return JsonResponse({'error': 'Subject and message cannot be empty'}, status=400)
+                EmailHelper.send_email(card_number=card_number, subject=subject, html_message=html_message, logger=self.logger)
+                return JsonResponse({'success': True, 'message': 'Email sent successfully'}, status=200)
 
         except json.JSONDecodeError as jse:
             self.logger.error(f"Invalid JSON data: {jse}")

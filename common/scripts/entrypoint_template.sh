@@ -178,23 +178,30 @@ echo_ok "Database migration completed successfully."
 # ========================================
 # Collect static files
 # ========================================
-mkdir -p $DIR_STATIC
 
-echo_inf "Collecting static files..."
-#rm -rf  $DIR_STATIC/* || {
-#    echo "ERROR: Failed remove files in $DIR_STATIC"
-#}
+# Check if COPY_STATIC is set to 0
+if [[ "${COPY_STATIC,,}" == "true" ]]; then
+    echo_inf "COPY_STATIC is not set. Skipping copying static files..."
+else
 
-echo_inf "Copying staticfiles to  $DIR_STATIC..."
-cp -r ${APP_DIR}/../staticfiles/* $DIR_STATIC/ || {
-    echo_err "ERROR: Failed copy staticfiles to $DIR_STATIC. Exiting"
-    exit 1
-}
+    mkdir -p $DIR_STATIC
 
-$MANAGE_PY collectstatic --noinput || {
-    echo_err "ERROR: Failed to collect static files. Exiting"
-    exit 1
-}
+    echo_inf "Collecting static files..."
+    #rm -rf  $DIR_STATIC/* || {
+    #    echo "ERROR: Failed remove files in $DIR_STATIC"
+    #}
+
+    echo_inf "Copying staticfiles to  $DIR_STATIC..."
+    cp -r ${APP_DIR}/../staticfiles/* $DIR_STATIC/ || {
+        echo_err "ERROR: Failed copy staticfiles to $DIR_STATIC. Exiting"
+        exit 1
+    }
+
+    $MANAGE_PY collectstatic --noinput || {
+        echo_err "ERROR: Failed to collect static files. Exiting"
+        exit 1
+    }
+fi
 
 # Check if running on host: CONTAINER_NAME=host
 if [ "$CONTAINER_NAME" = "host" ]; then

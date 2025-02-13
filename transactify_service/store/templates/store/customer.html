@@ -2,6 +2,15 @@
 {% load static_assets %}
 {% load static_images %}
 
+{% block head %}
+        <!-- SimpleMDE css -->
+        <link href="{% static_assets 'css/vendor/simplemde.min.css' %}" rel="stylesheet" type="text/css" />
+
+        <!-- App css -->
+        <link href="{% static_assets 'css/icons.min.css' %}" rel="stylesheet" type="text/css" />
+        <link href="{% static_assets 'css/app.min.css' %}" rel="stylesheet" type="text/css" id="app-style"/>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <!-- start page title -->
@@ -31,7 +40,7 @@
                             <div class="row align-items-center">
                                 <div class="col-auto">
                                     <div class="avatar-lg">
-                                        <img src="{% static_images 'users/avatar-2.jpg' %}" alt="" class="rounded-circle img-thumbnail">
+                                        <!-- <img src="{% static_images 'users/avatar-2.jpg' %}" alt="" class="rounded-circle img-thumbnail"> -->
                                     </div>
                                 </div>
                                 <div class="col">
@@ -251,6 +260,121 @@
         </div>
     </div>
 
+                        
+    <!-- start page email-title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="javascript: void(0);">Hyper</a></li>
+                        <li class="breadcrumb-item"><a href="javascript: void(0);">Email</a></li>
+                        <li class="breadcrumb-item active">Email Read</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">Email Read</h4>
+            </div>
+        </div>
+    </div>
+    <!-- end page email-title --> 
+    <div class="row">
+
+        <!-- Right Sidebar -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Left sidebar -->
+                    <div class="page-aside-left">
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#compose-modal">Compose</button>
+                        </div>
+        
+                        <div class="email-menu-list mt-3">
+                            <a href="javascript:void(0);" id="inbox-tab" class="text-danger fw-bold">
+                                <i class="dripicons-inbox me-2"></i>Inbox
+                            </a>
+                            <a href="javascript:void(0);" id="sent-tab" class="text-primary">
+                                <i class="dripicons-exit me-2"></i>Sent Mail
+                            </a>
+                        </div>
+                    </div>
+                    <!-- End Left sidebar -->
+        
+                    <!-- Received Mail Section -->
+                    <div class="page-aside-right" id="received-emails" style="display: block;">
+                        <h5 class="font-18">Received Emails</h5>
+                        <hr/>
+        
+                        {% if received_emails %}
+                            <div class="accordion" id="receivedEmailAccordion">
+                                {% for email in received_emails %}
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="headingReceived{{ forloop.counter }}">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseReceived{{ forloop.counter }}" aria-expanded="false" aria-controls="collapseReceived{{ forloop.counter }}">
+                                                {{ email.subject }}
+                                            </button>
+                                        </h2>
+                                        <div id="collapseReceived{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="headingReceived{{ forloop.counter }}" data-bs-parent="#receivedEmailAccordion">
+                                            <div class="accordion-body">
+                                                <small class="text-muted">From: {{ email.sender }}</small><br>
+                                                <small class="text-muted">Received: {{ email.timestamp }}</small>
+                                                <hr>
+                                                <p>{{ email.body|safe }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No received emails found.</p>
+                        {% endif %}
+                    </div>
+                    <!-- End Received Mail Section -->
+        
+                    <!-- Sent Mail Section -->
+                    <div class="page-aside-right" id="sent-emails" style="display: none;">
+                        <h5 class="font-18">Sent Emails</h5>
+                        <hr/>
+        
+                        {% if sent_emails %}
+                            <div class="accordion" id="sentEmailAccordion">
+                                {% for email in sent_emails %}
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                                                {{ email.subject }}
+                                            </button>
+                                        </h2>
+                                        <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#sentEmailAccordion">
+                                            <div class="accordion-body">
+                                                <small class="text-muted">To: {{ email.recipient }}</small><br>
+                                                <small class="text-muted">Sent: {{ email.timestamp }}</small>
+                                                <hr>
+                                                <p>{{ email.body|safe }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No sent emails found.</p>
+                        {% endif %}
+                    </div>
+                    <!-- End Sent Mail Section -->
+                </div>
+        
+                <div class="clearfix"></div>
+            </div> 
+        </div>
+        
+        <!-- JavaScript for Switching Views -->
+
+        
+        
+    </div><!-- End row -->
+
+</div>
+
 
     <!-- endit customer model -->
     <div id="editCustomerModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
@@ -304,14 +428,71 @@
         </div>
     </div>
 
+    <!-- Compose Modal -->
+    <div id="compose-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="compose-header-modalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-primary">
+                    <h4 class="modal-title" id="compose-header-modalLabel">New Message</h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="p-1">
+                    <div class="modal-body px-3 pt-3 pb-0">
+                        <form>
+                            <div class="mb-2">
+                                <label for="msgto" class="form-label">To</label>
+                                <input value="{{ customer.user.email }}" type="text" id="msgto" class="form-control" placeholder="Example@email.com" readonly="">
+                            </div>
+                            <div class="mb-2">
+                                <label for="mailsubject" class="form-label">Subject</label>
+                                <input type="text" id="mailsubject" class="form-control" placeholder="Your subject">
+                            </div>
+                            <div class="write-mdg-box mb-3">
+                                <label class="form-label">Message</label>
+                                <textarea id="simplemde1"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="px-3 pb-3">
+                        <button type="button" class="btn btn-primary" id="sendMessageButton">
+                            <i class="mdi mdi-send me-1"></i> Send Message
+                        </button>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                    
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
     
 
-</div>
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static_assets 'js/pages/store.customer.js' %}"></script>
+<script>
+    document.getElementById("inbox-tab").addEventListener("click", function() {
+        document.getElementById("received-emails").style.display = "block";
+        document.getElementById("sent-emails").style.display = "none";
+    });
+
+    document.getElementById("sent-tab").addEventListener("click", function() {
+        document.getElementById("received-emails").style.display = "none";
+        document.getElementById("sent-emails").style.display = "block";
+    });
+</script>
+
+
+<script src="{% static_assets 'js/vendor.min.js' %}"></script>
+<script src="{% static_assets 'js/app.min.js' %}"></script>
 <script src="{% static_assets 'js/vendor/apexcharts.min.js' %}"></script>
+<script src="{% static_assets 'js/vendor/simplemde.min.js' %}"></script>
+
+<script src="{% static_assets 'js/pages/store.customer.js' %}"></script>
+<!-- <script src="{% static_assets 'js/pages/store.customer.inbox.js' %}"></script> -->
+
+
+
 <script>
     const config = {
         customerCardNumber: {{ customer.card_number }},

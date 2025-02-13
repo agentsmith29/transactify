@@ -11,6 +11,10 @@ from django.db import connection
 from django.apps import apps
 import sys
 
+
+from datetime import datetime
+
+
 def is_running_migration():
     """
     Check if a migration is being executed.
@@ -73,9 +77,21 @@ class StoreConfig(AppConfig):
                         "terminal_button": CONFIG.terminal.TERMINAL_SELECTION_BUTTONS,
                     }
                 }
+            
+            # from store.mail_html_templates.MailTemplate import MailTemplate
+            #  # Testmail
+            # MailTemplate.send_mail_template_purchase(
+            #         "1287978595083136",
+            #         "0000", 
+            #         f"Test Mail",
+            #         "product.name","0", 
+            #         datetime.now().strftime("%d/%m/%Y"),
+            #         CONFIG.webservice.FRIENDLY_NAME,
+            #         logger)
 
             logger.debug(f"Pushing configuration: {push_store_conf}")
-            
+
+                
             try:
                 global websocket
                 # Start the persistent WebSocket connection

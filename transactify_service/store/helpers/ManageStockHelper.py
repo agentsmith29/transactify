@@ -33,6 +33,7 @@ from store.helpers.OFFExtractor import OFFExtractor
 
 from django.utils import timezone
 from store.helpers.EmailHelper import EmailHelper
+from store.mail_html_templates.MailTemplate import MailTemplate
 
 class StoreHelper:
 
@@ -159,10 +160,19 @@ class StoreHelper:
                              f"\nTraceback: {traceback.format_exc()}")
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_STOCK_UPDATE_FAILED(e))
 
-            EmailHelper.send_email(card_number=card_number, 
-                subject="Thank you for your purchase!", 
-                html_message=f"Thank you for your purchase: {product.name}", 
-                logger=logger)
+            if customer.config.email_enabled and  customer.config.email_on_purchase:
+                try:
+                    MailTemplate.send_mail_template_purchase(
+                        card_number,
+                        customer_purchase.id, 
+                        f"{customer.user.first_name} {customer.user.last_name}",
+                        product.name, required_balance, 
+                        datetime.now().strftime("%d/%m/%Y"),
+                        CONFIG.webservice.FRIENDLY_NAME,
+                        logger)
+                except Exception as e:
+                    logger.warning(f"Error sending email to customer {card_number}: {e}.")
+                                  
             logger.info(f"Purchase successful. Updated stock for {product.name}: {product.stock_quantity} (was {old_stock_quantity})")
             return HTTPResponses.HTTP_STATUS_PURCHASE_SUCCESS(product.name), customer_purchase  # Change No. #3: Return actual customer object.
 

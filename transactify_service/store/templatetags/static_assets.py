@@ -8,8 +8,8 @@ register = template.Library()
 
 
 
-@register.simple_tag()
-def static_assets(path):
+@register.simple_tag(takes_context=True)
+def static_assets(context, path):
     """
     Custom tag to generate the full URL for static assets.
     Usage: {% static_assets 'icons/svg/database-add.svg' %}
@@ -17,6 +17,6 @@ def static_assets(path):
     config: Config  = settings.CONFIG
     assets_path = config.django.STATIC_ASSETS_PATH
     # Delegate the URL construction to the `static` function
-    static_url = static(f"{assets_path}{path}")
+    static_url = static(context, f"{assets_path}{path}")
     return static_url
 

@@ -4,12 +4,12 @@ from django.conf import settings
 
 register = template.Library()
 
-@register.simple_tag()
-def static_icons(path):
+@register.simple_tag(takes_context=True)
+def static_icons(context, path):
     """
     Custom tag to generate the full URL for static assets.
     Usage: {% static_assets 'icons/svg/database-add.svg' %}
     """
     # Delegate the URL construction to the `static` function
-    static_url = static_assets(f"icons/{path}")
+    static_url = static_assets(context, f"icons/{path}")
     return static_url

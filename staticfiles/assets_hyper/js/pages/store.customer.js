@@ -12,6 +12,7 @@ class ManageCustomer {
     
             // Bind event listeners
             this.initActions();
+            this.initSimpleMDE();
         });
     }
 
@@ -77,7 +78,22 @@ class ManageCustomer {
                     });
             });
         }
+
+        $("#sendMessageButton").click(function () {
+            self.sendCustomerEmail();
+        });
     };
+
+    initSimpleMDE() {
+        this.simplemde = new SimpleMDE({ 
+            element: document.getElementById("simplemde1"), 
+            spellChecker: false, 
+            placeholder: "Write something..", 
+            tabSize: 2, 
+            status: false, 
+            autosave: { enabled: false }
+        });
+    }
 
     parseBool(value) {
         return  value === "True" || value === "true" || value === "on" || value === 1 || value === "1";
@@ -94,7 +110,6 @@ class ManageCustomer {
         const modal = new bootstrap.Modal('#editCustomerModal');
         modal.show();
     }
-
 
     
     submitEditForm() {
@@ -138,6 +153,45 @@ class ManageCustomer {
         })
         .catch(error => console.error("Error:", error));
     }
+
+    
+    sendCustomerEmail() {
+        const subject = document.getElementById('mailsubject').value;
+        const markdownMessage = this.simplemde.value();
+        const htmlMessage = this.simplemde.options.previewRender(markdownMessage); // Convert Markdown to HTML
+        
+        
+        if (!subject || !htmlMessage) {
+            window.storeManager.toastManager.error("Error", "Subject and message cannot be empty.", "error", false);
+            return;
+        }
+        
+        fetch(this.customerDetailUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.csrftoken,
+                'cmd': 'send_email'
+            },
+            body: JSON.stringify({
+                subject: subject,
+                html_message: htmlMessage
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.storeManager.toastManager.info("Success", "Email sent successfully.", "", true);
+            } else {
+                window.storeManager.toastManager.error("Error", "Error sending email: " + data.error, "error", false);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            window.storeManager.toastManager.error("Error", "An error occurred while sending the email.", "error", false);
+        });
+    }
+
 }
 
 // CustomerViewChart class
