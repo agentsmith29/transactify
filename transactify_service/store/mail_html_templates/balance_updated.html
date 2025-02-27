@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .header {
+            background-color: #004466;
+            color: white;
+            padding: 15px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .details {
+            margin-top: 20px;
+            font-size: 16px;
+            line-height: 1.6;
+            text-align: left;
+        }
+        .summary {
+            background-color: #e6f7ff;
+            padding: 10px;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+        .promo {
+            background-color: #006666;
+            color: white;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .promo button {
+            background: navy;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">Thank You For Your Order!</div>
+        <div class="details">
+            <p>Dear <strong>{{ buyer }}</strong>,</p>
+            <p>Your balance has been updated:</p>            
+            <!-- <p><strong>Shipping + Handling:</strong> ${{ shipping }}</p> -->
+            <!-- <p><strong>Sales Tax:</strong> ${{ tax }}</p> -->
+            <div class="summary">
+                <p><strong>Balanced added ({{ date }}):</strong> {{ balanced_added }}</p>
+            </div>
+            <p><strong>New Balance:</strong> <strong>€{{ balance }}</strong></p>
+        </div>
+        <!-- <div class="promo">
+            <p>Get 25% off your next order.</p>
+            <button>Awesome</button>
+        </div> -->
+        <div class="footer">
+            <p>These links down there do not work currently.</p>
+            <p><a href="#">Email Preferences</a> | <a href="#">Unsubscribe</a> | <a href="#">View Online</a></p>
+        </div>
+    </div>
+</body>
+</html>

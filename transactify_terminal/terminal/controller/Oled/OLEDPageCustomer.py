@@ -30,7 +30,7 @@ class OLEDPageCustomer(OLEDPage):
         draw.text((20, 0), header_text, font=self.font_large, fill=(255,255,255))  # Leave space for NFC symbol
 
 
-        self.paste_image(image, f"${APP_DIR}/../static/icons/png_16/person-bounding-box.png", (0, 0))
+        self.paste_image(image, f"${self.APP_DIR}/../static/icons/png_16/person-bounding-box.png", (0, 0))
         # Divider line
         draw.line([(0, header_height), (self.width, header_height)], fill=(255,255,255), width=1)
 

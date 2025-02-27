@@ -98,12 +98,7 @@ class EmailHelper:
         """
         if logger is None:
             logger = logging.getLogger(__name__)
-
-        try:
-            customer = Customer.objects.get(card_number=card_number)
-        except ObjectDoesNotExist:
-            logger.error("Can't send email. Customer not found.")
-            return False
+        
 
         try:
             # Email setup
@@ -118,7 +113,23 @@ class EmailHelper:
 
             msg = MIMEMultipart("alternative")
             msg["From"] = sender_formatted
-            msg["To"] = customer.user.email
+            
+            if card_number == "admin":
+                try:
+                    msg["To"] = CONFIG.admin.ADMIN_EMAIL
+                except ObjectDoesNotExist:
+                    logger.error("Can't send email. Customer not found.")
+                    return False
+                else:    
+                    try:
+                        customer = Customer.objects.get(card_number=card_number)
+                        msg["To"] = customer.user.email
+                    except ObjectDoesNotExist:
+                        logger.error("Can't send email. Customer not found.")
+                        return False
+                
+                
+            
             msg["Subject"] = subject
 
             # Attach the HTML message as the main email content

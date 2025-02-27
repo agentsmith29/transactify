@@ -160,7 +160,7 @@ class StoreHelper:
                              f"\nTraceback: {traceback.format_exc()}")
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_STOCK_UPDATE_FAILED(e))
 
-            if customer.config.email_enabled and  customer.config.email_on_purchase:
+            if customer.config.email_enabled and customer.config.email_on_purchase:
                 try:
                     MailTemplate.send_mail_template_purchase(
                         card_number,
@@ -169,7 +169,7 @@ class StoreHelper:
                         product.name, required_balance, 
                         datetime.now().strftime("%d/%m/%Y"),
                         CONFIG.webservice.FRIENDLY_NAME,
-                        logger)
+                        logger, send_to_admin=True)
                 except Exception as e:
                     logger.warning(f"Error sending email to customer {card_number}: {e}.")
                                   
@@ -244,6 +244,20 @@ class StoreHelper:
             logger.error(f"Failed to validate balance for customer {customer}: {e}."
                          f"\nTraceback: {traceback.format_exc()}")
             raise HelperException(f"", HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_FAILED(e))
+
+        # if customer.config.email_enabled and customer.config.email_on_purchase:
+        #         try:
+        #             MailTemplate.send_mail_template_new_deposit(
+        #                 customer.card_number,
+        #                 f"{customer.user.first_name} {customer.user.last_name}",
+        #                 amount, 
+                        
+        #                 product.name, required_balance, 
+        #                 datetime.now().strftime("%d/%m/%Y"),
+        #                 CONFIG.webservice.FRIENDLY_NAME,
+        #                 logger, send_to_admin=True)
+        #         except Exception as e:
+        #             logger.warning(f"Error sending email to customer {card_number}: {e}.")
 
         return HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_SUCCESS(customer), deposit_entry
 

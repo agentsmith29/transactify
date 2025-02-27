@@ -3,6 +3,7 @@ class ManageOrders {
         this.page_url = page_url
         this.initSocket();
         this.initDataTables();
+        this.initPurchaseModal();
     }
 
     initSocket() {
@@ -57,6 +58,33 @@ class ManageOrders {
         if (searchBarContainer && lengthMenu) {
             lengthMenu.classList.add("ms-3"); // Add margin to separate from search bar
             searchBarContainer.appendChild(lengthMenu);
+        }
+    }
+
+    initPurchaseModal() {
+        const purchaseForm = document.getElementById("purchaseForm");
+        if (purchaseForm) {
+            purchaseForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                const formData = new FormData(purchaseForm);
+                
+                fetch(this.page_url, {
+                    method: "POST",
+                    body: formData,
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.storeManager.toastManager.success("Purchase Added", "The new purchase has been recorded successfully.", "", false);
+                        $("#addPurchaseModal").modal("hide");
+                        location.reload();
+                    } else {
+                        window.storeManager.toastManager.error("Error", "Failed to add purchase.", "", false);
+                    }
+                })
+                .catch(error => console.error("Error adding purchase:", error));
+            });
         }
     }
     

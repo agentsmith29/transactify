@@ -38,7 +38,7 @@
                     </div>
                     <div class="col-xl-4">
                         <div class="text-xl-end mt-xl-0 mt-2">
-                            <button type="button" class="btn btn-danger mb-2 me-2">
+                            <button type="button" class="btn btn-danger mb-2 me-2" id="addPurchase"></button>
                                 <i class="mdi mdi-basket me-1"></i> Add New Purchase
                             </button>
                             <button type="button" class="btn btn-light mb-2">Export</button>
@@ -123,6 +123,61 @@
     </div> <!-- end col -->
 </div>
 <!-- end row -->
+
+<div id="addPurchaseModal" class="modal fade" tabindex="-1" aria-labelledby="addPurchaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPurchaseModalLabel">Add New Purchase</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="purchaseForm">
+                    <div class="mb-3">
+                        <label for="customer" class="form-label">Customer</label>
+                        <select class="form-select" id="customer" name="customer" required>
+                            <option value="">Select Customer</option>
+                            {% for customer in customers %}
+                                <option value="{{ customer.card_number }}">{{ customer.user.first_name }} {{ customer.user.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="product" class="form-label">Product</label>
+                        <select class="form-select" id="product" name="product" required>
+                            <option value="">Select Product</option>
+                            {% for product in products %}
+                                <option value="{{ product.id }}">{{ product.name }} - &euro;{{ product.resell_price }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="payment_status" class="form-label">Payment Status</label>
+                        <select class="form-select" id="payment_status" name="payment_status" required>
+                            <option value="Pending">Pending</option>
+                            <option value="Failed">Failed</option>
+                            <option value="Paid">Paid</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="order_status" class="form-label">Order Status</label>
+                        <select class="form-select" id="order_status" name="order_status" required>
+                            <option value="Pending">Pending</option>
+                            <option value="Cancelled">Cancelled</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Purchase</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 {% endblock %}
 

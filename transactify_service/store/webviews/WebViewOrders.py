@@ -28,6 +28,8 @@ class WebViewOrders(View):
 
     def get(self, request):
         context = {'purchases_list': CustomerPurchase.objects.filter().all().order_by('-purchase_date'),
+                    'customers': Customer.objects.filter().all(),
+                    'products': StoreProduct.objects.filter().all().order_by('name')
                    }
         return render(request, self.template_name, context)
 

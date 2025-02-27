@@ -30,6 +30,7 @@ class OLEDPageProduct(OLEDPage):
         OLEDPageProduct.name: str = str(self.__class__.__name__)
         self.store: Store = None
         self.product: APIFetchStoreProduct = None
+        self.input_amount = 1
 
     def view(self, product: APIFetchStoreProduct, *args, **kwargs):
         image, draw = super().view()
@@ -64,7 +65,8 @@ class OLEDPageProduct(OLEDPage):
             # --- next view
             self.display_next(image, draw, OLEDStoreSelection.name, 5, store=self.store,)
         else:
-            message = f"Place NFC to buy from {product.store.name} or press {self.BTN_BACK} to exit."
+            # Update this (you need to clear the screen)
+            message = f"Place NFC to buy {self.input_amount} from {product.store.name} or press {self.BTN_BACK} to exit."
             warped_text = self.wrap_text(message, 
                                      self.font_small, 10, 255)
             for line, y in warped_text:
@@ -84,10 +86,21 @@ class OLEDPageProduct(OLEDPage):
 
     def on_btn_pressed(self, sender, kypd_btn, **kwargs):
         if kypd_btn == OLEDPage.BTN_BACK:
-            self.ledstrip.stop_animation()
-            self.view_controller.request_view(self.view_controller.PAGE_MAIN,
-                                              store=self.product.store) 
-    
+            if self.input_amount == 1:
+                self.ledstrip.stop_animation()
+                self.view_controller.request_view(self.view_controller.PAGE_MAIN,
+                                                  store=self.product.store)
+            else:
+                self.input_amount = 1  # Reset to 1
+        else:
+            self.numpad_input(kypd_btn)
+            self.view(self.product)
+
+    def numpad_input(self, key):
+        try:
+            self.input_amount = int(f"{self.input_amount}{key}")  # Concatenate
+        except ValueError:
+            pass  # Ignore non-numeric inputs
 
     def _make_purchase(self, view_controller: 'OLEDViewController', product: APIFetchStoreProduct, card_number: str):
         view_controller: OLEDViewController
@@ -98,7 +111,7 @@ class OLEDPageProduct(OLEDPage):
             
         try:
             # Call the make_sale function
-            response_make_purchase: Response = product.customer_purchase(customer, quantity=1)
+            response_make_purchase: Response = product.customer_purchase(customer, quantity=self.input_amount)
             self.logger.debug(f"Got Response: {status}")
             # make a post to MakePurchase
             if response_make_purchase.status_code == status.HTTP_200_OK:
