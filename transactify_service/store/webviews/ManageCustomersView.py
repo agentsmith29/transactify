@@ -96,6 +96,7 @@ class ManageCustomersView(View, LoginRequiredMixin):
     @method_decorator(ensure_csrf_cookie)
     def post(self, request):
         """Handle POST requests to add a new customer."""
+        
         try:
             data = json.loads(request.body)
             header_cmd = request.headers.get('cmd')

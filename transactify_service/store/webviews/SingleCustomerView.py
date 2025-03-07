@@ -50,7 +50,7 @@ class SingleCustomerView(View):
 
         _sent_mails = EmailHelper.get_sent_email(card_number=card_number, logger=self.logger)
         _recieved_mails = EmailHelper.get_received_email(card_number=card_number, logger=self.logger)
-        print(f"Sent mails: {_sent_mails}")
+        #print(f"Sent mails: {_sent_mails}")
         
         return render(request, self.template_name, {
             'auth_user': request.user,
@@ -116,16 +116,6 @@ class SingleCustomerView(View):
                     password=password,
                     logger=self.logger
                 )
-
-
-                if "config" in data:
-                    config = data.get("config")
-                    auto_deposit = config.get("auto_deposit")
-                    response, updated_customer = StoreHelper.update_customer_config(
-                        card_number=card_number,
-                        auto_deposit=bool(auto_deposit),
-                        logger=self.logger
-                )
                 data, status = response.json_data()
 
                 return JsonResponse(data=data, status=status)
@@ -137,7 +127,41 @@ class SingleCustomerView(View):
                     return JsonResponse({'error': 'Subject and message cannot be empty'}, status=400)
                 EmailHelper.send_email(card_number=card_number, subject=subject, html_message=html_message, logger=self.logger)
                 return JsonResponse({'success': True, 'message': 'Email sent successfully'}, status=200)
-
+            elif cmd == "update_config":
+                response, _ = StoreHelper.update_customer_config(card_number, data,  logger=self.logger)
+                data, status = response.json_data()
+                return JsonResponse(data=data, status=status)
+            elif cmd == "test_send_mail_email_on_deposit":
+                customer = get_object_or_404(Customer, card_number=card_number)
+                try:
+                    MailTemplate.send_mail_template_new_deposit(
+                        customer, 
+                        0, 
+                        customer.balance,
+                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
+                        CONFIG.webservice.FRIENDLY_NAME, self.logger, send_to_admin=True)
+                except Exception as e:
+                    self.logger.warning(f"Error sending email to customer {card_number}: {e}.")
+                    return JsonResponse({'error': f'Error sending email: {str(e)}'}, status=500)
+                
+                return JsonResponse({'success': True, 'message': 'Email sent successfully'}, status=200)
+            elif cmd == "test_send_mail_email_on_purchase":
+                customer = get_object_or_404(Customer, card_number=card_number)
+                try:
+                    MailTemplate.send_mail_template_purchase(
+                        customer,
+                        0, 
+                        "Test Product", "0€", 
+                        datetime.now().strftime("%d/%m/%Y"),
+                        CONFIG.webservice.FRIENDLY_NAME,
+                        self.logger, send_to_admin=True)
+                except Exception as e:
+                    self.logger.warning(f"Error sending email to customer {card_number}: {e}.")
+                    return JsonResponse({'error': f'Error sending email: {str(e)}'}, status=500)
+                
+                return JsonResponse({'success': True, 'message': 'Email sent successfully'}, status=200)
+            
+            
         except json.JSONDecodeError as jse:
             self.logger.error(f"Invalid JSON data: {jse}")
             return JsonResponse({'error': 'Invalid JSON data'}, status=400)

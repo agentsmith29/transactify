@@ -18,6 +18,8 @@ channels
 websockets
 daphne      # ASGI server
 httpx       # For making HTTP requests
+crispy-bootstrap5
+
 # For communicating with the docker unix socket
 requests-unixsocket2
 

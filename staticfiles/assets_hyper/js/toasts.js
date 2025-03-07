@@ -85,18 +85,4 @@ class ToastManager {
   
 }
 
-// Function to check and display toast after reload
-function displayToastAfterReload() {
-    // Get toast data from localStorage
-    const toastData = JSON.parse(localStorage.getItem('toastData'));
 
-    if (toastData) {
-        // Display the toast
-        window.storeManager.toastManager._display(toastData.type, toastData.title, toastData.message, toastData.submessage);
-
-        // Clear the stored toast data
-        localStorage.removeItem('toastData');
-    }
-
-
-}

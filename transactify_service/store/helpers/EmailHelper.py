@@ -83,7 +83,7 @@ from transactify_service.settings import CONFIG
 
 class EmailHelper:
     @staticmethod
-    def send_email(card_number: str, subject: str, html_message: str, logger: logging.Logger = None):
+    def send_email(mail_address, subject: str, html_message: str, logger: logging.Logger = None):
         """
         Sends an email using the configured Gmail SMTP settings with an HTML message.
 
@@ -114,21 +114,6 @@ class EmailHelper:
             msg = MIMEMultipart("alternative")
             msg["From"] = sender_formatted
             
-            if card_number == "admin":
-                try:
-                    msg["To"] = CONFIG.admin.ADMIN_EMAIL
-                except ObjectDoesNotExist:
-                    logger.error("Can't send email. Customer not found.")
-                    return False
-                else:    
-                    try:
-                        customer = Customer.objects.get(card_number=card_number)
-                        msg["To"] = customer.user.email
-                    except ObjectDoesNotExist:
-                        logger.error("Can't send email. Customer not found.")
-                        return False
-                
-                
             
             msg["Subject"] = subject
 
@@ -139,14 +124,14 @@ class EmailHelper:
             server = smtplib.SMTP(smtp_server, smtp_port)
             server.starttls() if use_tls else None
             server.login(sender_email, sender_password)
-            server.sendmail(sender_email, customer.user.email, msg.as_string())
+            server.sendmail(sender_email, mail_address, msg.as_string())
             server.quit()
 
-            logger.info(f"Email successfully sent to {customer.user.email}.")
+            logger.info(f"Email successfully sent to {mail_address}.")
             return True
 
         except Exception as e:
-            logger.error(f"Error sending email to {customer.user.email}: {e}")
+            logger.error(f"Error sending email to {mail_address}: {e}")
             return False
 
     @staticmethod

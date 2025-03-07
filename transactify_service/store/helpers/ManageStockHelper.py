@@ -34,7 +34,7 @@ from store.helpers.OFFExtractor import OFFExtractor
 from django.utils import timezone
 from store.helpers.EmailHelper import EmailHelper
 from store.mail_html_templates.MailTemplate import MailTemplate
-
+from django.db import models
 class StoreHelper:
 
     def journal_command():
@@ -160,18 +160,16 @@ class StoreHelper:
                              f"\nTraceback: {traceback.format_exc()}")
                 raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_STOCK_UPDATE_FAILED(e))
 
-            if customer.config.email_enabled and customer.config.email_on_purchase:
-                try:
-                    MailTemplate.send_mail_template_purchase(
-                        card_number,
-                        customer_purchase.id, 
-                        f"{customer.user.first_name} {customer.user.last_name}",
-                        product.name, required_balance, 
-                        datetime.now().strftime("%d/%m/%Y"),
-                        CONFIG.webservice.FRIENDLY_NAME,
-                        logger, send_to_admin=True)
-                except Exception as e:
-                    logger.warning(f"Error sending email to customer {card_number}: {e}.")
+            try:
+                MailTemplate.send_mail_template_purchase(
+                    customer,
+                    customer_purchase.id, 
+                    product.name, required_balance, 
+                    datetime.now().strftime("%d/%m/%Y"),
+                    CONFIG.webservice.FRIENDLY_NAME,
+                    logger, send_to_admin=True)
+            except Exception as e:
+                logger.warning(f"Error sending email to customer {card_number}: {e}.")
                                   
             logger.info(f"Purchase successful. Updated stock for {product.name}: {product.stock_quantity} (was {old_stock_quantity})")
             return HTTPResponses.HTTP_STATUS_PURCHASE_SUCCESS(product.name), customer_purchase  # Change No. #3: Return actual customer object.
@@ -245,21 +243,67 @@ class StoreHelper:
                          f"\nTraceback: {traceback.format_exc()}")
             raise HelperException(f"", HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_FAILED(e))
 
-        # if customer.config.email_enabled and customer.config.email_on_purchase:
-        #         try:
-        #             MailTemplate.send_mail_template_new_deposit(
-        #                 customer.card_number,
-        #                 f"{customer.user.first_name} {customer.user.last_name}",
-        #                 amount, 
-                        
-        #                 product.name, required_balance, 
-        #                 datetime.now().strftime("%d/%m/%Y"),
-        #                 CONFIG.webservice.FRIENDLY_NAME,
-        #                 logger, send_to_admin=True)
-        #         except Exception as e:
-        #             logger.warning(f"Error sending email to customer {card_number}: {e}.")
+        try:
+            MailTemplate.send_mail_template_new_deposit(
+                customer, amount, 
+                customer.balance, 
+                datetime.now().strftime("%d.%m.%Y"), 
+                CONFIG.webservice.FRIENDLY_NAME, 
+                logger, send_to_admin=True)
+        except Exception as e:
+            logger.warning(f"Error sending email to customer {customer}: {e}.")
 
         return HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_SUCCESS(customer), deposit_entry
+
+    @staticmethod
+    @transaction.atomic
+    @journal_command()
+    def customer_remove_deposit(customer: Customer, deposit_id: int, logger: logging.Logger, *args, **kwargs) -> tuple[Response, CustomerDeposit]:
+        """
+        Remove a deposit from a customer's account while ensuring database integrity.
+        """
+        try:
+            # Lock the deposit entry to prevent race conditions
+            deposit = CustomerDeposit.objects.select_for_update().get(id=deposit_id)
+        except CustomerDeposit.DoesNotExist:
+            logger.error(f"Deposit with ID {deposit_id} not found for customer {customer}.")
+            raise HelperException(f"Deposit with ID {deposit_id} not found.", 
+                                HTTPResponses.HTTP_STATUS_DEPOSIT_NOT_FOUND(deposit_id)) 
+        except Exception as e:
+            logger.error(f"Error retrieving deposit entry: {e}\nTraceback: {traceback.format_exc()}")
+            raise HelperException(f"Unexpected error retrieving deposit {deposit_id}.", 
+                                HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_FAILED(e)) 
+
+        logger.info(f"Removing deposit entry {deposit.id} for customer {customer.card_number}")
+
+        try:
+            # Ensure balance does not go negative before proceeding
+            if customer.balance < deposit.amount:
+                logger.error(f"Balance mismatch detected! Cannot remove deposit {deposit_id} for customer {customer}. "
+                            f"Current Balance: {customer.balance}, Deposit Amount: {deposit.amount}")
+                raise HelperException("Cannot remove deposit. Balance would become negative.", 
+                                    HTTPResponses.HTTP_STATUS_BALANCE_MISMATCH(customer))
+
+            # Update customer balance and total deposits count
+            customer.total_deposits -= 1
+            customer.balance -= deposit.amount
+            customer.save()
+            logger.info(f"Updated balance for customer {customer}: {customer.balance}. Total deposits: {customer.total_deposits}.")
+        except Exception as e:
+            logger.error(f"Failed to update customer balance for {customer}: {e}.\nTraceback: {traceback.format_exc()}")
+            raise HelperException("Failed to update customer balance.", 
+                                HTTPResponses.HTTP_STATUS_UPDATE_BALANCE_FAILED(customer, e))
+
+        try:
+            # Delete deposit entry only after balance update is successful
+            deposit.delete()
+            logger.info(f"Deposit entry {deposit_id} successfully removed.")
+        except Exception as e:
+            logger.error(f"Error deleting deposit entry {deposit_id}: {e}\nTraceback: {traceback.format_exc()}")
+            raise HelperException("Failed to remove deposit entry.", 
+                                HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_FAILED(e))
+
+        return HTTPResponses.HTTP_STATUS_DEPOSIT_ENTRY_DELETE_SUCCESS(), deposit
 
     @staticmethod
     @transaction.atomic
@@ -595,36 +639,89 @@ class StoreHelper:
 
     @staticmethod
     @transaction.atomic
-    def update_customer_config(card_number: str, auto_deposit: bool, logger: logging.Logger = None) -> tuple[Response, CustomerConfig]:
+    def update_customer_config(card_number: str, update_data: dict, logger: logging.Logger = None) -> tuple[Response, CustomerConfig]:
         """
-        Updates the customer's auto_deposit configuration.
+        Updates multiple fields in the customer's configuration.
 
         Args:
-            customer_id (str): The unique customer ID.
-            auto_deposit (bool): Whether auto deposit should be enabled or disabled.
+            card_number (str): The unique customer card number.
+            update_data (dict): Dictionary containing fields to update.
             logger (logging.Logger, optional): Logger instance.
 
         Returns:
-            tuple: (Response, CustomerConfig) - HTTP Response status and updated config instance.
+            tuple: (JsonResponse, CustomerConfig) - HTTP Response status and updated config instance.
         """
         if logger is None:
             logger = logging.getLogger(__name__)
 
-        logger.info(f"Updating config for customer ID: {card_number}, auto_deposit: {auto_deposit}")
+        logger.info(f"Updating config for customer {card_number} with data: {update_data}")
 
         try:
+            # Get the customer instance
             customer = Customer.objects.get(card_number=card_number)
-            config, _ = CustomerConfig.objects.get_or_create(customer=customer)
+            config = customer.config
 
-            # Update the auto_deposit field
-            config.auto_deposit = auto_deposit
-            config.save()
+            # Get all valid fields from the model
+            valid_fields = {field.name for field in CustomerConfig._meta.get_fields()}
 
-            logger.info(f"Successfully updated auto_deposit to {auto_deposit} for customer {card_number}.")
+            # Track updated fields
+            field_types = {field.name: field for field in CustomerConfig._meta.get_fields()}
+            updated_fields = []
+            skipped_fields = []
+
+            # Iterate through received data and update valid fields
+            for key, value in update_data.items():
+                if key in field_types:
+                    field = field_types[key]
+
+                    try:
+                        # Convert value to the appropriate field type
+                        if isinstance(field, (models.BooleanField, models.NullBooleanField)):
+                            value = bool(value)
+                        elif isinstance(field, models.IntegerField):
+                            value = int(value)
+                        elif isinstance(field, models.FloatField):
+                            value = float(value)
+                        elif isinstance(field, models.CharField):
+                            value = str(value)
+                        elif isinstance(field, models.DateField):
+                            value = datetime.strptime(value, "%Y-%m-%d").date()
+                        elif isinstance(field, models.DateTimeField):
+                            value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+                        else:
+                            logger.warning(f"⚠ Skipping field '{key}' - Unsupported data type {type(field)}.")
+                            skipped_fields.append(key)
+                            continue
+
+                        # Assign the converted value
+                        setattr(config, key, value)
+                        updated_fields.append(key)
+
+                    except (ValueError, TypeError) as e:
+                        logger.warning(f"⚠ Failed to convert '{key}' with value '{value}': {e}")
+                        skipped_fields.append(key)
+                else:
+                    skipped_fields.append(key)
+
+            # Save only if changes were made
+            if updated_fields:
+                config.save()
+                customer.save()
+                logger.info(f"Updated fields: {updated_fields} for customer {card_number}."
+                            " Config_id updated: {config.id}.")
+                _read_conf = CustomerConfig.objects.get(customer=customer)
+                logger.debug(f"Updated config: {_read_conf.__dict__}")
+            else:
+                logger.warning(f"No valid fields to update for customer {card_number}.")
+
+            # Log skipped fields
+            if skipped_fields:
+                logger.warning(f"Skipped invalid fields: {skipped_fields}")
+            logger.info(f"Config update successful for customer {card_number}.")
             return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_SUCCESS(card_number), config
 
         except Customer.DoesNotExist:
-            msg = f"Customer with ID {card_number} not found."
+            msg = f"Customer with card number {card_number} not found."
             logger.error(msg)
             return HTTPResponses.HTTP_STATUS_CUSTOMER_NOT_FOUND(card_number), None
 
@@ -632,6 +729,7 @@ class StoreHelper:
             msg = f"Error updating config for customer {card_number}: {e}"
             logger.error(f"{msg}\n\nTraceback:\n{traceback.format_exc()}\n")
             return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(card_number, msg), None
+
 
     
     # Private methods

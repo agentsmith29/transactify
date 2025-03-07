@@ -1,14 +1,17 @@
 class ManageCustomer {
-    constructor(page_url, config) {
+    constructor(page_url, config, requestHandler, actionTrigger) {
         this.page_url = page_url;
         this.config = config;
+        this.requestHandler = requestHandler;
+        this.actionTrigger = actionTrigger;
+
         $(document).ready(() => {
             this.csrftoken = document.cookie.match(/csrftoken=([^;]+)/)[1];
             this.customerCardNumber = this.config.customerCardNumber;
             this.customerDetailUrl = this.config.customerDetailUrl;
     
             // Initialize the WebSocket connection
-            this.webSocketHandler = window.storeManager.webSocketHandler;
+            //this.webSocketHandler = window.storeManager.webSocketHandler;
     
             // Bind event listeners
             this.initActions();
@@ -17,6 +20,7 @@ class ManageCustomer {
     }
 
     initActions() {
+        
         const self = this;
         const updateForm = document.getElementById('updateBalanceForm');
 
@@ -82,6 +86,34 @@ class ManageCustomer {
         $("#sendMessageButton").click(function () {
             self.sendCustomerEmail();
         });
+
+        this.requestHandler.attachFormAndButton(
+            "update",                // Command
+            "editCustomerForm",      // Form ID
+            "editCustomerModalSubmit", // Submit button ID
+            this.page_url    // URL
+        );
+        
+        this.requestHandler.attachFormAndButton(
+            "update_config",                // Command
+            "editCustomerConfigForm",      // Form ID
+            "editCustomerConfigFormSubmit", // Submit button ID
+            this.page_url    // URL
+        );
+
+        this.requestHandler.attachFormAndButton(
+            "deposit", // Command type
+            "updateBalanceForm", // Form ID
+            "updateBalanceButton", // Submit button ID
+            this.page_url
+        );
+
+
+        // Connect the buttons
+        this.actionTrigger.attachButton("test_send_mail_email_on_deposit", "send_mail_email_on_deposit", this.page_url);
+        this.actionTrigger.attachButton("test_send_mail_email_on_purchase", "send_mail_email_on_purchase", this.page_url);
+  
+
     };
 
     initSimpleMDE() {
@@ -113,45 +145,54 @@ class ManageCustomer {
 
     
     submitEditForm() {
+        // cmd, content, elementId, url
         const form = document.getElementById("editCustomerForm");
-        const formData = new FormData(form);
+        //const formData = new FormData(form);
+        // this.requestHandler.sendRequest(
+        //     "update",
+        //     form,
+        //     this.page_url 
+        // );
+        
+        // const form = document.getElementById("editCustomerForm");
+        // const formData = new FormData(form);
       
 
-        fetch(this.page_url, {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
-                'cmd': 'update' // Pass additional command header
-            },
-            body: JSON.stringify({
-                first_name: formData.get('first_name'),
-                last_name: formData.get('last_name'),
-                email: formData.get('email'),
-                config: {
-                    auto_deposit: this.parseBool(formData.get('auto_deposit'))
-                }
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.storeManager.toastManager.info(
-                    "Success",
-                    "Customer updated successfully.",
-                    "",
-                    true
-                );
-                location.reload();
-            } else {
-                window.storeManager.toastManager.error(
-                    "Error",
-                    "Error updating customer: " + data.error,
-                    "error",
-                    false
-                );
-            }
-        })
-        .catch(error => console.error("Error:", error));
+        // fetch(this.page_url, {
+        //     method: "POST",
+        //     headers: {
+        //         "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+        //         'cmd': 'update' // Pass additional command header
+        //     },
+        //     body: JSON.stringify({
+        //         first_name: formData.get('first_name'),
+        //         last_name: formData.get('last_name'),
+        //         email: formData.get('email'),
+        //         config: {
+        //             auto_deposit: this.parseBool(formData.get('auto_deposit'))
+        //         }
+        //     })
+        // })
+        // .then(response => response.json())
+        // .then(data => {
+        //     if (data.success) {
+        //         window.storeManager.toastManager.info(
+        //             "Success",
+        //             "Customer updated successfully.",
+        //             "",
+        //             true
+        //         );
+        //         location.reload();
+        //     } else {
+        //         window.storeManager.toastManager.error(
+        //             "Error",
+        //             "Error updating customer: " + data.error,
+        //             "error",
+        //             false
+        //         );
+        //     }
+        // })
+        // .catch(error => console.error("Error:", error));
     }
 
     

@@ -112,6 +112,9 @@
                                     <li>
                                         <a href="{% url 'orders' %}">Orders</a>
                                     </li>
+                                    <li>
+                                        <a href="{% url 'checkout' %}">Checkout</a>
+                                    </li>
                                 </ul>
                             </div>
                         </li>
@@ -708,25 +711,28 @@
         <script src="{% static_assets 'js/toasts.js' %}"></script>
         <script src="{% static_assets 'js/modals.js' %}"></script>
         <script src="{% static_assets 'js/websockets.js' %}"></script>
-        <script src="{% static_assets 'js/store.js' %}"></script>
-        <!-- <script> -->
-            <!-- document.cookie = "csrftoken={{ csrf_token }}" -->
-         <!-- </script> -->
+        <script src="{% static_assets 'js/requesthandler.js' %}"></script>
+        <script src="{% static_assets 'js/ActionTriggerHandler.js' %}"></script>
+
+        <script src="{% static_assets 'js/pages/app.js' %}"></script>
+        
+
          
         <script>
+            
             document.addEventListener("DOMContentLoaded", () => {
-                
                 const socket_address = `{% ws_server %}/page/{{ request.resolver_match.url_name }}/`;
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
                 const resolverName = '{{ request.resolver_match.url_name }}';
                 const shutdownUrl= "{% url 'shutdown_system' %}";
                 const rebootUrl= "{% url 'reboot_system' %}";
+                
+                
 
-                // Initialize StoreManager with Django template variables
-                window.storeManager = new StoreManager({
-                    socketAddress: socket_address,
+                App.init({
                     csrfToken: csrfToken,
                     resolverName: resolverName,
+                    socketAddress: socket_address,
                     toastImgBase: "{% static_icons 'svg/' %}",
                     modalId: "confirmationModal",
                     urls: {
@@ -734,7 +740,8 @@
                         rebootUrl: rebootUrl
                     }
                 });
-                displayToastAfterReload();
+                
+
             });
         </script>
         {% block scripts %}

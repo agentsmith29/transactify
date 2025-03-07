@@ -13,461 +13,621 @@
 
 {% block content %}
 <div class="container-fluid">
-    <!-- start page title -->
-    <div class="row">
-        <div class="col-12">
-            <div class="page-title-box">
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="javascript: void(0);">Hyper</a></li>
-                        <li class="breadcrumb-item"><a href="javascript: void(0);">Pages</a></li>
-                        <li class="breadcrumb-item active">Profile</li>
-                    </ol>
-                </div>
-                <h4 class="page-title">Profile</h4>
-            </div>
-        </div>
-    </div>
-    <!-- end page title -->
+    <ul class="nav nav-tabs" id="configTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">General</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">Settings</button>
+        </li>
+    </ul>
 
-    <div class="row">
-        <div class="col-sm-12">
-            <!-- Profile -->
-            <div class="card bg-primary">
-                <div class="card-body profile-user-box">
-                    <div class="row">
-                        <div class="col-sm-8">
-                            <div class="row align-items-center">
-                                <div class="col-auto">
-                                    <div class="avatar-lg">
-                                        <!-- <img src="{% static_images 'users/avatar-2.jpg' %}" alt="" class="rounded-circle img-thumbnail"> -->
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div>
-                                        <h4 class="mt-1 mb-1 text-white">{{ customer.user.first_name }} {{ customer.user.last_name }}</h4>
-                                        <p class="font-13 text-white-50"> 
-                                            {% for group in customer.user.groups.all %} 
-                                                {{ group }}
-                                                {% if not forloop.last %} :
-                                                    ,
-                                                {% endif %}
-                                            {% endfor %}
-                                        </p>
-                                            
-
-                                        <ul class="mb-0 list-inline text-light">
-                                            <li class="list-inline-item me-3">
-                                                <h5 class="mb-1 text-white">&euro; {{ customer.balance }}</h5>
-                                                <p class="mb-0 font-13 text-white-50">Total Balance</p>
-                                            </li>
-                                            <li class="list-inline-item">
-                                                <h5 class="mb-1 text-white">{{ customer.total_purchases }}</h5>
-                                                <p class="mb-0 font-13 text-white-50">Total Purchases</p>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> <!-- end col-->
-
-                        <div class="col-sm-4">
-                            <div class="text-center mt-sm-0 mt-3 text-sm-end">
-                                <button type="button" class="btn btn-light" 
-                                    onclick="window.manageCustomer.openEditModal('{{ customer.user.first_name }}', '{{ customer.user.last_name }}', '{{ customer.user.email }}', '{{ customer.config.auto_deposit }}')">
-                                    <i class="mdi mdi-account-edit me-1"></i> Edit Profile
-                                </button>
-                            </div>
+    <div class="tab-content" id="configTabsContent">
+        <div class="tab-pane fade show active" id="general" role="tabpanel">
+            <!-- start page title -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-title-box">
+                        <div class="page-title-right">
+                            <ol class="breadcrumb m-0">
+                                <li class="breadcrumb-item"><a href="javascript: void(0);">Hyper</a></li>
+                                <li class="breadcrumb-item"><a href="javascript: void(0);">Pages</a></li>
+                                <li class="breadcrumb-item active">Profile</li>
+                            </ol>
                         </div>
-                    </div> <!-- end row -->
-
-                </div> <!-- end card-body/ profile-user-box-->
-            </div><!--end profile/ card -->
-        </div> <!-- end col-->
-    </div>
-    <div class="row">
-        <div class="col-sm-4">
-            <div class="card tilebox-one">
-                <div class="card-body">
-                    <i class="dripicons-basket float-end text-muted"></i>
-                    <h6 class="text-muted text-uppercase mt-0">Deposits</h6>
-                    <h2 class="m-b-20">&euro; {{ total_deposits_amount}}</h2>
-                    </span> <span class="text-muted">{{ customer.total_deposits }} deposits made</span><br>
-                    {% if deposit_change_percent > 0 %}
-                        <span class="badge bg-success">{{ deposit_change_percent }}%  </span> <span class="text-muted">last month</span>
-                    {% elif deposit_change_percent == 0 %}
-                        <span class="badge bg-primary">{{ deposit_change_percent }}%  </span> <span class="text-muted">last month</span>
-                    {% else %}
-                        <span class="badge bg-danger">{{ deposit_change_percent }}%  </span> <span class="text-muted">last month</span>
-                    {% endif %}
-                </div> <!-- end card-body-->
-            </div> <!--end card-->
-        </div><!-- end col -->
-
-
-
-        <div class="col-sm-4">
-            <div class="card tilebox-one">
-                <div class="card-body">
-                    <i class="dripicons-box float-end text-muted"></i>
-                    <h6 class="text-muted text-uppercase mt-0">Purchases</h6>
-                    <h2 class="m-b-20">&euro; {{ total_purchases_amount }}</h2>
-                    <span class="text-muted">{{ customer.total_purchases }} purchases made</span><br>
-                    {% if purchase_change_percent > 0 %}
-                    <span class="badge bg-success">{{ purchase_change_percent }}%  </span> <span class="text-muted">last month</span>
-                    {% elif purchase_change_percent == 0 %}
-                        <span class="badge bg-primary">{{ purchase_change_percent }}%  </span> <span class="text-muted">last month</span>
-                    {% else %}
-                        <span class="badge bg-danger">{{ purchase_change_percent }}%  </span> <span class="text-muted">last month</span>
-                    {% endif %}
-                </div> <!-- end card-body-->
-            </div> <!--end card-->
-        </div><!-- end col -->
-        <div class="col-sm-4">
-            <div class="card tilebox-one">
-                <div class="card-body">
-                    <i class="dripicons-basket float-end text-muted"></i>
-                    <h6 class="text-muted text-uppercase mt-0">Store Profit</h6>
-                    <h2 class="m-b-20">&euro; {{ store_profit}}</h2>
-                    </span> <span class="text-muted">generated by the user</span><br>
-                    {% if deposit_change_percent > 0 %}
-                        <span class="badge bg-success">{{ store_profit_change_percent }}%  </span> <span class="text-muted">last month</span>
-                    {% elif deposit_change_percent == 0 %}
-                        <span class="badge bg-primary">{{ store_profit_change_percent }}%  </span> <span class="text-muted">last month</span>
-                    {% else %}
-                        <span class="badge bg-danger">{{ store_profit_change_percent }}%  </span> <span class="text-muted">last month</span>
-                    {% endif %}
-                </div> <!-- end card-body-->
-            </div> <!--end card-->
-        </div><!-- end col -->
-    </div>
-
-
-    <div class="row">
-        <div class="col-sm-12">
-        <div class="card">
-            <div class="card-body">
-                <h5>Update Balance</h5>
-                <form id="updateBalanceForm">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="depositAmount" class="form-label">Amount</label>
-                        <input type="number" class="form-control" id="depositAmount" step="0.01" required>
-                    </div>
-                    <button type="submit" class="btn btn-success">Add Deposit</button>
-                </form>
-            </div>
-        </div>
-        </div>  
-    </div>
-    <!-- end row -->
-
-    <div class="row">
-        <div class="col-xl-4">
-            <!-- Personal-Information -->
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="header-title mt-0 mb-3">Customer Information</h4>
-                    <ul class="list-group">
-                        <li class="list-group-item">Username: {{ customer.user.username }}</li>
-                        <li class="list-group-item">E-Mail: {{ customer.user.email }}</li>
-                        <li class="list-group-item">Total Purchased: &euro; {{ customer.total_purchases }}</li>
-                        <li class="list-group-item">Total Deposited: &euro; {{ customer.total_deposits }}</li>
-                        <li class="list-group-item">Issue Date: {{ customer.issued_at }}</li>
-                    </ul>
-                </div>
-            </div>
-            <!-- Personal-Information -->
-        </div> <!-- end col-->
-
-        <div class="col-xl-8">
-            <!-- Chart-->
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="header-title mb-3">Balance History</h4>
-                    <div dir="ltr">
-                        <div id="balance-chart" style="height: 260px;" class="apex-charts"></div>
+                        <h4 class="page-title">Profile</h4>
                     </div>
                 </div>
             </div>
-            <!-- End Chart-->
+            <!-- end page title -->
+            <div class="row">
+                <div class="col-sm-12">
+                    <!-- Profile -->
+                    <div class="card bg-primary">
+                        <div class="card-body profile-user-box">
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            <div class="avatar-lg">
+                                                <!-- <img src="{% static_images 'users/avatar-2.jpg' %}" alt="" class="rounded-circle img-thumbnail"> -->
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div>
+                                                <h4 class="mt-1 mb-1 text-white">{{ customer.user.first_name }} {{ customer.user.last_name }}</h4>
+                                                <p class="font-13 text-white-50"> 
+                                                    {% for group in customer.user.groups.all %} 
+                                                        {{ group }}
+                                                        {% if not forloop.last %} :
+                                                            ,
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </p>
+                                                    
+
+                                                <ul class="mb-0 list-inline text-light">
+                                                    <li class="list-inline-item me-3">
+                                                        <h5 class="mb-1 text-white">&euro; {{ customer.balance }}</h5>
+                                                        <p class="mb-0 font-13 text-white-50">Total Balance</p>
+                                                    </li>
+                                                    <li class="list-inline-item">
+                                                        <h5 class="mb-1 text-white">{{ customer.total_purchases }}</h5>
+                                                        <p class="mb-0 font-13 text-white-50">Total Purchases</p>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div> <!-- end col-->
+
+                                <div class="col-sm-4">
+                                    <div class="text-center mt-sm-0 mt-3 text-sm-end">
+                                        <button type="button" class="btn btn-light" 
+                                            onclick="window.manageCustomer.openEditModal('{{ customer.user.first_name }}', '{{ customer.user.last_name }}', '{{ customer.user.email }}', '{{ customer.config.auto_deposit }}')">
+                                            <i class="mdi mdi-account-edit me-1"></i> Edit Profile
+                                        </button>
+                                    </div>
+                                </div>
+                            </div> <!-- end row -->
+
+                        </div> <!-- end card-body/ profile-user-box-->
+                    </div><!--end profile/ card -->
+                </div> <!-- end col-->
+            </div>
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="card tilebox-one">
+                        <div class="card-body">
+                            <i class="dripicons-basket float-end text-muted"></i>
+                            <h6 class="text-muted text-uppercase mt-0">Deposits</h6>
+                            <h2 class="m-b-20">&euro; {{ total_deposits_amount}}</h2>
+                            </span> <span class="text-muted">{{ customer.total_deposits }} deposits made</span><br>
+                            {% if deposit_change_percent > 0 %}
+                                <span class="badge bg-success">{{ deposit_change_percent }}%  </span> <span class="text-muted">last month</span>
+                            {% elif deposit_change_percent == 0 %}
+                                <span class="badge bg-primary">{{ deposit_change_percent }}%  </span> <span class="text-muted">last month</span>
+                            {% else %}
+                                <span class="badge bg-danger">{{ deposit_change_percent }}%  </span> <span class="text-muted">last month</span>
+                            {% endif %}
+                        </div> <!-- end card-body-->
+                    </div> <!--end card-->
+                </div><!-- end col -->
 
 
+
+                <div class="col-sm-4">
+                    <div class="card tilebox-one">
+                        <div class="card-body">
+                            <i class="dripicons-box float-end text-muted"></i>
+                            <h6 class="text-muted text-uppercase mt-0">Purchases</h6>
+                            <h2 class="m-b-20">&euro; {{ total_purchases_amount }}</h2>
+                            <span class="text-muted">{{ customer.total_purchases }} purchases made</span><br>
+                            {% if purchase_change_percent > 0 %}
+                            <span class="badge bg-success">{{ purchase_change_percent }}%  </span> <span class="text-muted">last month</span>
+                            {% elif purchase_change_percent == 0 %}
+                                <span class="badge bg-primary">{{ purchase_change_percent }}%  </span> <span class="text-muted">last month</span>
+                            {% else %}
+                                <span class="badge bg-danger">{{ purchase_change_percent }}%  </span> <span class="text-muted">last month</span>
+                            {% endif %}
+                        </div> <!-- end card-body-->
+                    </div> <!--end card-->
+                </div><!-- end col -->
+                <div class="col-sm-4">
+                    <div class="card tilebox-one">
+                        <div class="card-body">
+                            <i class="dripicons-basket float-end text-muted"></i>
+                            <h6 class="text-muted text-uppercase mt-0">Store Profit</h6>
+                            <h2 class="m-b-20">&euro; {{ store_profit}}</h2>
+                            </span> <span class="text-muted">generated by the user</span><br>
+                            {% if deposit_change_percent > 0 %}
+                                <span class="badge bg-success">{{ store_profit_change_percent }}%  </span> <span class="text-muted">last month</span>
+                            {% elif deposit_change_percent == 0 %}
+                                <span class="badge bg-primary">{{ store_profit_change_percent }}%  </span> <span class="text-muted">last month</span>
+                            {% else %}
+                                <span class="badge bg-danger">{{ store_profit_change_percent }}%  </span> <span class="text-muted">last month</span>
+                            {% endif %}
+                        </div> <!-- end card-body-->
+                    </div> <!--end card-->
+                </div><!-- end col -->
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Update Balance</h5>
+                            <form id="updateBalanceForm">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="depositAmount" class="form-label">Amount</label>
+                                    <input type="number" class="form-control" id="depositAmount" name="depositAmount" step="0.01" required>
+                                </div>
+                                <button type="submit" class="btn btn-success" id="updateBalanceButton">Add Deposit</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>  
+            </div>
+            
             <!-- end row -->
+            <div class="row">
+                <div class="col-xl-4">
+                    <!-- Personal-Information -->
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="header-title mt-0 mb-3">Customer Information</h4>
+                            <ul class="list-group">
+                                <li class="list-group-item">Username: {{ customer.user.username }}</li>
+                                <li class="list-group-item">E-Mail: {{ customer.user.email }}</li>
+                                <li class="list-group-item">Total Purchased: &euro; {{ customer.total_purchases }}</li>
+                                <li class="list-group-item">Total Deposited: &euro; {{ customer.total_deposits }}</li>
+                                <li class="list-group-item">Issue Date: {{ customer.issued_at }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Personal-Information -->
+                </div> <!-- end col-->
 
-            <!-- Deposit Form -->
+                <div class="col-xl-8">
+                    <!-- Chart-->
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="header-title mb-3">Balance History</h4>
+                            <div dir="ltr">
+                                <div id="balance-chart" style="height: 260px;" class="apex-charts"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End Chart-->
 
 
-            <!-- Deposits Table -->
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="header-title mb-3">Deposit History</h4>
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Amount</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for deposit in deposits %}
-                                <tr>
-                                    <td>{{ forloop.counter }}</td>
-                                    <td>&euro; {{ deposit.amount }}</td>
-                                    <td>{{ deposit.deposit_date|date:"Y-m-d H:i" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <!-- end row -->
+
+                    <!-- Deposit Form -->
+
+
+                    <!-- Deposits Table -->
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="header-title mb-3">Deposit History</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Amount</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for deposit in deposits %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>&euro; {{ deposit.amount }}</td>
+                                            <td>{{ deposit.deposit_date|date:"Y-m-d H:i" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Purchases Table -->
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="header-title mb-3">Purchase History</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Product</th>
+                                            <th>Quantity</th>
+                                            <th>Price</th>
+                                            <th>Balance after transaction</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for purchase in purchases %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ purchase.product }}</td>
+                                            <td>{{ purchase.quantity }}</td>
+                                            <td>&euro; {{ purchase.purchase_price }}</td>
+                                            <td>&euro; {{ purchase.customer_balance }}</td>
+                                            <td>{{ purchase.purchase_date|date:"Y-m-d H:i" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Purchases Table -->
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="header-title mb-3">Purchase History</h4>
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Product</th>
-                                    <th>Quantity</th>
-                                    <th>Price</th>
-                                    <th>Balance after transaction</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for purchase in purchases %}
-                                <tr>
-                                    <td>{{ forloop.counter }}</td>
-                                    <td>{{ purchase.product }}</td>
-                                    <td>{{ purchase.quantity }}</td>
-                                    <td>&euro; {{ purchase.purchase_price }}</td>
-                                    <td>&euro; {{ purchase.customer_balance }}</td>
-                                    <td>{{ purchase.purchase_date|date:"Y-m-d H:i" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                
+            <!-- start page email-title -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-title-box">
+                        <div class="page-title-right">
+                            <ol class="breadcrumb m-0">
+                                <li class="breadcrumb-item"><a href="javascript: void(0);">Hyper</a></li>
+                                <li class="breadcrumb-item"><a href="javascript: void(0);">Email</a></li>
+                                <li class="breadcrumb-item active">Email Read</li>
+                            </ol>
+                        </div>
+                        <h4 class="page-title">Email Read</h4>
                     </div>
                 </div>
             </div>
+            <!-- end page email-title --> 
+            <div class="row">
+
+                <!-- Right Sidebar -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <!-- Left sidebar -->
+                            <div class="page-aside-left">
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#compose-modal">Compose</button>
+                                </div>
+                
+                                <div class="email-menu-list mt-3">
+                                    <a href="javascript:void(0);" id="inbox-tab" class="text-danger fw-bold">
+                                        <i class="dripicons-inbox me-2"></i>Inbox
+                                    </a>
+                                    <a href="javascript:void(0);" id="sent-tab" class="text-primary">
+                                        <i class="dripicons-exit me-2"></i>Sent Mail
+                                    </a>
+                                </div>
+                            </div>
+                            <!-- End Left sidebar -->
+                
+                            <!-- Received Mail Section -->
+                            <div class="page-aside-right" id="received-emails" style="display: block;">
+                                <h5 class="font-18">Received Emails</h5>
+                                <hr/>
+                
+                                {% if received_emails %}
+                                    <div class="accordion" id="receivedEmailAccordion">
+                                        {% for email in received_emails %}
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header" id="headingReceived{{ forloop.counter }}">
+                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseReceived{{ forloop.counter }}" aria-expanded="false" aria-controls="collapseReceived{{ forloop.counter }}">
+                                                        {{ email.subject }}
+                                                    </button>
+                                                </h2>
+                                                <div id="collapseReceived{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="headingReceived{{ forloop.counter }}" data-bs-parent="#receivedEmailAccordion">
+                                                    <div class="accordion-body">
+                                                        <small class="text-muted">From: {{ email.sender }}</small><br>
+                                                        <small class="text-muted">Received: {{ email.timestamp }}</small>
+                                                        <hr>
+                                                        <p>{{ email.body|safe }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted">No received emails found.</p>
+                                {% endif %}
+                            </div>
+                            <!-- End Received Mail Section -->
+                
+                            <!-- Sent Mail Section -->
+                            <div class="page-aside-right" id="sent-emails" style="display: none;">
+                                <h5 class="font-18">Sent Emails</h5>
+                                <hr/>
+                
+                                {% if sent_emails %}
+                                    <div class="accordion" id="sentEmailAccordion">
+                                        {% for email in sent_emails %}
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                                                        {{ email.subject }}
+                                                    </button>
+                                                </h2>
+                                                <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#sentEmailAccordion">
+                                                    <div class="accordion-body">
+                                                        <small class="text-muted">To: {{ email.recipient }}</small><br>
+                                                        <small class="text-muted">Sent: {{ email.timestamp }}</small>
+                                                        <hr>
+                                                        <p>{{ email.body|safe }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted">No sent emails found.</p>
+                                {% endif %}
+                            </div>
+                            <!-- End Sent Mail Section -->
+                        </div>
+                
+                        <div class="clearfix"></div>
+                    </div> 
+                </div>
+                
+                <!-- JavaScript for Switching Views -->
+
+                
+                
+            </div><!-- End row -->
         </div>
-    </div>
+        <div class="tab-pane fade" id="settings" role="tabpanel">
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-title-box">
+                        <div class="page-title-right">
+                            <ol class="breadcrumb m-0">
+                                <li class="breadcrumb-item"><a href="javascript: void(0);">Hyper</a></li>
+                                <li class="breadcrumb-item"><a href="javascript: void(0);">Pages</a></li>
+                                <li class="breadcrumb-item active">Profile</li>
+                            </ol>
+                        </div>
+                        <h4 class="page-title">Profile</h4>
+                    </div>
+                </div>
+            </div>
+            <!-- end page title -->
+            <div class="row">
+                <div class="col-sm-12">
+                    <!-- Profile -->
+                    <div class="card bg-primary">
+                        <div class="card-body profile-user-box">
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            <div class="avatar-lg">
+                                                <!-- <img src="{% static_images 'users/avatar-2.jpg' %}" alt="" class="rounded-circle img-thumbnail"> -->
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div>
+                                                <h4 class="mt-1 mb-1 text-white">{{ customer.user.first_name }} {{ customer.user.last_name }}</h4>
+                                                <p class="font-13 text-white-50"> 
+                                                    {% for group in customer.user.groups.all %} 
+                                                        {{ group }}
+                                                        {% if not forloop.last %} :
+                                                            ,
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </p>
+                                                    
 
+                                                <ul class="mb-0 list-inline text-light">
+                                                    <li class="list-inline-item me-3">
+                                                        <h5 class="mb-1 text-white">&euro; {{ customer.balance }}</h5>
+                                                        <p class="mb-0 font-13 text-white-50">Total Balance</p>
+                                                    </li>
+                                                    <li class="list-inline-item">
+                                                        <h5 class="mb-1 text-white">{{ customer.total_purchases }}</h5>
+                                                        <p class="mb-0 font-13 text-white-50">Total Purchases</p>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div> <!-- end col-->
+
+                                <div class="col-sm-4">
+                                    <div class="text-center mt-sm-0 mt-3 text-sm-end">
+                                        <button type="button" class="btn btn-light" 
+                                            onclick="window.manageCustomer.openEditModal('{{ customer.user.first_name }}', '{{ customer.user.last_name }}', '{{ customer.user.email }}', '{{ customer.config.auto_deposit }}')">
+                                            <i class="mdi mdi-account-edit me-1"></i> Edit Profile
+                                        </button>
+                                    </div>
+                                </div>
+                            </div> <!-- end row -->
+
+                        </div> <!-- end card-body/ profile-user-box-->
+                    </div><!--end profile/ card -->
+                </div> <!-- end col-->
+            </div>
+            <form id="editCustomerConfigForm">
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h5>General Settings</h5>
                         
-    <!-- start page email-title -->
-    <div class="row">
-        <div class="col-12">
-            <div class="page-title-box">
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="javascript: void(0);">Hyper</a></li>
-                        <li class="breadcrumb-item"><a href="javascript: void(0);">Email</a></li>
-                        <li class="breadcrumb-item active">Email Read</li>
-                    </ol>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="auto_deposit" name="auto_deposit" {% if customer.config.auto_deposit %}checked{% endif %}>
+                            <label class="form-check-label" for="auto_deposit">Enable Auto Deposit</label>
+                        </div>
+                        
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="customer_enabled" name="customer_enabled" {% if customer.config.customer_enabled %}checked{% endif %}>
+                            <label class="form-check-label" for="customer_enabled">Enable Customer</label>
+                        </div>
+                    </div>
                 </div>
-                <h4 class="page-title">Email Read</h4>
-            </div>
+                
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h5>Email Settings</h5>
+            
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="email_enabled" name="email_enabled" {% if customer.config.email_enabled %}checked{% endif %}>
+                            <label class="form-check-label me-auto" for="email_enabled">Enable Email Notifications</label>
+                            <a href="" class="action-icon" id="send_mail_email_enabled"> <i class="mdi mdi-email-outline"></i></a>
+                        </div>
+            
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="email_on_deposit" name="email_on_deposit" {% if customer.config.email_on_deposit %}checked{% endif %}>
+                            <label class="form-check-label me-auto" for="email_on_deposit">Notify on Deposit</label>
+                            <a href="" class="action-icon" id="send_mail_email_on_deposit"> <i class="mdi mdi-email-outline"></i></a>
+                        </div>
+            
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="email_on_purchase" name="email_on_purchase" {% if customer.config.email_on_purchase %}checked{% endif %}>
+                            <label class="form-check-label me-auto" for="email_on_purchase">Notify on Purchase</label>
+                            <a href="" class="action-icon" id="send_mail_email_on_purchase"> <i class="mdi mdi-email-outline"></i></a>
+                        </div>
+            
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="email_on_low_balance" name="email_on_low_balance" {% if customer.config.email_on_low_balance %}checked{% endif %}>
+                            <label class="form-check-label me-auto" for="email_on_low_balance">Notify on Low Balance</label>
+                            <a href="" class="action-icon" id="send_mail_email_on_low_balance"> <i class="mdi mdi-email-outline"></i></a>
+                        </div>
+            
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="email_on_disabled" name="email_on_disabled" {% if customer.config.email_on_disabled %}checked{% endif %}>
+                            <label class="form-check-label me-auto" for="email_on_disabled">Notify when Account is Disabled</label>
+                            <a href="" class="action-icon" id="send_mail_email_on_disabled"> <i class="mdi mdi-email-outline"></i></a>
+                        </div>
+            
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="email_on_enabled" name="email_on_enabled" {% if customer.config.email_on_enabled %}checked{% endif %}>
+                            <label class="form-check-label me-auto" for="email_on_enabled">Notify when Account is Enabled</label>
+                            <a href="" class="action-icon" id="send_mail_email_on_enabled"> <i class="mdi mdi-email-outline"></i></a>
+                        </div>
+            
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="email_on_deleted" name="email_on_deleted" {% if customer.config.email_on_deleted %}checked{% endif %}>
+                            <label class="form-check-label me-auto" for="email_on_deleted">Notify when Account is Deleted</label>
+                            <a href="" class="action-icon" id="send_mail_email_on_deleted"> <i class="mdi mdi-email-outline"></i></a>
+                        </div>
+            
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="email_on_balance_change" name="email_on_balance_change" {% if customer.config.email_on_balance_change %}checked{% endif %}>
+                            <label class="form-check-label me-auto" for="email_on_balance_change">Notify on Balance Change</label>
+                            <a href="" class="action-icon" id="send_mail_email_on_balance_change"> <i class="mdi mdi-email-outline"></i></a>
+                        </div>
+            
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="email_on_purchase_change" name="email_on_purchase_change" {% if customer.config.email_on_purchase_change %}checked{% endif %}>
+                            <label class="form-check-label me-auto" for="email_on_purchase_change">Notify on Purchase Change</label>
+                            <a href="" class="action-icon" id="send_mail_email_on_purchase_change"> <i class="mdi mdi-email-outline"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-grid">
+                    <button type="button" class="btn btn-primary" id="editCustomerConfigFormSubmit">Save Changes</button>
+                </div>
+            </form>
+            
         </div>
     </div>
-    <!-- end page email-title --> 
-    <div class="row">
-
-        <!-- Right Sidebar -->
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <!-- Left sidebar -->
-                    <div class="page-aside-left">
-                        <div class="d-grid">
-                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#compose-modal">Compose</button>
-                        </div>
-        
-                        <div class="email-menu-list mt-3">
-                            <a href="javascript:void(0);" id="inbox-tab" class="text-danger fw-bold">
-                                <i class="dripicons-inbox me-2"></i>Inbox
-                            </a>
-                            <a href="javascript:void(0);" id="sent-tab" class="text-primary">
-                                <i class="dripicons-exit me-2"></i>Sent Mail
-                            </a>
-                        </div>
-                    </div>
-                    <!-- End Left sidebar -->
-        
-                    <!-- Received Mail Section -->
-                    <div class="page-aside-right" id="received-emails" style="display: block;">
-                        <h5 class="font-18">Received Emails</h5>
-                        <hr/>
-        
-                        {% if received_emails %}
-                            <div class="accordion" id="receivedEmailAccordion">
-                                {% for email in received_emails %}
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header" id="headingReceived{{ forloop.counter }}">
-                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseReceived{{ forloop.counter }}" aria-expanded="false" aria-controls="collapseReceived{{ forloop.counter }}">
-                                                {{ email.subject }}
-                                            </button>
-                                        </h2>
-                                        <div id="collapseReceived{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="headingReceived{{ forloop.counter }}" data-bs-parent="#receivedEmailAccordion">
-                                            <div class="accordion-body">
-                                                <small class="text-muted">From: {{ email.sender }}</small><br>
-                                                <small class="text-muted">Received: {{ email.timestamp }}</small>
-                                                <hr>
-                                                <p>{{ email.body|safe }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <p class="text-muted">No received emails found.</p>
-                        {% endif %}
-                    </div>
-                    <!-- End Received Mail Section -->
-        
-                    <!-- Sent Mail Section -->
-                    <div class="page-aside-right" id="sent-emails" style="display: none;">
-                        <h5 class="font-18">Sent Emails</h5>
-                        <hr/>
-        
-                        {% if sent_emails %}
-                            <div class="accordion" id="sentEmailAccordion">
-                                {% for email in sent_emails %}
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header" id="heading{{ forloop.counter }}">
-                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
-                                                {{ email.subject }}
-                                            </button>
-                                        </h2>
-                                        <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#sentEmailAccordion">
-                                            <div class="accordion-body">
-                                                <small class="text-muted">To: {{ email.recipient }}</small><br>
-                                                <small class="text-muted">Sent: {{ email.timestamp }}</small>
-                                                <hr>
-                                                <p>{{ email.body|safe }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <p class="text-muted">No sent emails found.</p>
-                        {% endif %}
-                    </div>
-                    <!-- End Sent Mail Section -->
-                </div>
-        
-                <div class="clearfix"></div>
-            </div> 
-        </div>
-        
-        <!-- JavaScript for Switching Views -->
-
-        
-        
-    </div><!-- End row -->
 
 </div>
 
-
-    <!-- endit customer model -->
-    <div id="editCustomerModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <form id="editCustomerForm">
-                    {% csrf_token %}
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="editCustomerModalLabel">Edit Customer</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="manageCustomers.closeModal()">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="hidden" id="modal_customer_id" name="customer_id">
-                        
-                        <div class="form-group">
-                            <label for="modal_first_name">First Name</label>
-                            <input type="text" class="form-control" id="modal_first_name" name="first_name" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="modal_last_name">Last Name</label>
-                            <input type="text" class="form-control" id="modal_last_name" name="last_name" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="modal_email">Email</label>
-                            <input type="email" class="form-control" id="modal_email" name="email" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="modal_password">Password</label>
-                            <input type="password" class="form-control" id="modal_password" name="password">
-                            <small class="form-text text-muted">Leave blank to keep the current password.</small>
-                        </div>
-
-                        <!-- Auto Commit Checkbox -->
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="modal_auto_deposit" name="auto_deposit">
-                            <label class="form-check-label" for="modal_auto_deposit">Enable Auto Deposit</label>
-                        </div>
-                    </div>
-                                        
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="window.manageCustomer.closeModal()">Close</button>
-                        <button type="button" class="btn btn-primary" onclick="window.manageCustomer.submitEditForm()">Save Changes</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Compose Modal -->
-    <div id="compose-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="compose-header-modalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header modal-colored-header bg-primary">
-                    <h4 class="modal-title" id="compose-header-modalLabel">New Message</h4>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- edit customer model -->
+<div id="editCustomerModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="editCustomerForm">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCustomerModalLabel">Edit Customer</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="manageCustomers.closeModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-                <div class="p-1">
-                    <div class="modal-body px-3 pt-3 pb-0">
-                        <form>
-                            <div class="mb-2">
-                                <label for="msgto" class="form-label">To</label>
-                                <input value="{{ customer.user.email }}" type="text" id="msgto" class="form-control" placeholder="Example@email.com" readonly="">
-                            </div>
-                            <div class="mb-2">
-                                <label for="mailsubject" class="form-label">Subject</label>
-                                <input type="text" id="mailsubject" class="form-control" placeholder="Your subject">
-                            </div>
-                            <div class="write-mdg-box mb-3">
-                                <label class="form-label">Message</label>
-                                <textarea id="simplemde1"></textarea>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="px-3 pb-3">
-                        <button type="button" class="btn btn-primary" id="sendMessageButton">
-                            <i class="mdi mdi-send me-1"></i> Send Message
-                        </button>
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <div class="modal-body">
+                    <input type="hidden" id="modal_customer_id" name="customer_id">
+                    
+                    <div class="form-group">
+                        <label for="modal_first_name">First Name</label>
+                        <input type="text" class="form-control" id="modal_first_name" name="first_name" required>
                     </div>
                     
+                    <div class="form-group">
+                        <label for="modal_last_name">Last Name</label>
+                        <input type="text" class="form-control" id="modal_last_name" name="last_name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="modal_email">Email</label>
+                        <input type="email" class="form-control" id="modal_email" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="modal_password">Password</label>
+                        <input type="password" class="form-control" id="modal_password" name="password">
+                        <small class="form-text text-muted">Leave blank to keep the current password.</small>
+                    </div>
+
+                    <!-- Auto Commit Checkbox -->
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="modal_auto_deposit" name="auto_deposit">
+                        <label class="form-check-label" for="modal_auto_deposit">Enable Auto Deposit</label>
+                    </div>
                 </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
+                                    
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" id="editCustomerModalClose">Close</button>
+                    <button type="button" class="btn btn-primary" id="editCustomerModalSubmit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-    
-
+<!-- Compose Modal -->
+<div id="compose-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="compose-header-modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-primary">
+                <h4 class="modal-title" id="compose-header-modalLabel">New Message</h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="p-1">
+                <div class="modal-body px-3 pt-3 pb-0">
+                    <form>
+                        <div class="mb-2">
+                            <label for="msgto" class="form-label">To</label>
+                            <input value="{{ customer.user.email }}" type="text" id="msgto" class="form-control" placeholder="Example@email.com" readonly="">
+                        </div>
+                        <div class="mb-2">
+                            <label for="mailsubject" class="form-label">Subject</label>
+                            <input type="text" id="mailsubject" class="form-control" placeholder="Your subject">
+                        </div>
+                        <div class="write-mdg-box mb-3">
+                            <label class="form-label">Message</label>
+                            <textarea id="simplemde1"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="px-3 pb-3">
+                    <button type="button" class="btn btn-primary" id="sendMessageButton">
+                        <i class="mdi mdi-send me-1"></i> Send Message
+                    </button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                </div>
+                
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 {% endblock %}
+
 
 {% block scripts %}
 <script>
@@ -500,7 +660,12 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        window.manageCustomer = new ManageCustomer(window.location.href, config);
+        document.querySelectorAll("input[type=checkbox]").forEach((checkbox) => {
+            checkbox.checked = checkbox.hasAttribute("checked");
+        });
+
+
+        window.manageCustomer = new ManageCustomer(window.location.href, config, App.requestHandler, App.actionTrigger);
         const csrftoken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
         const customerCardNumber = "{{ customer.card_number|default:'' }}";
 
@@ -520,6 +685,16 @@
             categories: categories,
             colors: ['#4caf50', '#f44336', '#2196f3'],
         });
+
+        var triggerTabList = [].slice.call(document.querySelectorAll('#configTabs button'));
+        triggerTabList.forEach(function (tab) {
+            tab.addEventListener('click', function (event) {
+                event.preventDefault();
+                var tabTrigger = new bootstrap.Tab(tab);
+                tabTrigger.show();
+            });
+        });
+
     });
 </script>
 {% endblock %}

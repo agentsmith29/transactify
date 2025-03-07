@@ -32,23 +32,41 @@ class Customer(models.Model):
         total_purchases (int): Total count of purchases made by the customer.
         last_changed (datetime): The timestamp of the last balance change.
     """
+    # last_customer = 
+  
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="customer")
-    card_number = models.CharField(primary_key=True)
+
+    id = models.CharField(primary_key=True)
+    card_number = models.CharField(editable=True)
+
     issued_at = models.DateTimeField(auto_now_add=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_deposits = models.PositiveIntegerField(default=0)
     total_purchases = models.PositiveIntegerField(default=0)
     last_changed = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-
+   
+    
     # one_to_one =
     config = models.OneToOneField(CustomerConfig, on_delete=models.CASCADE, related_name="customer")
     # automatically create a CustomerConfig instance when creating a Customer instance
-   
+
+    #@property
+    #def form_config(self):
+    #    return self.config.form_config
+
+
+    
     def save(self, *args, **kwargs):
+        if (self.card_number is None or self.card_number == "") and (self.id is not None and self.id != ""):
+            self.card_number = self.id
+        elif (self.id is None or self.id == "") and (self.card_number is not None and self.card_number != ""):
+            self.id = self.card_number
+            
         attr_config = getattr(self, 'config', None)
         if not attr_config:
             self.config = CustomerConfig.objects.create()
+
         super().save(*args, **kwargs)
 
     def get_deposits(self, date: Union[datetime, tuple[datetime, datetime]] = None) -> models.QuerySet:
@@ -324,3 +342,5 @@ class Customer(models.Model):
     @deprecated
     def get_all_purchases(self, purchase_model: models.Model) -> list:
         return purchase_model.objects.filter(customer=self).order_by('-purchase_date')
+
+

@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 
 from transactify_service.settings import CONFIG
+from django import forms
 
 class CustomerConfig(models.Model):
     id = models.AutoField(primary_key=True)
@@ -18,3 +19,12 @@ class CustomerConfig(models.Model):
     email_on_deleted = models.BooleanField(default=True)
     email_on_balance_change = models.BooleanField(default=True)
     email_on_purchase_change = models.BooleanField(default=True)
+
+    #@property
+    #def form_config(self):
+    #    return ConfigForm(instance=self)
+
+#class ConfigForm(forms.ModelForm):
+#    class Meta:
+#        model = CustomerConfig
+#        fields = "__all__"  # Include all fields

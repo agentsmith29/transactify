@@ -1,7 +1,8 @@
 class WebSocketHandler {
-    constructor(socketUrl, pageName) {
+    constructor(socketUrl, pageName, toastManager) {
         this.socket = new WebSocket(socketUrl);
         this.pageName = pageName;
+        this.toastManager = toastManager;
 
         this.socket.onopen = this._defaultOnOpen.bind(this);
         this.socket.onclose = this._defaultOnClose.bind(this);
@@ -24,7 +25,7 @@ class WebSocketHandler {
     // Default handler for onclose
     _defaultOnClose() {
         console.log("WebSocket connection closed");
-        window.storeManager.toastManager.warning(
+        this.toastManager.warning(
             "WebSocket connection closed",
             "WebSocket connection was closed or reset.",
             "",

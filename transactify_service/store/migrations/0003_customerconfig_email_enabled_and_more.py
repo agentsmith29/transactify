@@ -3,6 +3,7 @@
 from django.db import migrations, models
 
 
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -59,5 +60,6 @@ class Migration(migrations.Migration):
             model_name='customerconfig',
             name='auto_deposit',
             field=models.BooleanField(default=True),
-        ),
+        )
     ]
+

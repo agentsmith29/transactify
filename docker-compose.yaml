@@ -14,7 +14,12 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - 5432:${DB_PORT}
-  
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
   terminal1:
     build:
       context: .
@@ -45,7 +50,11 @@ services:
       retries: 20
     deploy:       # limit maximum number of containers to 1
       replicas: 1 # Important for the terminal to work properly (only one terminal can be connected to the hardware)
-  
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
   donknabberello:
     build:
       context: .
@@ -75,6 +84,11 @@ services:
       interval: 10s
       timeout: 10s
       retries: 20
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   doncaramello:
     build:
@@ -102,6 +116,11 @@ services:
       interval: 10s
       timeout: 10s
       retries: 20
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 
 
   adminer:
@@ -140,6 +159,11 @@ services:
     #  "-c",
     #  "rm -f /etc/nginx/conf.d/nginx.*.conf && /docker-entrypoint.sh;"
     #]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 
 
 volumes:
@@ -147,3 +171,8 @@ volumes:
   postgres_data:
   static_volume:
   pgdata:
+
+
+
+
+  #find /var/lib/docker/containers/*/*.log -iname '[0-9]*' -type f -delete

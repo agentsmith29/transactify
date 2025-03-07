@@ -19,7 +19,9 @@ class CustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Customer
-        fields = ['user', 'card_number', 'issued_at', 'balance', 'total_deposits', 'total_purchases', 'last_changed']
+        fields = ['user', 'card_number', 
+                  'issued_at', 'balance', 'total_deposits', 'total_purchases', 'last_changed',
+                  'config']
 
     #def get_balance(self, obj: Customer):
     #    """Retrieve the balance details for the customer."""

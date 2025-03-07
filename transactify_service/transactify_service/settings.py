@@ -115,6 +115,7 @@ INSTALLED_APPS = [
     'django_fastdev'
 ]
 
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

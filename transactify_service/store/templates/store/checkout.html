@@ -1,0 +1,260 @@
+{% extends "./index.html" %}
+{% load static_assets %}
+{% load static_images %}
+
+{% block head %}
+    <title>Checkout | Hyper - Responsive Bootstrap 5 Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
+    <meta content="Coderthemes" name="author" />
+
+    <link rel="shortcut icon" href="{% static_assets 'images/favicon.ico' %}">
+    <link href="{% static_assets 'css/icons.min.css' %}" rel="stylesheet" type="text/css" />
+    <link href="{% static_assets 'css/app.min.css' %}" rel="stylesheet" type="text/css" id="app-style"/>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Checkout Steps -->
+                    <ul class="nav nav-pills bg-nav-pills nav-justified mb-3">
+                        <li class="nav-item">
+                            <a href="#products" data-bs-toggle="tab" class="nav-link rounded-0 active">
+                                <i class="mdi mdi-account-circle font-18"></i>
+                                <span class="d-none d-lg-block">Products</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#shopping-cart" data-bs-toggle="tab" class="nav-link rounded-0">
+                                <i class="mdi mdi-truck-fast font-18"></i>
+                                <span class="d-none d-lg-block">Shopping Cart</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#checkout" data-bs-toggle="tab" class="nav-link rounded-0">
+                                <i class="mdi mdi-cash-multiple font-18"></i>
+                                <span class="d-none d-lg-block">Checkout</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- Steps Content -->
+                    <div class="tab-content">
+                        <div class="tab-pane show active" id="products">
+                            <div class="row">
+                                {% for item in products %}
+                                <div class="col-md-4">
+                                    <div class="card d-block">
+                                        <div class="card-body">
+                                            <div class="dropdown card-widgets">
+                                                <a href="#" class="dropdown-toggle arrow-none" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="ri-more-fill"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a href="javascript:void(0);" class="dropdown-item"><i class="mdi mdi-pencil me-1"></i>Edit</a>
+                                                    <a href="javascript:void(0);" class="dropdown-item"><i class="mdi mdi-delete me-1"></i>Delete</a>
+                                                    <a href="javascript:void(0);" class="dropdown-item"><i class="mdi mdi-email-outline me-1"></i>Invite</a>
+                                                    <a href="javascript:void(0);" class="dropdown-item"><i class="mdi mdi-exit-to-app me-1"></i>Leave</a>
+                                                </div>
+                                            </div>
+                            
+                                            <!-- Product Title -->
+                                            <h4 class="mt-0">
+                                                <a href="#" class="text-title">{{ item.name }}</a>
+                                            </h4>
+                            
+                                            <!-- Stock Status -->
+                                            {% if item.stock > 10 %}
+                                                <div class="badge bg-success">In Stock</div>
+                                            {% elif item.stock > 0 %}
+                                                <div class="badge bg-warning">Low Stock</div>
+                                            {% else %}
+                                                <div class="badge bg-danger">Out of Stock</div>
+                                            {% endif %}
+                            
+                                            <!-- Product Description -->
+                                            <p class="text-muted font-13 my-3">{{ item.name|truncatechars:100 }}</p>
+                            
+                                            <!-- Resell Price -->
+                                            <p class="mb-1">
+                                                <span class="text-nowrap mb-2 d-inline-block">
+                                                    <i class="mdi mdi-cash-multiple text-muted"></i>
+                                                    <b>€{{ item.resell_price }}</b>
+                                                </span>
+                                            </p>
+                            
+                                            <!-- Add to Cart Button -->
+                                            <button type="button" class="btn btn-primary btn-sm" onclick="basket.addItem('{{ item.id }}', '{{ item.name }}', {{ item.resell_price }})">
+                                                <i class="mdi mdi-cart"></i> Add to Cart
+                                            </button>
+                                            
+                                        </div>
+                                    </div> 
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="tab-pane" id="shopping-cart">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="table-responsive">
+                                                    <table class="table table-centered w-100 dt-responsive nowrap" id="basket-table">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th>Product</th>
+                                                                <th>Price</th>
+                                                                <th>Quantity</th>
+                                                                <th>Total</th>
+                                                                <th>Action</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="basket-items">
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <p><strong>Total: €<span id="basket-total">0.00</span></strong></p>
+                                                <button class="btn btn-danger btn-sm" onclick="basket.clearBasket()">Clear Basket</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-sm-6">
+                                        <a href="#" id="prev-button" class="btn text-muted d-none d-sm-inline-block btn-link fw-semibold">
+                                            <i class="mdi mdi-arrow-left"></i> Back to Shopping Cart
+                                        </a>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="text-sm-end">
+                                            <a href="#" id="next-button" class="btn btn-danger">
+                                                <i class="mdi mdi-truck-fast me-1"></i> Proceed to Checkout
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="tab-pane" id="checkout">
+                            <form></form>
+                            <div class="row">
+                                
+                                    <div class="col-lg-6">
+                                        <h4 class="mt-2">Place Order</h4>
+                                        <p class="text-muted mb-4">Fill in the form below to receive your order invoice.</p>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label for="billing-first-name" class="form-label">First Name</label>
+                                                        <input class="form-control" type="text" placeholder="Enter your first name" id="billing-first-name"
+                                                            value="{{ customer.user.first_name }}" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label for="billing-last-name" class="form-label">Last Name</label>
+                                                        <input class="form-control" type="text" placeholder="Enter your last name" id="billing-last-name"
+                                                            value="{{ customer.user.last_name }}" />
+                                                    </div>
+                                                </div>
+                                            </div> <!-- end row -->
+                                            
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label for="billing-email-address" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                                        <input class="form-control" type="email" placeholder="Enter your email" id="billing-email-address"
+                                                            value="{{ customer.user.email }}" />
+                                                    </div>
+                                                </div>
+                                            </div> <!-- end row -->
+                        
+                                            <div class="row mt-4">
+                                                <div class="col-sm-6">
+                                                    <a href="apps-ecommerce-shopping-cart.html" class="btn text-muted d-none d-sm-inline-block btn-link fw-semibold">
+                                                        <i class="mdi mdi-arrow-left"></i> Back to Shopping Cart
+                                                    </a>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="text-sm-end">
+                                                        <a href="apps-ecommerce-checkout.html" class="btn btn-danger">
+                                                            <i class="mdi mdi-truck-fast me-1"></i> Proceed to Shipping
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div> <!-- end row -->
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="border p-3 mt-4 mt-lg-0 rounded">
+                                            <h4 class="header-title mb-3">Order Summary</h4>
+                                    
+                                            <div class="table-responsive">
+                                                <table class="table table-nowrap table-centered mb-0" id="basket-total-table">
+                                                    <tbody id="basket-total-items">
+                                                        <!-- Items will be dynamically inserted here -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            
+                                            <div class="text-end mt-3">
+                                                <h6 class="m-0">Sub Total:</h6>
+                                                <p class="text-end fw-semibold" id="basket-summary-subtotal">€0.00</p>
+                                    
+                                                <h6 class="m-0">Shipping:</h6>
+                                                <p class="text-end">FREE</p>
+                                    
+                                                <h5 class="m-0">Total:</h5>
+                                                <p class="text-end fw-bold" id="basket-summary-total">€0.00</p>
+                                            </div>                                    
+                                        </div>
+                                    </div>
+                            
+                            </div> <!-- end row-->
+                        </form>
+
+                        </div>
+                        <!-- End Product Information -->
+                    </div> 
+
+
+                    <!-- End Steps Content -->
+                </div> 
+            </div> 
+        </div> 
+    </div> 
+</div>
+
+<!-- Basket Container -->
+<div id="basket-container"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static_assets 'js/vendor.min.js' %}"></script>
+<script src="{% static_assets 'js/app.min.js' %}"></script>
+<script src="{% static_assets 'js/vendor/apexcharts.min.js' %}"></script>
+<script src="{% static_assets 'js/vendor/simplemde.min.js' %}"></script>
+<script src="{% static_assets 'js/pages/store.checkout.js' %}"></script>
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+        window.basket = new Basket("basket-table", "basket-total-table");
+    });
+
+    function switchTab(tabId) {
+        const tabTrigger = document.querySelector(`[href='${tabId}']`);
+        if (tabTrigger) {
+            new bootstrap.Tab(tabTrigger).show();
+        }
+    }
+</script>
+{% endblock %}

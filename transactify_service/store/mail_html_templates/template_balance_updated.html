@@ -60,14 +60,14 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">Thank You For Your Order!</div>
+        <div class="header">Your balance has been updated</div>
         <div class="details">
             <p>Dear <strong>{{ buyer }}</strong>,</p>
-            <p>Your balance has been updated:</p>            
+            <p>Your balance has been updated on {{ date }}:</p>            
             <!-- <p><strong>Shipping + Handling:</strong> ${{ shipping }}</p> -->
             <!-- <p><strong>Sales Tax:</strong> ${{ tax }}</p> -->
             <div class="summary">
-                <p><strong>Balanced added ({{ date }}):</strong> {{ balanced_added }}</p>
+                <p><strong>Balanced added:</strong> € {{ balanced_added }}</p>
             </div>
             <p><strong>New Balance:</strong> <strong>€{{ balance }}</strong></p>
         </div>

@@ -22,6 +22,7 @@ class ModalDialogManager {
 
         const modalInstance = new bootstrap.Modal(this.modalElement);
         modalInstance.show();
+        console.log("Modal displayed!");
     }
 
     closeModal() {
@@ -29,5 +30,6 @@ class ModalDialogManager {
         if (modalInstance) {
             modalInstance.hide();
         }
+        console.log("Modal closed!");
     }
 }
