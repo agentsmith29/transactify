@@ -168,6 +168,16 @@
                     </div>
                 </div>  
             </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Add a checkout</h5>
+                            <a class="btn btn-success" href="{% url 'checkout' customer.id %}">Add a purchase</a>
+                        </div>
+                    </div>
+                </div>  
+            </div>
             
             <!-- end row -->
             <div class="row">
@@ -215,6 +225,7 @@
                                     <thead>
                                         <tr>
                                             <th>#</th>
+                                            <th>Transaction-ID</th>
                                             <th>Amount</th>
                                             <th>Date</th>
                                         </tr>
@@ -223,8 +234,14 @@
                                         {% for deposit in deposits %}
                                         <tr>
                                             <td>{{ forloop.counter }}</td>
+                                            <td>{{ deposit.id }}</td>   
                                             <td>&euro; {{ deposit.amount }}</td>
                                             <td>{{ deposit.deposit_date|date:"Y-m-d H:i" }}</td>
+                                            <td>
+                                                <a href='javascript: manageCustomer.deleteDepositEntry("{{deposit.id}}");' class="action-icon">
+                                                    <i class="mdi mdi-history"></i>
+                                                </a>
+                                            </td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>

@@ -1,4 +1,4 @@
-class WebSocketHandler {
+export default class WebSocketHandler {
     constructor(socketUrl, pageName, toastManager) {
         this.socket = new WebSocket(socketUrl);
         this.pageName = pageName;

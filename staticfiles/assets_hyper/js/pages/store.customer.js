@@ -2,10 +2,13 @@ class ManageCustomer {
     constructor(page_url, config, requestHandler, actionTrigger) {
         this.page_url = page_url;
         this.config = config;
-        this.requestHandler = requestHandler;
-        this.actionTrigger = actionTrigger;
 
-        $(document).ready(() => {
+
+        App.ready.then(() => {
+            console.log("🚀 Initializing Customer Manager...");
+            this.requestHandler = App.requestHandler;
+            this.actionTrigger = App.actionTrigger;
+
             this.csrftoken = document.cookie.match(/csrftoken=([^;]+)/)[1];
             this.customerCardNumber = this.config.customerCardNumber;
             this.customerDetailUrl = this.config.customerDetailUrl;
@@ -233,6 +236,14 @@ class ManageCustomer {
         });
     }
 
+    deleteDepositEntry(deposit_id) {
+        this.requestHandler.sendRequest(
+            "delete_deposit",
+            {'deposit_id': deposit_id},
+            this.page_url
+        );
+
+    }
 }
 
 // CustomerViewChart class

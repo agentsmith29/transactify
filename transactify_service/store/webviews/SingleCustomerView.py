@@ -89,7 +89,12 @@ class SingleCustomerView(View):
 
 
             if cmd == "deposit":
-                amount = data.get('deposit_amount')
+                try:
+                    amount = data.get('depositAmount')
+                except Exception as e:
+                    self.logger.error(f"Error parsing deposit amount: {e}")
+                    return JsonResponse({'error': 'Could not parse deposit amount'}, status=400)
+                
                 if not amount or float(amount) <= 0:
                     return JsonResponse({'error': 'Invalid amount'}, status=400)
 
@@ -131,6 +136,13 @@ class SingleCustomerView(View):
                 response, _ = StoreHelper.update_customer_config(card_number, data,  logger=self.logger)
                 data, status = response.json_data()
                 return JsonResponse(data=data, status=status)
+            elif cmd == "delete_deposit":
+                deposit_id = data.get('deposit_id')
+                print(f"Deleting deposit: {deposit_id}...")
+                #response, _ = StoreHelper.delete_deposit(deposit_id, logger=self.logger)
+                #data, status = response.json_data()
+                #return JsonResponse(data=data, status=status)
+            
             elif cmd == "test_send_mail_email_on_deposit":
                 customer = get_object_or_404(Customer, card_number=card_number)
                 try:

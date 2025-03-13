@@ -1,4 +1,4 @@
-class ActionTriggerHandler {
+export default class ActionTriggerHandler {
     /**
      * Constructor for ActionTriggerHandler
      * @param {string} csrfToken - CSRF token for security

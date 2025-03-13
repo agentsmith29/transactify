@@ -1,4 +1,4 @@
-class EmailActionHandler {
+export default class EmailActionHandler {
     constructor(apiEndpoint) {
         this.apiEndpoint = apiEndpoint;
         this.initEventListeners();

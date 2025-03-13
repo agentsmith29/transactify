@@ -6,29 +6,29 @@ class Basket {
         this.summaryTable = summaryTable;
     }
 
-    addItem(id, name, price, quantity = 1) {
-        id = Number(id); // Ensure ID is a number
-        let existingItem = this.items.find(item => item.id === id);
+    addItem(ean, name, price, quantity = 1) {
+        ean = Number(ean); // Ensure ID is a number
+        let existingItem = this.items.find(item => item.ean === ean);
         if (existingItem) {
             existingItem.quantity += quantity;
         } else {
-            this.items.push({ id, name, price, quantity });
+            this.items.push({ ean, name, price, quantity });
         }
         this.updateTotal();
         this.renderBasket();
-        console.log("Added to cart: " + name)
+        console.log(`Added ${name} (${quantity}) to  cart.`)
     }
 
-    removeItem(id) {
-        id = Number(id);
-        this.items = this.items.filter(item => item.id !== id);
+    removeItem(ean) {
+        ean = Number(ean);
+        this.items = this.items.filter(item => item.ean !== ean);
         this.updateTotal();
         this.renderBasket();
     }
 
-    updateQuantity(id, quantity) {
-        id = Number(id);
-        let item = this.items.find(item => item.id === id);
+    updateQuantity(ean, quantity) {
+        ean = Number(ean);
+        let item = this.items.find(item => item.ean === ean);
         if (item) {
             item.quantity = Math.max(1, quantity); // Ensure quantity is at least 1
         }
@@ -82,16 +82,16 @@ class Basket {
             </thead>
             <tbody id="` + this.containerId +`">
                 ${this.items.map(item => `
-                    <tr id="basket-item-${item.id}">
+                    <tr id="basket-item-${item.ean}">
                         <td>${item.name}</td>
                         <td>€${item.price.toFixed(2)}</td>
                         <td>
-                            <button class="btn btn-sm btn-light" onclick="basket.updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
-                            <span id="quantity-${item.id}">${item.quantity}</span>
-                            <button class="btn btn-sm btn-light" onclick="basket.updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                            <button class="btn btn-sm btn-light" onclick="window.manageCustomerCheckout.basket.updateQuantity(${item.ean}, ${item.quantity - 1})">-</button>
+                            <span id="quantity-${item.ean}">${item.quantity}</span>
+                            <button class="btn btn-sm btn-light" onclick="window.manageCustomerCheckout.basket.updateQuantity(${item.ean}, ${item.quantity + 1})">+</button>
                         </td>
-                        <td>€<span id="total-${item.id}">${(item.price * item.quantity).toFixed(2)}</span></td>
-                        <td><button class="btn btn-sm btn-danger" onclick="basket.removeItem(${item.id})">Remove</button></td>
+                        <td>€<span id="total-${item.ean}">${(item.price * item.quantity).toFixed(2)}</span></td>
+                        <td><button class="btn btn-sm btn-danger" onclick="window.manageCustomerCheckout.basket.removeItem(${item.ean})">Remove</button></td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -123,9 +123,9 @@ class Basket {
         table.innerHTML = `
             <tbody id="` + this.summaryTable +`">
                 ${this.items.map(item => `
-                    <tr id="basket-item-${item.id}">
+                    <tr id="basket-item-${item.ean}">
                     <td>
-                        <img src="${item.image}" alt="product-img" class="rounded me-2" height="48">
+                        <img src="${item.image_url}" alt="${item.name}" class="rounded me-2" height="48">
                         <p class="m-0 d-inline-block align-middle">
                             <a href="#" class="text-body fw-semibold">${item.name}</a>
                             <br>
@@ -145,3 +145,38 @@ class Basket {
     }
 }
 
+
+class ManageCustomerCheckout {
+    constructor(page_url, requestHandler, actionTrigger) {
+        this.page_url = page_url;
+        App.ready.then(() => {
+            this.requestHandler = App.requestHandler;
+            this.actionTrigger = App.actionTrigger;
+            this.basket = new Basket("basket-table", "basket-total-table");
+    
+            // Bind event listeners
+            this.initActions();
+        });
+    }
+
+    initActions() {
+        
+        const self = this;
+        const updateForm = document.getElementById('updateBalanceForm');
+        
+        this.requestHandler.attachDictAndButton(
+             "add_purchase", // Command type
+             {'items': this.basket.getBasket()}, // JSON data
+             "place_order", // Submit button ID
+             this.page_url
+         );
+  
+
+    };
+
+
+    parseBool(value) {
+        return  value === "True" || value === "true" || value === "on" || value === 1 || value === "1";
+    }
+
+}

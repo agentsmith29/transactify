@@ -84,7 +84,7 @@ class StoreHelper:
     @staticmethod
     @transaction.atomic
     @journal_command()
-    def customer_purchase(ean: str, quantity: int, card_number: str, logger: logging.Logger, *args, **kwargs) -> tuple[Response, CustomerPurchase]:
+    def customer_purchase(ean: str, quantity: int, card_number: str, logger: logging.Logger, prepaid = False, *args, **kwargs) -> tuple[Response, CustomerPurchase]:
         """
         Handle customer purchase transaction with atomic database operations.
         """
@@ -112,7 +112,7 @@ class StoreHelper:
 
             required_balance = quantity * product.final_price
             
-            if customer.config.auto_deposit:
+            if customer.config.auto_deposit or prepaid:
                 StoreHelper.customer_add_deposit(customer, required_balance, logger)
 
             
@@ -258,52 +258,92 @@ class StoreHelper:
     @staticmethod
     @transaction.atomic
     @journal_command()
-    def customer_remove_deposit(customer: Customer, deposit_id: int, logger: logging.Logger, *args, **kwargs) -> tuple[Response, CustomerDeposit]:
+    def customer_remove_deposit(customer: Customer, amount: Decimal, logger: logging.Logger, *args, **kwargs) -> tuple[Response, CustomerDeposit]:
         """
-        Remove a deposit from a customer's account while ensuring database integrity.
+        Add a deposit to a customer's account and log the transaction.
         """
         try:
-            # Lock the deposit entry to prevent race conditions
-            deposit = CustomerDeposit.objects.select_for_update().get(id=deposit_id)
-        except CustomerDeposit.DoesNotExist:
-            logger.error(f"Deposit with ID {deposit_id} not found for customer {customer}.")
-            raise HelperException(f"Deposit with ID {deposit_id} not found.", 
-                                HTTPResponses.HTTP_STATUS_DEPOSIT_NOT_FOUND(deposit_id)) 
+            amount = Decimal(amount).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         except Exception as e:
-            logger.error(f"Error retrieving deposit entry: {e}\nTraceback: {traceback.format_exc()}")
-            raise HelperException(f"Unexpected error retrieving deposit {deposit_id}.", 
-                                HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_FAILED(e)) 
+            msg = f"Invalid amount: {amount}. Must be a valid decimal."
+            logger.error(f"{msg}\n\nTraceback:\n {traceback.format_exc()}\n\n")
+            raise HelperException(msg, HTTPResponses.HTTP_STATUS_NOT_DECIMAL("amount", type(amount), msg))
 
-        logger.info(f"Removing deposit entry {deposit.id} for customer {customer.card_number}")
+        logger.info(f"Removing deposit for customer {customer} with amount {amount}.")
+        if amount >= 0:
+            msg = f"Invalid amount for customer {customer}. Must be smaller than 0 (was {amount})."
+            logger.error(msg)
+            raise HelperException(msg, HTTPResponses.HTTP_STATUS_UPDATE_BALANCE_FAILED(customer, msg))
+        
+        try:
+            amount = Decimal(amount)
+            # round to 2 decimal places
+            amount = amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+        except Exception as e:
+            msg = f"Failed to convert amount to Decimal for customer {customer}: {e}."
+            logger.error(f"{msg}\n\nTraceback:\n {traceback.format_exc()}\n\n")
+            raise HelperException(msg, HTTPResponses.HTTP_STATUS_NOT_DECIMAL("amount", type(amount), msg))
 
         try:
-            # Ensure balance does not go negative before proceeding
-            if customer.balance < deposit.amount:
-                logger.error(f"Balance mismatch detected! Cannot remove deposit {deposit_id} for customer {customer}. "
-                            f"Current Balance: {customer.balance}, Deposit Amount: {deposit.amount}")
-                raise HelperException("Cannot remove deposit. Balance would become negative.", 
-                                    HTTPResponses.HTTP_STATUS_BALANCE_MISMATCH(customer))
-
-            # Update customer balance and total deposits count
-            customer.total_deposits -= 1
-            customer.balance -= deposit.amount
+            customer.balance -= amount
             customer.save()
-            logger.info(f"Updated balance for customer {customer}: {customer.balance}. Total deposits: {customer.total_deposits}.")
+            logger.info(f"Updated balance for customer {customer}: {customer.balance}.")
         except Exception as e:
-            logger.error(f"Failed to update customer balance for {customer}: {e}.\nTraceback: {traceback.format_exc()}")
-            raise HelperException("Failed to update customer balance.", 
-                                HTTPResponses.HTTP_STATUS_UPDATE_BALANCE_FAILED(customer, e))
+            logger.error(f"Failed to update customer balance for {customer}: {e}."
+                         f"\nTraceback: {traceback.format_exc()}")
+            raise HelperException(f"", HTTPResponses.HTTP_STATUS_UPDATE_BALANCE_FAILED(customer, e))
 
         try:
-            # Delete deposit entry only after balance update is successful
-            deposit.delete()
-            logger.info(f"Deposit entry {deposit_id} successfully removed.")
+            deposit_entry = CustomerDeposit.objects.create(
+                customer=customer,
+                customer_balance=customer.balance,
+                amount=amount
+            )
+            logger.info(f"Logged removed amount for customer {customer}: {deposit_entry}.")
         except Exception as e:
-            logger.error(f"Error deleting deposit entry {deposit_id}: {e}\nTraceback: {traceback.format_exc()}")
-            raise HelperException("Failed to remove deposit entry.", 
-                                HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_FAILED(e))
+            logger.error(f"Failed to removed amount for customer {customer}: {e}."
+                         f"\nTraceback: {traceback.format_exc()}")
+            raise HelperException(f"", HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_FAILED(customer, e))
 
-        return HTTPResponses.HTTP_STATUS_DEPOSIT_ENTRY_DELETE_SUCCESS(), deposit
+        try:
+            total_deposits = customer.get_total_deposit_amount()
+            total_purchases = customer.get_total_purchase_amount()
+            expected_balance = total_deposits - total_purchases
+            if not Decimal(customer.balance).quantize(Decimal("0.01")) == expected_balance.quantize(Decimal("0.01")):
+                logger.error(f"Balance mismatch for customer {customer}. Total Deposits: {total_deposits}, Total Purchases: {total_purchases}, Balance: {customer.balance}")
+                raise HelperException(f"Balance mismatch for customer {customer}.", HTTPResponses.HTTP_STATUS_BALANCE_MISMATCH(customer))
+        except Exception as e:
+            logger.error(f"Failed to validate balance for customer {customer}: {e}."
+                         f"\nTraceback: {traceback.format_exc()}")
+            raise HelperException(f"", HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_FAILED(e))
+
+        try:
+            MailTemplate.send_mail_template_new_deposit(
+                customer, amount, 
+                customer.balance, 
+                datetime.now().strftime("%d.%m.%Y"), 
+                CONFIG.webservice.FRIENDLY_NAME, 
+                logger, send_to_admin=True)
+        except Exception as e:
+            logger.warning(f"Error sending email to customer {customer}: {e}.")
+
+        return HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_SUCCESS(customer), deposit_entry
+
+
+
+    @staticmethod
+    @transaction.atomic
+    @journal_command()
+    def customer_remove_deposit(customer: Customer, deposit_id: int, logger: logging.Logger, *args, **kwargs) -> tuple[Response, CustomerDeposit]:
+        deposit_id = int(deposit_id)
+        try:
+            deposit = CustomerDeposit.objects.get(id=deposit_id)
+        except CustomerDeposit.DoesNotExist:
+            logger.error(f"Deposit with ID {deposit_id} not found.")
+            raise HelperException(f"Deposit with ID {deposit_id} not found.", HTTPResponses.HTTP_STATUS_DEPOSIT_NOT_FOUND(deposit_id))
+        
+        StoreHelper.customer_add_deposit(customer, -amount, logger)
 
     @staticmethod
     @transaction.atomic

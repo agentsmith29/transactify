@@ -20,6 +20,7 @@ class CustomerDeposit(models.Model):
     customer_balance = models.DecimalField(max_digits=10, decimal_places=2)
     # The date the deposit was made
     deposit_date = models.DateTimeField(auto_now_add=True)
+    
 
     def __str__(self):
         return f"{self.customer.user.first_name} {self.customer.user.last_name} deposited {self.amount}"

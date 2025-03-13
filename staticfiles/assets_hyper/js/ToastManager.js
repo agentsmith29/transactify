@@ -1,4 +1,4 @@
-class ToastManager {
+ export default class ToastManager {
     constructor(imgSrcBase) {
         this.imgSrcBase = imgSrcBase;
     }

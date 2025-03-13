@@ -21,6 +21,7 @@ from rest_framework import routers, serializers, viewsets
 from django.contrib.auth.views import LoginView, LogoutView
 from .views import dashboard
 from store.webviews.CheckoutView import CheckoutView
+from store.webviews.CustomerCheckoutView import CustomerCheckoutView
 
 urlpatterns = [
     path('', dashboard, name='dashboard'),
@@ -28,7 +29,7 @@ urlpatterns = [
     
     path('customers/', ManageCustomersView.as_view(), name='customers'),
     path('customer/<str:card_number>/', SingleCustomerView.as_view(), name='customer'),
-    path('customer/<str:card_number>/checkout', CheckoutView.as_view(), name='checkout'),
+    path('customer/<slug:card_number>/checkout/', CustomerCheckoutView.as_view(), name='checkout'),
 
     path('products/', ManageProductsView.as_view(), name='products'),
     path('product/<str:ean>/', StoreProductDetailView.as_view(), name='product'),
@@ -40,5 +41,5 @@ urlpatterns = [
     path('summary/', Summary.as_view(), name='summary'),
     path('logs/', StoreLogListView.as_view(), name='logs'),
     path('journal/', JournalView.as_view(), name='journal'),
-    path('checkout/', CheckoutView.as_view(), name='checkout'),
+    #path('checkout/', CheckoutView.as_view(), name='checkout'),
 ]

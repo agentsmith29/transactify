@@ -1,4 +1,4 @@
-class ModalDialogManager {
+export default class ModalDialogManager {
     constructor(modalId) {
         this.modalElement = document.getElementById(modalId);
         this.modalTitle = this.modalElement.querySelector('#confirmationModalTitle');

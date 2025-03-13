@@ -1,4 +1,4 @@
-class RequestHandler {
+export default class RequestHandler {
     /**
      * Constructor for RequestHandler
      * @param {string} csrfToken - CSRF token for security
@@ -75,6 +75,9 @@ class RequestHandler {
      * @param {string} url - Endpoint URL for the request.
      */
     sendRequest(cmd, jsonData, url) {
+        if (!url.endsWith('/')) {
+            url += '/';
+        }
         console.log(`🚀 Sending to page: ${url} with content`, jsonData);
         return fetch(url, {
             method: "POST",
@@ -89,7 +92,9 @@ class RequestHandler {
         })
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Request failed: ${response.status}`);
+                    return response.json().then((errorData) => {
+                        throw new Error(`Request failed (${response.status}). Response from server: ${errorData.error}`);
+                    });
                 }
                 return response.json();
             })
@@ -104,7 +109,7 @@ class RequestHandler {
                 return data;
             })
             .catch((error) => {
-                console.error("❌ Error:", error);
+                console.error("❌:", error);
                 this.toastManager.error(
                     "Error",
                     `Failed to complete '${cmd}': ${error.message}`,
@@ -166,6 +171,41 @@ class RequestHandler {
             this.toastManager.error(
                 "Error",
                 "Failed to attach event listeners to the form.",
+                "error",
+                false
+            );
+        }
+    }
+
+    /**
+     * Attaches event listeners to a dictionary and its submit button.
+     * @param {string} cmd - Command type (e.g., 'update')
+     * @param {object} dict - Dictionary containing data
+     * @param {string} buttonId - ID of the submit button
+     * @param {string} url - Endpoint URL for the request.
+     */
+    attachDictAndButton(cmd, dict, buttonId, url) {
+        const button = document.getElementById(buttonId);
+
+        if (!button) {
+            console.error(`❌ Error during dict binding: Button with ID '${buttonId}' not found.`);
+            return;
+        }
+
+        try {
+            // ✅ Listen for button click
+            button.addEventListener("click", (event) => {
+                event.preventDefault();
+                console.log("📌 Submit button clicked...");
+                this.sendRequest(cmd, dict, url);
+            });
+
+            console.log(`✅ Button ${buttonId} enabled after successful binding with dictionary.`);
+        } catch (error) {
+            console.error(`❌ Error during dict binding: ${error}`);
+            this.toastManager.error(
+                "Error",
+                "Failed to attach event listeners to the dictionary.",
                 "error",
                 false
             );
