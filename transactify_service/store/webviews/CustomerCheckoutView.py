@@ -26,14 +26,14 @@ class CustomerCheckoutView(View, LoginRequiredMixin):
         super().__init__(**kwargs)
 
     @method_decorator(ensure_csrf_cookie)
-    def get(self, request, card_number=None):
+    def get(self, request, id=None):
         """
         Handle GET requests to display available products and customer checkout details.
         """
         products = StoreProduct.objects.filter(stock_quantity__gt=0)  # Only show in-stock products
 
         try:
-            customer = Customer.objects.get(card_number=card_number)
+            customer = Customer.objects.get(id=id)
         except Customer.DoesNotExist:
             return JsonResponse({'error': 'Customer profile not found'}, status=404)
 
@@ -44,24 +44,26 @@ class CustomerCheckoutView(View, LoginRequiredMixin):
         })
 
     @transaction.atomic
-    def post(self, request, card_number=None):
+    def post(self, request, id=None):
         """
         Handle POST requests to process a checkout transaction.
         """
         try:
             data = json.loads(request.body)
+            self.logger.info(f"Received checkout request: {data}")
             items = data.get("items", [])
 
-            if not card_number or not items:
+            if not id or not items:
                 return JsonResponse({'error': 'Invalid request. No items provided.'}, status=400)
             # Fetch the customer
-            customer = get_object_or_404(Customer, card_number=card_number)
+            customer = get_object_or_404(Customer, id=id)
+            prepaid = True if data.get("payment_method") == "prepaid"  else False
+
 
             for item in items:
                 ean = item.get("ean")
-                quantity = int(item.get("quantity"))
-                
-                response, _ = StoreHelper.customer_purchase(ean=ean, quantity=quantity, card_number=card_number, logger=self.logger, prepaid = True)
+                quantity = int(item.get("quantity"))            
+                response, _ = StoreHelper.customer_purchase(ean=ean, quantity=quantity, card_number=customer.card_number, logger=self.logger, prepaid = prepaid)
                 data, status = response.json_data()
                 return JsonResponse(data=data, status=status)
             return status

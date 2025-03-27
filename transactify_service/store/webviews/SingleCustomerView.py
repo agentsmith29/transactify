@@ -38,18 +38,18 @@ class SingleCustomerView(View):
     
 
     @method_decorator(ensure_csrf_cookie)
-    def get(self, request, card_number=None):
+    def get(self, request, id=None):
         """+
         Handle GET requests to display customer details and deposit history.
         """
-        if card_number is None:
-            card_number = request.GET.get('card_number')
+        if id is None:
+            id = request.GET.get('id')
 
-        customer = get_object_or_404(Customer, card_number=card_number)
+        customer = get_object_or_404(Customer, id=id)
         balance = customer.balance
 
-        _sent_mails = EmailHelper.get_sent_email(card_number=card_number, logger=self.logger)
-        _recieved_mails = EmailHelper.get_received_email(card_number=card_number, logger=self.logger)
+        _sent_mails = EmailHelper.get_sent_email(customer=customer, logger=self.logger)
+        _recieved_mails = EmailHelper.get_received_email(customer=customer, logger=self.logger)
         #print(f"Sent mails: {_sent_mails}")
         
         return render(request, self.template_name, {
@@ -73,7 +73,7 @@ class SingleCustomerView(View):
         })
    
 
-    def post(self, request, card_number=None):
+    def post(self, request, id=None):
         """
         Handle POST requests to update the customer's balance by adding a deposit.
         """
@@ -85,6 +85,7 @@ class SingleCustomerView(View):
                 cmd = "deposit"
 
             data = json.loads(request.body)
+            customer = get_object_or_404(Customer, id=id)
             self.logger.debug(f"Post request recieved: {data}")
 
 
@@ -99,7 +100,6 @@ class SingleCustomerView(View):
                     return JsonResponse({'error': 'Invalid amount'}, status=400)
 
                 # Fetch the customer
-                customer = get_object_or_404(Customer, card_number=card_number)
                 response, customer_deposit = StoreHelper.customer_add_deposit(customer, amount, self.logger )
                 return JsonResponse({'message': 'Deposit successful'}, status=200)
             elif cmd == "update":
@@ -108,13 +108,13 @@ class SingleCustomerView(View):
                 email = data.get("email")
                 password = data.get("password")
 
-                if not card_number:
+                if not id:
                     msg = "Customer ID is required for updating details."
                     self.logger.error(msg)
                     return JsonResponse({'error': 'Invalid JSON data'}, status=400)
 
                 response, updated_customer = StoreHelper.update_customer_details(
-                    card_number=card_number,
+                    id=id,
                     first_name=first_name,
                     last_name=last_name,
                     email=email,
@@ -130,21 +130,28 @@ class SingleCustomerView(View):
                 
                 if not subject or not html_message:
                     return JsonResponse({'error': 'Subject and message cannot be empty'}, status=400)
-                EmailHelper.send_email(card_number=card_number, subject=subject, html_message=html_message, logger=self.logger)
+                EmailHelper.send_email(card_number=customer.card_number, subject=subject, html_message=html_message, logger=self.logger)
                 return JsonResponse({'success': True, 'message': 'Email sent successfully'}, status=200)
             elif cmd == "update_config":
-                response, _ = StoreHelper.update_customer_config(card_number, data,  logger=self.logger)
+                response, _ = StoreHelper.update_customer_config(card_number=customer.card_number, update_data=data,  logger=self.logger)
                 data, status = response.json_data()
                 return JsonResponse(data=data, status=status)
             elif cmd == "delete_deposit":
                 deposit_id = data.get('deposit_id')
                 print(f"Deleting deposit: {deposit_id}...")
-                #response, _ = StoreHelper.delete_deposit(deposit_id, logger=self.logger)
-                #data, status = response.json_data()
-                #return JsonResponse(data=data, status=status)
+                # Get the deposit amout with the id  
+                deposit = get_object_or_404(CustomerDeposit, id=deposit_id)
+    
+                response, rm_deposit = StoreHelper.customer_remove_cash_from_account(customer, -deposit.amount, self.logger, 
+                                                                            comment=f"Entry for removed deposit {deposit.id}.")
+                deposit.comments = f"[REMOVED] | Related Remove-ID: {rm_deposit.id}"
+                deposit.flag = "removed"
+                deposit.related_deposit = rm_deposit
+                deposit.save()
+                data, status = response.json_data()
+                return JsonResponse(data=data, status=status)
             
             elif cmd == "test_send_mail_email_on_deposit":
-                customer = get_object_or_404(Customer, card_number=card_number)
                 try:
                     MailTemplate.send_mail_template_new_deposit(
                         customer, 
@@ -158,7 +165,6 @@ class SingleCustomerView(View):
                 
                 return JsonResponse({'success': True, 'message': 'Email sent successfully'}, status=200)
             elif cmd == "test_send_mail_email_on_purchase":
-                customer = get_object_or_404(Customer, card_number=card_number)
                 try:
                     MailTemplate.send_mail_template_purchase(
                         customer,
@@ -168,7 +174,7 @@ class SingleCustomerView(View):
                         CONFIG.webservice.FRIENDLY_NAME,
                         self.logger, send_to_admin=True)
                 except Exception as e:
-                    self.logger.warning(f"Error sending email to customer {card_number}: {e}.")
+                    self.logger.warning(f"Error sending email to customer {customer.card_number}: {e}.")
                     return JsonResponse({'error': f'Error sending email: {str(e)}'}, status=500)
                 
                 return JsonResponse({'success': True, 'message': 'Email sent successfully'}, status=200)

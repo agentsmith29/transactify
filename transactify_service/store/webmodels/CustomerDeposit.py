@@ -20,6 +20,19 @@ class CustomerDeposit(models.Model):
     customer_balance = models.DecimalField(max_digits=10, decimal_places=2)
     # The date the deposit was made
     deposit_date = models.DateTimeField(auto_now_add=True)
+
+    # other fields
+    flag = models.CharField(max_length=100, default="executed")
+    # Flags
+    # executed: deposit was successful
+    # removed: deposit was removed
+    # pending: deposit is pending
+    # withdrawn: deposit was withdrawn
+
+    # The related deposit that was removed
+    related_deposit = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
+
+    comments = models.TextField(blank=True, null=True)
     
 
     def __str__(self):

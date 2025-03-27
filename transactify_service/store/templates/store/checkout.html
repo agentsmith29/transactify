@@ -191,42 +191,62 @@
                         </div>
                         
                         <div class="tab-pane" id="checkout">
-                            <form>
-                                <div class="row">
+                            <div class="tab-pane" id="checkout">
+                                <form id="checkout-form">
+                                    <div class="row">
                                         <div class="col-lg-8">
                                             <h4 class="mt-2">Place Order</h4>
                                             <p class="text-muted mb-4">Fill in the form below to receive your order invoice.</p>
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="mb-3">
-                                                            <label for="billing-first-name" class="form-label">First Name</label>
-                                                            <input class="form-control" type="text" placeholder="Enter your first name" id="billing-first-name"
-                                                                value="{{ customer.user.first_name }}" />
-                                                        </div>
+                            
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label for="billing-first-name" class="form-label">First Name</label>
+                                                        <input class="form-control" type="text" placeholder="Enter your first name" id="billing-first-name"
+                                                            value="{{ customer.user.first_name }}" />
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <div class="mb-3">
-                                                            <label for="billing-last-name" class="form-label">Last Name</label>
-                                                            <input class="form-control" type="text" placeholder="Enter your last name" id="billing-last-name"
-                                                                value="{{ customer.user.last_name }}" />
-                                                        </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label for="billing-last-name" class="form-label">Last Name</label>
+                                                        <input class="form-control" type="text" placeholder="Enter your last name" id="billing-last-name"
+                                                            value="{{ customer.user.last_name }}" />
                                                     </div>
-                                                </div> <!-- end row -->
-                                                
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="mb-3">
-                                                            <label for="billing-email-address" class="form-label">Email Address <span class="text-danger">*</span></label>
-                                                            <input class="form-control" type="email" placeholder="Enter your email" id="billing-email-address"
-                                                                value="{{ customer.user.email }}" />
-                                                        </div>
+                                                </div>
+                                            </div> <!-- end row -->
+                            
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label for="billing-email-address" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                                        <input class="form-control" type="email" placeholder="Enter your email" id="billing-email-address"
+                                                            value="{{ customer.user.email }}" />
                                                     </div>
-                                                </div> <!-- end row -->
-                                        </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label d-block">Payment Method <span class="text-danger">*</span></label>
+                            
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="payment_method" id="deduct_from_balance" value="deduct_from_balance" checked>
+                                                        <label class="form-check-label" for="deduct_from_balance">
+                                                            Deduct from Balance
+                                                        </label>
+                                                    </div>
+                            
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="payment_method" id="prepaid" value="prepaid">
+                                                        <label class="form-check-label" for="prepaid">
+                                                            Prepaid
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div> <!-- end row -->
+                                        </div> <!-- end col-lg-8 -->
+                            
                                         <div class="col-lg-4">
                                             <div class="border p-3 mt-4 mt-lg-0 rounded">
                                                 <h4 class="header-title mb-3">Order Summary</h4>
-                                        
+                            
                                                 <div class="table-responsive">
                                                     <table class="table table-nowrap table-centered mb-0" id="basket-total-table">
                                                         <tbody id="basket-total-items">
@@ -234,21 +254,21 @@
                                                         </tbody>
                                                     </table>
                                                 </div>
-                                                
+                            
                                                 <div class="text-end mt-3">
                                                     <h6 class="m-0">Sub Total:</h6>
                                                     <p class="text-end fw-semibold" id="basket-summary-subtotal">€0.00</p>
-                                        
+                            
                                                     <h6 class="m-0">Shipping:</h6>
                                                     <p class="text-end">FREE</p>
-                                        
+                            
                                                     <h5 class="m-0">Total:</h5>
                                                     <p class="text-end fw-bold" id="basket-summary-total">€0.00</p>
-                                                </div>                                    
+                                                </div>
                                             </div>
-                                        </div>
-                                </div> <!-- end row-->
-                                <div class="row">
+                                        </div> <!-- end col-lg-4 -->
+                                    </div> <!-- end row -->
+                            
                                     <div class="row mt-4">
                                         <div class="col-sm-6">
                                             <a href="apps-ecommerce-shopping-cart.html" class="btn text-muted d-none d-sm-inline-block btn-link fw-semibold">
@@ -262,10 +282,10 @@
                                                 </a>
                                             </div>
                                         </div>
-                                </div> <!-- end row -->
-                        
-                            </form>
-
+                                    </div> <!-- end row -->
+                                </form>
+                            </div>
+                            
                         </div>
                         <!-- End Product Information -->
                     </div> 

@@ -17,17 +17,20 @@ export default class RequestHandler {
     static collectFormData(form) {
         const formData = new FormData(form);
         const jsonData = {};
-
-        // Process existing form data
+    
+        // Process all entries in FormData
         formData.forEach((value, key) => {
-            if (value.toLowerCase() === "true" || value.toLowerCase() === "on") {
-                value = true;
-            } else if (value.toLowerCase() === "false" || value.toLowerCase() === "off") {
-                value = false;
-            } else if (!isNaN(value) && value.trim() !== "") {
-                value = value.includes(".") ? parseFloat(value) : parseInt(value, 10);
+            if (typeof value === "string") {
+                const lower = value.toLowerCase();
+                if (lower === "true" || lower === "on") {
+                    value = true;
+                } else if (lower === "false" || lower === "off") {
+                    value = false;
+                } else if (!isNaN(value) && value.trim() !== "") {
+                    value = value.includes(".") ? parseFloat(value) : parseInt(value, 10);
+                }
             }
-
+    
             if (jsonData[key]) {
                 if (!Array.isArray(jsonData[key])) {
                     jsonData[key] = [jsonData[key]];
@@ -37,16 +40,29 @@ export default class RequestHandler {
                 jsonData[key] = value;
             }
         });
-
-        // Detect unchecked checkboxes (they don't appear in FormData)
-        form.querySelectorAll("input[type=checkbox]").forEach((checkbox) => {
+    
+        // Handle unchecked checkboxes (they don't appear in FormData)
+        form.querySelectorAll('input[type=checkbox]').forEach((checkbox) => {
             if (!formData.has(checkbox.name)) {
-                jsonData[checkbox.name] = false; // Unchecked checkboxes default to false
+                jsonData[checkbox.name] = false;
             }
         });
-
+    
+        // Handle unselected radio buttons (only selected ones appear in FormData)
+        const radioGroups = new Set();
+        form.querySelectorAll('input[type=radio]').forEach((radio) => {
+            radioGroups.add(radio.name);
+        });
+    
+        radioGroups.forEach((name) => {
+            if (!formData.has(name)) {
+                jsonData[name] = null; // Explicitly mark as null if no option was selected
+            }
+        });
+    
         return jsonData;
     }
+    
 
     /**
      * Disables all form inputs until the form is successfully initialized.
@@ -184,8 +200,14 @@ export default class RequestHandler {
      * @param {string} buttonId - ID of the submit button
      * @param {string} url - Endpoint URL for the request.
      */
-    attachDictAndButton(cmd, dict, buttonId, url) {
+    attachDictAndButton(cmd, dict, formId, buttonId, url) {
+        const form = document.getElementById(formId);
         const button = document.getElementById(buttonId);
+
+        if (!form) {
+            console.error(`❌ Error for ${formId} and input ${buttonId} during form binding: Form with ID '${formId}' not found.`);
+            return;
+        }
 
         if (!button) {
             console.error(`❌ Error during dict binding: Button with ID '${buttonId}' not found.`);
@@ -196,8 +218,12 @@ export default class RequestHandler {
             // ✅ Listen for button click
             button.addEventListener("click", (event) => {
                 event.preventDefault();
+                const jsonData = RequestHandler.collectFormData(form);
+                console.log(jsonData);
+                // Combine dictionaries
+                const combinedDict = { ...dict, ...jsonData };
                 console.log("📌 Submit button clicked...");
-                this.sendRequest(cmd, dict, url);
+                this.sendRequest(cmd, combinedDict, url);
             });
 
             console.log(`✅ Button ${buttonId} enabled after successful binding with dictionary.`);

@@ -161,12 +161,13 @@ class ManageCustomerCheckout {
 
     initActions() {
         
-        const self = this;
-        const updateForm = document.getElementById('updateBalanceForm');
         
         this.requestHandler.attachDictAndButton(
              "add_purchase", // Command type
-             {'items': this.basket.getBasket()}, // JSON data
+             {
+                'items': this.basket.getBasket(),
+             }, // JSON data
+            "checkout-form", // Form ID
              "place_order", // Submit button ID
              this.page_url
          );

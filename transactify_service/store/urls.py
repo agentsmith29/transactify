@@ -28,8 +28,8 @@ urlpatterns = [
     #path(f'{settings.STORE_NAME}/dashboard/', dashboard, name='dashboard'),
     
     path('customers/', ManageCustomersView.as_view(), name='customers'),
-    path('customer/<str:card_number>/', SingleCustomerView.as_view(), name='customer'),
-    path('customer/<slug:card_number>/checkout/', CustomerCheckoutView.as_view(), name='checkout'),
+    path('customer/<str:id>/', SingleCustomerView.as_view(), name='customer'),
+    path('customer/<slug:id>/checkout/', CustomerCheckoutView.as_view(), name='checkout'),
 
     path('products/', ManageProductsView.as_view(), name='products'),
     path('product/<str:ean>/', StoreProductDetailView.as_view(), name='product'),

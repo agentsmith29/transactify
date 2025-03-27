@@ -63,3 +63,4 @@ class MailTemplate:
                     subject=f"New Deposit: {balanced_added}€ added (Admin Mirror)", 
                     html_message=email_content,
                     logger=logger)
+

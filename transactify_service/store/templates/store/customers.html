@@ -19,12 +19,6 @@
                     <form id="addCustomerForm" class="border p-4 shadow-sm bg-light">
 
                         <!-- create an hidden card_number_container -->
-                        <div id="card_number_container" style="display: none;">
-                            <div class="mb-3">
-                                <label for="card_number" class="form-label">Card Number</label>
-                                <input type="text" class="form-control" id="card_number" name="card_number" readonly>
-                            </div>
-                        </div>
                         <div class="form-group mb-3">
                             <label for="first_name">First Name</label>
                             <input type="text" class="form-control" id="first_name" name="first_name" required>
@@ -116,13 +110,13 @@
                                         {% endif %}
                                     </td>
                                     <td>{{ customer.user.username }}</td>
-                                    <td>{{ customer.card_number }}</td>
+                                    <td>{{ customer.id }}</td>
                                     <td>{{ customer.user.email }}</td>
                                     <td>{{ customer.issued_at }}</td>
                                     <td>{{ customer.balance }}</td>
                                     <td><div class="spark-chart" data-dataset="{{ customer.chart_data_json|escapejs }}"></div></td>
                                     <td>
-                                        <a href="{% url 'customer' customer.card_number %}" class="action-icon">
+                                        <a href="{% url 'customer' customer.id %}" class="action-icon">
                                             <i class="mdi mdi-square-edit-outline"></i>
                                         </a>
                                         <a href='javascript: window.deleteCustomer("{{ customer.user.username }}");' class="action-icon">

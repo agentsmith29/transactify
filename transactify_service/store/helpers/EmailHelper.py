@@ -135,7 +135,7 @@ class EmailHelper:
             return False
 
     @staticmethod
-    def get_sent_email(card_number: str, logger: logging.Logger = None):
+    def get_sent_email(customer: Customer, logger: logging.Logger = None):
         """
         Retrieves sent emails from Gmail for a customer based on their card number.
 
@@ -148,12 +148,6 @@ class EmailHelper:
         """
         if logger is None:
             logger = logging.getLogger(__name__)
-
-        try:
-            customer = Customer.objects.get(card_number=card_number)
-        except ObjectDoesNotExist:
-            logger.error("Can't fetch emails. Customer not found.")
-            return []
 
         try:
             # IMAP setup
@@ -213,7 +207,7 @@ class EmailHelper:
             return []
 
     @staticmethod
-    def get_received_email(card_number: str, logger: logging.Logger = None):
+    def get_received_email(customer: Customer, logger: logging.Logger = None):
         """
         Retrieves received emails from Gmail for a customer based on their card number.
 
@@ -226,12 +220,6 @@ class EmailHelper:
         """
         if logger is None:
             logger = logging.getLogger(__name__)
-
-        try:
-            customer = Customer.objects.get(card_number=card_number)
-        except ObjectDoesNotExist:
-            logger.error("Can't fetch emails. Customer not found.")
-            return []
 
         try:
             # IMAP setup

@@ -458,7 +458,7 @@
                                 <div class="col-sm-4">
                                     <div class="text-center mt-sm-0 mt-3 text-sm-end">
                                         <button type="button" class="btn btn-light" 
-                                            onclick="window.manageCustomer.openEditModal('{{ customer.user.first_name }}', '{{ customer.user.last_name }}', '{{ customer.user.email }}', '{{ customer.config.auto_deposit }}')">
+                                            onclick="window.manageCustomer.openEditModal('{{customer.card_number}}', '{{ customer.user.first_name }}', '{{ customer.user.last_name }}', '{{ customer.user.email }}', '{{ customer.config.auto_deposit }}')">
                                             <i class="mdi mdi-account-edit me-1"></i> Edit Profile
                                         </button>
                                     </div>
@@ -569,7 +569,10 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="modal_customer_id" name="customer_id">
-                    
+                    <div class="form-group">
+                        <label for="modal_card_number">Card Number</label>
+                        <input type="text" class="form-control" id="modal_card_number" name="card_number" required>
+                    </div>
                     <div class="form-group">
                         <label for="modal_first_name">First Name</label>
                         <input type="text" class="form-control" id="modal_first_name" name="first_name" required>
