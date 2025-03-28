@@ -2,20 +2,27 @@
 "use strict";
 
 class ManageStock {
-    constructor(page_url) {
+    constructor(page_url, config) {
         this.page_url = page_url;
-        $(document).ready(() => {
-            this.initSocket();
-            this.initEventListeners();
-            this.initDataTables();
+        this.config = config;
+
+
+        App.ready.then(() => {
+            console.log("🚀 Initializing Stock Manager...");
+            this.requestHandler = App.requestHandler;
+            this.actionTrigger = App.actionTrigger;
+
             this.csrftoken = document.cookie.match(/csrftoken=([^;]+)/)[1];
-
-            this.toastManager = window.storeManager.toastManager;
-            this.modalManager = window.storeManager.modalManager;
+    
+    
+            // Bind event listeners
+            this.initActions();
+            this.initDataTables();
+            this.initEventListeners();
         });
-
-
     }
+
+    
 
     initSocket() {
         window.storeManager.webSocketHandler.onmessage = (event) => {
@@ -52,8 +59,12 @@ class ManageStock {
         document.getElementById('use_direct_price').addEventListener('click', () => this.toggleInputMethod('direct'));
         document.getElementById('use_logic_expression').addEventListener('click', () => this.toggleInputMethod('expression'));
         
-    
     }
+
+    initActions(){
+        this.requestHandler.attachFormAndButton("add_stock", "addStockForm", "addStockFormSubmit", this.page_url);
+    }
+
 
     initDataTables() {
         // Initialize DataTable for products

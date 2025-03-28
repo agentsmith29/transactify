@@ -45,15 +45,26 @@ class OFFParser {
 }
 
 class ManageProducts {
-    constructor(page_url) {
+    constructor(page_url, config) {
         this.page_url = page_url;
-        $(document).ready(() => {
-            this.initSocket();
-            this.initDataTables();
-            this.offParser = new OFFParser();
+        this.config = config;
+
+
+        App.ready.then(() => {
+            console.log("🚀 Initializing Product Manager...");
+            this.requestHandler = App.requestHandler;
+            this.actionTrigger = App.actionTrigger;
+
             this.csrftoken = document.cookie.match(/csrftoken=([^;]+)/)[1];
-        
+    
+    
+            // Bind event listeners
+            this.initActions();
         });
+    }
+
+    initActions(){
+        this.requestHandler.attachFormAndButton("add_product", "addProductForm", "addProductFormSubmit", this.page_url);
     }
 
     initSocket() {
@@ -85,6 +96,8 @@ class ManageProducts {
             }
         };
     }
+
+
 
     initDataTables() {
         const tableSelector = "#product-list-datatable";
