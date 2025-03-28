@@ -44,6 +44,7 @@ class WebService(BaseConfigField):
 
         self.JOURNAL_FILE = self.assign_from_config("JOURNAL_FILE", f"./journal_{self.SERVICE_NAME}.py")
         self.HAS_INTERNET_ACCESS = self.assign_direct(False)
+        self.REGISTER_STORE = self.assign_from_config("REGISTER_STORE", "true")
 
 class AdminConfig(BaseConfigField):
     def __init__(self, *args, **kwargs):

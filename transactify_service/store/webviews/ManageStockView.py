@@ -53,12 +53,12 @@ class ManageStockView(View):
                 data, status = response.json_data()
                 return JsonResponse(data=data, status=status)
             elif cmd == "add_stock":    
-                ean = data.get('product_ean')
-                quantity = data.get('quantity')
-                purchase_price = data.get('purchase_price') 
-                store_equity = bool(data.get('store_equity'))
                 with transaction.atomic():
                     try:
+                        ean = data.get('ean')
+                        quantity = data.get('quantity')
+                        purchase_price = data.get('purchase_price') 
+                        store_equity = bool(data.get('store_equity', False))
                         quantity = int(quantity)  # Validate Decimal conversion
                         purchase_price = Decimal(purchase_price)
                     except Exception as e:

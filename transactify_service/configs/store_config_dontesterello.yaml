@@ -1,0 +1,50 @@
+ENV: "../../.env"  # Path to the .env file for global environment variable resolution
+
+database:
+  RESET: FALSE  # Deletes and recreates the database (dangerous)
+  REMIGRATE: FALSE  # Remigrates the database
+  
+  HOST: "${ENV.DB_HOST}"                       # Database server (docker image name)
+  PORT: "${ENV.DB_PORT}"               # Database port
+  USER: "${ENV.DB_USER}"
+  PASSWORD: "${ENV.DB_PASSWORD}"
+  NAME: "transactify_${webservice.SERVICE_NAME}"
+  
+webservice:
+  SERVICE_NAME: "dontesterello"
+  FRIENDLY_NAME: "Don Testerello"
+  SERVICE_WEB_HOST: "${ENV.PROJECT_HOST}"
+  SERVICE_WEB_PORT: ${ENV.PROJECT_PORT}
+  JOURNAL_FILE: "journal_${SERVICE_NAME}.py"
+  
+admin:
+  ADMIN_USER: "admin"
+  ADMIN_PASSWORD: "admin"
+  ADMIN_EMAIL: "donknabberello@gmail.com"
+
+terminal:
+  TERMINAL_SERVICE: terminal1
+  TERMINAL_SERVICE_URL: "${ENV.PROJECT_HOST}:${ENV.PROJECT_PORT}/${TERMINAL_SERVICE}"
+  TERMINAL_WEBSOCKET_URL: "${TERMINAL_SERVICE_URL}/ws"
+  TERMINAL_SELECTION_BUTTONS: C
+
+# Other configurations
+django:
+  DEBUG: True
+  SECRET_KEY: "YourSecretKey"
+  # The path to the static files
+  STATIC_URL: "static/"
+  STATIC_ROOT: "/app/static/"
+  STATIC_ASSETS_PATH: "assets_hyper/"
+  # If those are set, the static path points to a different location instead of localhost
+  STATIC_WEBSERVER: "http://${ENV.PROJECT_HOST}:${ENV.PROJECT_PORT}"
+
+customer:
+  AUTO_DEPOSIT: True
+
+gmail:
+  HOST: smtp.gmail.com
+  USER: "donknabberello@gmail.com"
+  PASSWORD: "aino jwkh dkuo tjer "
+  PORT: 587
+  TLS: True
