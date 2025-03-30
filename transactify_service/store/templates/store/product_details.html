@@ -175,8 +175,14 @@
                         </thead>
                         <tbody>
                             <tr>
+                                {% if product.nutri_score %}
                                 <td>Nutri-Score</td>
-                                <td>{{ product.nutri_score }}</td>
+                                <td>
+                                    <img src="{% static_images 'nutriscore/Nutri-score-' %}{{ product.nutri_score|upper }}.svg" alt="Nutri-Score {{ product.nutri_score|upper }}" style="max-width: 100px;">
+                                </td> 
+                                {% else %}
+                                <td></td>
+                                {% endif %}
                             </tr>
                             <tr>
                                 <td>Energy (kcal)</td>

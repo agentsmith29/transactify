@@ -188,6 +188,8 @@ class HTTPResponses():
         http_status=status.HTTP_400_BAD_REQUEST
     )
 
+ 
+
     HTTP_STATUS_JSON_PARSE_ERROR = lambda error_msg: APIResponse.error(
         message=f"Error parsing JSON data: {error_msg}",
         code=901,
@@ -204,5 +206,17 @@ class HTTPResponses():
         message=f"Restock entry deleted successfully.",
         code=903,
         http_status=status.HTTP_200_OK
+    )
+
+    HTTP_STATUS_NOT_STRING = lambda field_name, field_type, error_msg: APIResponse.error(
+        message=f"Invalid data for {field_name}. Must be a string not {field_type}: Error: {error_msg}",
+        code=904,
+        http_status=status.HTTP_400_BAD_REQUEST
+    )
+
+    HTTP_STATUS_FIELD_ASSIGNMENT_FAILED = lambda field_name, field_type, error_msg: APIResponse.error(
+        message=f"Cannot assign {field_name}. Error: {error_msg}",
+        code=905,
+        http_status=status.HTTP_400_BAD_REQUEST
     )
     

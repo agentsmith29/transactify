@@ -12,6 +12,7 @@ import os
 
 from django.conf import settings 
 from store.helpers.WebImageDownloader import WebImageDownloader
+from store.helpers.ManageStockHelper import StoreHelper
 
 
 from store.helpers.OFFExtractor import OFFExtractor
@@ -97,6 +98,48 @@ class StoreProductDetailView(DetailView):
                 product.save()
                 self.logger.info(f"Product image updated for EAN: {product.ean}")
                 return JsonResponse({'message': 'Product image updated.'}, status=200)
+            elif cmd == "update_from_off":
+                offextractor = OFFExtractor(product)
+                offextractor.update_product_async()
+                self.logger.info(f"Product updated from OFF for EAN: {product.ean}")
+                return JsonResponse({'message': 'Product updated from OFF.'}, status=200)
+            elif cmd == "update_product":
+                try:
+                    product_name = data.get('product_name', None)
+                    resell_price = data.get('resell_price', None)
+                    discount = data.get('discount', None)
+                    nutri_score = data.get('nutri_score', None)
+                    energy_kcal = data.get('energy_kcal', None)
+                    energy_kj = data.get('energy_kj', None)
+                    fat = data.get('fat', None)
+                    carbohydrates = data.get('carbohydrates', None)
+                    sugar = data.get('sugar', None)
+                    fiber = data.get('fiber', None)
+                    proteins = data.get('proteins', None)
+                    salt = data.get('salt', None)
+                except Exception as e:
+                    self.logger.error(f"Error parsing product data: {e}")
+                    return JsonResponse({'message': 'Invalid product data.'}, status=400)
+                
+                response, product = StoreHelper.update_product_details(
+                    product,
+                    product_name=product_name,
+                    resell_price=resell_price,
+                    discount=discount, 
+                    nutri_score=nutri_score, 
+                    energy_kcal=energy_kcal, 
+                    energy_kj=energy_kj, 
+                    fat=fat, 
+                    carbohydrates=carbohydrates, 
+                    sugar=sugar, 
+                    fiber=fiber, 
+                    proteins=proteins, 
+                    salt=salt, 
+                    logger=self.logger)
+                self.logger.info(f"Product updated for EAN: {product.ean}")
+                data, status = response.json_data()
+                return JsonResponse(data=data, status=status)
+            
             else:
                 return JsonResponse({'message': f'Invalid command {cmd}'}, status=400)
 

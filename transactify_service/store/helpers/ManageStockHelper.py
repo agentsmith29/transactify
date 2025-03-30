@@ -64,7 +64,6 @@ class StoreHelper:
         return decorator
     
 
-
     @staticmethod
     def get_stock_quantity(product: StoreProduct, logger: logging.Logger, *args, **kwargs) -> int:
         """
@@ -329,8 +328,6 @@ class StoreHelper:
             logger.warning(f"Error sending email to customer {customer}: {e}.")
 
         return HTTPResponses.HTTP_STATUS_UPDATE_DEPOSIT_SUCCESS(customer), deposit_entry
-
-
 
     @staticmethod
     @transaction.atomic
@@ -770,8 +767,6 @@ class StoreHelper:
             logger.error(f"{msg}\n\nTraceback:\n{traceback.format_exc()}\n")
             return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(card_number, msg), None
 
-
-    
     # Private methods
     # =========================================================================================================
     @staticmethod
@@ -797,36 +792,44 @@ class StoreHelper:
         # Initialize offextractor to None
         offextractor = None
         nutri_facts = {}
-
-        if CONFIG.webservice.HAS_INTERNET_ACCESS:
-            try:
-                # Attempt to create the extractor and fetch nutrition facts
-                offextractor = OFFExtractor(ean)
-                nutri_facts = offextractor.extract()
-            except Exception as e:
-                logger.error(f"Error during product creation: {e}. Skipping. (You need to manually add the nutrition facts)")
-
-            logger.info(f"Creating or retrieving product '{name}' with EAN '{ean}' (Resell Price: {resell_price})")
-
+           
         try:
             product, created = StoreProduct.objects.get_or_create(ean=ean)
-            product.name = name
-            product.resell_price = resell_price
-            product.discount = discount
-
+            StoreHelper.update_product_details(product, name=name, resell_price=resell_price, discount=discount, 
+                                               logger=logger)
             # Assign nutrition facts if available
-            if nutri_facts and CONFIG.webservice.HAS_INTERNET_ACCESS:
-                product.nutri_score = nutri_facts.get("Nutri-Score")
-                product.energy_kcal = nutri_facts.get("Energy (kcal)")
-                product.energy_kj = nutri_facts.get("Energy (kJ)")
-                product.fat = nutri_facts.get("Fat")
-                product.carbohydrates = nutri_facts.get("Carbohydrates")
-                product.sugar = nutri_facts.get("Sugar")
-                product.fiber = nutri_facts.get("Fiber")
-                product.proteins = nutri_facts.get("Proteins")
-                product.salt = nutri_facts.get("Salt")
-                product.image_url = nutri_facts.get("Image URL")
-            product.save()
+            if CONFIG.webservice.HAS_INTERNET_ACCESS:
+                try:
+                # Attempt to create the extractor and fetch nutrition facts
+                    offextractor = OFFExtractor(ean)
+                    nutri_facts = offextractor.extract()
+                except Exception as e:
+                    logger.error(f"Error during product creation: {e}. Skipping. (You need to manually add the nutrition facts)")
+
+                logger.info(f"Creating or retrieving product '{name}' with EAN '{ean}' (Resell Price: {resell_price})")
+
+                if nutri_facts:
+                    nutri_score = nutri_facts.get("Nutri-Score")
+                    energy_kcal = nutri_facts.get("Energy (kcal)")
+                    energy_kj = nutri_facts.get("Energy (kJ)")
+                    fat = nutri_facts.get("Fat")
+                    carbohydrates = nutri_facts.get("Carbohydrates")
+                    sugar = nutri_facts.get("Sugar")
+                    fiber = nutri_facts.get("Fiber")
+                    proteins = nutri_facts.get("Proteins")
+                    salt = nutri_facts.get("Salt")
+                    product.image_url = nutri_facts.get("Image URL")
+
+                    StoreHelper.update_product_details(product,
+                                                nutri_score=nutri_score, 
+                                                energy_kcal=energy_kcal, 
+                                                energy_kj=energy_kj, 
+                                                fat=fat, carbohydrates=carbohydrates,
+                                                sugar=sugar, fiber=fiber,
+                                                proteins=proteins, salt=salt, 
+                                                logger=logger)
+            
+            
         except Exception as e:
             logger.error(f"Error during product creation: {e}")
             raise HelperException(f"", HTTPResponses.HTTP_STATUS_PRODUCT_CREATE_FAILED(ean, e))
@@ -837,6 +840,81 @@ class StoreHelper:
         else:
             logger.info(f"Existing product updated: {product}")
             return (HTTPResponses.HTTP_STATUS_PRODUCT_UPDATE_SUCCESS(ean), product)
+
+    
+    
+    @staticmethod
+    @transaction.atomic
+    @journal_command()
+    def update_product_details(product: StoreProduct,
+                                logger: logging.Logger,
+                                product_name: str= None, 
+                                resell_price: Decimal= None, 
+                                discount: Decimal= None, 
+                                nutri_score: str = None, 
+                                energy_kcal: Decimal = None, 
+                                energy_kj: Decimal = None, 
+                                fat: Decimal = None, 
+                                carbohydrates: Decimal = None,
+                                sugar: Decimal = None,
+                                fiber: Decimal = None,
+                                proteins: Decimal = None,
+                                salt: Decimal = None, 
+                                *args, **kwargs
+                               ):
+        """
+        """
+        logger.debug(f"Updating Product with EAN: {product.ean}.")   
+        # check if the product exists
+        if not product:
+            raise HelperException(f"Product does not exist.", HTTPResponses.HTTP_STATUS_PRODUCT_NOT_FOUND(product.ean))
+        
+        def assign_value(field, value, astype, product: StoreProduct):
+            try:
+                if value is None:
+                    logger.warning(f"Value for field '{field}' is None. Skipping.")
+                    return
+                # Convert to the correct type  
+                value = astype(value)
+                
+                if not isinstance(value, astype):
+                    logger.error(f"Invalid value for field '{field}': {value}. Expected type: {astype} but got {type(value)}")
+                    raise HelperException(f"Invalid value for field '{field}': {value}.",
+                                          HTTPResponses.HTTP_STATUS_FIELD_ASSIGNMENT_FAILED(field, type(value), e))
+                
+                if isinstance(value, Decimal):
+                    value = value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                
+
+                logger.debug(f"Assigning value for field '{field}': {value}.")
+                setattr(product, field, value)
+            except Exception as e:
+                errstr = f"Failed to convert {field} ({value}) to {astype}: {e}"
+                logger.error(errstr)
+                raise HelperException(errstr, HTTPResponses.HTTP_STATUS_FIELD_ASSIGNMENT_FAILED(field, type(value), e))
+        
+        assign_value("name", product_name, str, product)
+        assign_value("resell_price", resell_price, Decimal, product)
+        discount = Decimal(Decimal(discount)/100)
+        assign_value("discount", discount, Decimal, product)
+        assign_value("nutri_score", nutri_score, str, product)
+        assign_value("energy_kcal", energy_kcal, Decimal, product)
+        assign_value("energy_kj", energy_kj, Decimal, product)
+        assign_value("fat", fat, Decimal, product)
+        assign_value("carbohydrates", carbohydrates, Decimal, product)
+        assign_value("sugar", sugar, Decimal, product)
+        assign_value("fiber", fiber, Decimal, product)
+        assign_value("proteins", proteins, Decimal, product)
+        assign_value("salt", salt, Decimal, product)
+        product.save()
+        return HTTPResponses.HTTP_STATUS_PRODUCT_UPDATE_SUCCESS(product.ean), product
+
+
+
+
+       
+
+
 
     @staticmethod
     @transaction.atomic
