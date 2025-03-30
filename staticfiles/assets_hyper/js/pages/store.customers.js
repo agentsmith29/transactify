@@ -3,18 +3,32 @@ class CustomersManager {
 
         App.ready.then(() => {
             this.toastManager = App.toastManager;
-            this.modalManager =  App.tmodalManager;
-            this.webSocketHandler =  App.twebSocketHandler;
-            this.requestHandler =  App.trequestHandler;
+            this.modalManager =  App.modalManager;
+            this.webSocketHandler =  App.webSocketHandler;
+            this.requestHandler =  App.requestHandler;
             this.page_url = page_url;
         
+            this.addCustomerManager = new App.classes.ModalDialogManager(
+                'addCustomerModal',
+                '#addCustomerModalHeader', '#addCustomerModalBody', 
+                '#addCustomerModalSubmit', '#addCustomerModalClose'
+            );
         
             this.initWebSocketHandlers();
-            this.initFormActions();
+            // this.initFormActions();
             this.initModalActions();
-            
+            this.initActions();
         });
 
+    }
+
+    initActions() {
+        this.requestHandler.attachFormAndButton(
+            "update_product", // Command type
+            "addCustomerModalForm", // Form ID
+            "addCustomerModalSubmit", // Submit button ID
+            this.page_url
+        );
     }
 
     initWebSocketHandlers() {
@@ -59,13 +73,13 @@ class CustomersManager {
         const modalElement = document.getElementById("addCustomerModal");
         const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
         document.getElementById("card_number").value = cardNumber;
-        document.getElementById("card_number_container").style.display = "block";
+        //document.getElementById("card_number_container").style.display = "block";
         modal.show();
     }
 
-    submitAddCustomerForm() {
-        this.requestHandler.attachFormAndButton("add", "addCustomerForm", "submitCustomerButton", this.page_url);
-    }
+    // submitAddCustomerForm() {
+    //     this.requestHandler.attachFormAndButton("add", "addCustomerForm", "submitCustomerButton", this.page_url);
+    // }
 
     deleteCustomer(username) {
         this.requestHandler.sendRequest("delete", { username }, this.page_url);
@@ -78,7 +92,7 @@ class CustomersManager {
                 const modalElement = document.getElementById("addCustomerModal");
                 const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
                 document.getElementById("card_number").value = "";
-                document.getElementById("card_number_container").style.display = "none";
+                // document.getElementById("card_number_container").style.display = "none";
                 modal.show();
             });
         }

@@ -7,6 +7,7 @@ from .views import API_ReadNFCBlocking
 
 
 urlpatterns = [
+    path('/', StoreLogListView.as_view(), name='store_logs'),
     path('logs/', StoreLogListView.as_view(), name='store_logs'),
     path('view-oled', views.oled_display, name='view_oled'),
 

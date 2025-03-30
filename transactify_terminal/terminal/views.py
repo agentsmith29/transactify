@@ -6,8 +6,8 @@ from django.views import View
 import json
 from .webmodels.Store  import Store
 
-
 from terminal.apps import TerminalConfig
+# import hwcontroller from terminal.apps
 
 #@csrf_exempt
 class API_ReadNFCBlocking(View):
@@ -26,5 +26,5 @@ def oled_display(request):
     """
     View to render the OLED display HTML page.
     """
-    return render(request, 'hwcontroller/view_oled.html', {'current_image': hwcontroller.view_controller.current_view.oled_image_base64})
+    return render(request, 'hwcontroller/view_oled.html', {'current_image': TerminalConfig.hwcontroller.view_controller.current_view.convert_image_to_base64})
 
