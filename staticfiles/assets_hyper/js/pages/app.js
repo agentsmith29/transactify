@@ -55,7 +55,7 @@ const App = {
      */
     async init(config) {
         console.log("🚀 Initializing App...");
-        const classes = await loadScripts();
+        this.classes = await loadScripts();
 
         // **Initialize `ready` only once**
         if (!this.ready) {
@@ -70,11 +70,10 @@ const App = {
         this.urls = config.urls || {};
 
         // Initialize managers
-        this.toastManager = new classes.ToastManager(config.toastImgBase);
-        this.modalManager = new classes.ModalDialogManager(config.modalId);
-        this.webSocketHandler = new classes.WebSocketHandler(this.socketAddress, this.resolverName, this.toastManager);
-        this.requestHandler = new classes.RequestHandler(this.csrfToken, this.toastManager);
-        this.actionTrigger = new classes.ActionTriggerHandler(this.csrfToken, this.toastManager);
+        this.toastManager = new this.classes.ToastManager(config.toastImgBase);
+        this.webSocketHandler = new this.classes.WebSocketHandler(this.socketAddress, this.resolverName, this.toastManager);
+        this.requestHandler = new this.classes.RequestHandler(this.csrfToken, this.toastManager);
+        this.actionTrigger = new this.classes.ActionTriggerHandler(this.csrfToken, this.toastManager);
         // Bind button actions
         this.initActions();
         

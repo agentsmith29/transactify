@@ -2,7 +2,7 @@ ENV: "../../.env"  # Path to the .env file for global environment variable resol
 
 database:
   RESET: FALSE  # Deletes and recreates the database (dangerous)
-  REMIGRATE: FALSE  # Remigrates the database
+  REMIGRATE: False  # Remigrates the database
   
   HOST: "${ENV.DB_HOST}"                       # Database server (docker image name)
   PORT: "${ENV.DB_PORT}"               # Database port

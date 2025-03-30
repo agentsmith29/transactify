@@ -7,6 +7,12 @@ from django.shortcuts import render
 
 from transactify_service.settings import CONFIG
 import logging
+import json
+import os
+
+from django.conf import settings 
+from store.helpers.WebImageDownloader import WebImageDownloader
+
 
 from store.helpers.OFFExtractor import OFFExtractor
 
@@ -27,34 +33,16 @@ class StoreProductDetailView(DetailView):
         # Initialize offextractor to None
         offextractor = None
         nutri_facts = {}
+        product = get_object_or_404(StoreProduct, ean=ean)
+        if product.nutri_score is None or product.nutri_score == "":
+            try:
+                # Attempt to create the extractor and fetch nutrition facts
+                offextractor = OFFExtractor(product)
+                offextractor.update_product_async()
+            except Exception as e:
+                self.logger.error(f"Error during product creation: {e}. Skipping. (You need to manually add the nutrition facts)")
 
-        try:
-            # Attempt to create the extractor and fetch nutrition facts
-            offextractor = OFFExtractor(ean)
-            nutri_facts = offextractor.extract()
-        except Exception as e:
-            self.logger .error(f"Error during product creation: {e}. Skipping. (You need to manually add the nutrition facts)")
-        
-        try:
-            product = StoreProduct.objects.get(ean=ean)
-    
-            # Assign nutrition facts if available
-            if nutri_facts:
-                product.nutri_score = nutri_facts.get("Nutri-Score")
-                product.energy_kcal = nutri_facts.get("Energy (kcal)")
-                product.energy_kj = nutri_facts.get("Energy (kJ)")
-                product.fat = nutri_facts.get("Fat")
-                product.carbohydrates = nutri_facts.get("Carbohydrates")
-                product.sugar = nutri_facts.get("Sugar")
-                product.fiber = nutri_facts.get("Fiber")
-                product.proteins = nutri_facts.get("Proteins")
-                product.salt = nutri_facts.get("Salt")
-                product.image_url = nutri_facts.get("Image URL")
-            product.save()
-        except Exception as e:
-            self.logger .error(f"Error during product creation: {e}")
-
-        return get_object_or_404(StoreProduct, ean=ean)
+        return product
 
     def get_context_data(self, ean, **kwargs):
         """
@@ -81,3 +69,38 @@ class StoreProductDetailView(DetailView):
         Handle GET requests to the product detail view.
         """
         return render(request, self.template_name, self.get_context_data(ean))
+
+    def post(self, request, ean, *args, **kwargs):
+        """
+        Handle POST requests to the product detail view.
+        """
+        try:
+            product = get_object_or_404(StoreProduct, ean=ean)
+            # check the header for field cmd
+            if 'cmd' in request.headers:
+                cmd = request.headers['cmd']
+            else:
+                cmd = "add"
+
+            data = json.loads(request.body)
+            self.logger.info(f"Received POST request with command {cmd} for EAN: {product.ean}. Data: {data}")
+
+            if cmd == "update_from_url":
+                url = data.get('image_url')
+                if not url:
+                    return JsonResponse({'message': 'Missing image URL.'}, status=400)
+                filename = f"{os.path.abspath(settings.STATIC_ROOT)}/images/products/product_{product.ean}"
+                downloader = WebImageDownloader(url, filename)
+                filename, static_path = downloader.download()
+                product.image_url = static_path
+                product.image_source = "url"
+                product.save()
+                self.logger.info(f"Product image updated for EAN: {product.ean}")
+                return JsonResponse({'message': 'Product image updated.'}, status=200)
+            else:
+                return JsonResponse({'message': f'Invalid command {cmd}'}, status=400)
+
+        except Exception as e:
+            self.logger.error(f"Error parsing POST request: {e}")
+            return JsonResponse({'message': 'Invalid request.'}, status=400)
+       

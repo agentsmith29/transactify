@@ -22,6 +22,8 @@ class StoreProduct(models.Model):
     fiber = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     proteins = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     salt = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    image_source = models.CharField(max_length=255, default="openfoodfacts")
     image_url = models.URLField(max_length=255, null=True, blank=True)
 
     # Pricing
@@ -44,8 +46,10 @@ class StoreProduct(models.Model):
         return self.calculate_final_price()
 
     def calculate_final_price(self):
-        if self.discount > 1:
-            raise ValueError("Discount must be a percentage value between 0 and 1.")
+        if self.discount > 1 or self.discount < 0:
+            self.discount = 0
+            self.save()
+            raise ValueError("Discount must be a percentage value between 0 and 1. Resetting to 0.")
         
         """Calculate final price after discount."""
         price = self.resell_price * (1 - self.discount)

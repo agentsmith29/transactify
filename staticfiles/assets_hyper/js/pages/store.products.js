@@ -65,6 +65,7 @@ class ManageProducts {
 
     initActions(){
         this.requestHandler.attachFormAndButton("add_product", "addProductForm", "addProductFormSubmit", this.page_url);
+        this.requestHandler.attachFormAndButton("edit", "editProductForm", "editProductFormSubmit", this.page_url);
     }
 
     initSocket() {
@@ -96,8 +97,6 @@ class ManageProducts {
             }
         };
     }
-
-
 
     initDataTables() {
         const tableSelector = "#product-list-datatable";

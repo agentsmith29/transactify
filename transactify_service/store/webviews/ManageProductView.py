@@ -87,10 +87,12 @@ class ManageProductsView(View):
             with transaction.atomic():
                 try:
                     resell_price = Decimal(resell_price)  # Validate Decimal conversion
-                    discount = Decimal(data.get('discount', 0))
+                    discount = Decimal(float(data.get('discount', 0))/100)
                 except Exception as e:
                     self.logger.error(f"Invalid input for resell price: {e}")
-                    return JsonResponse({'success': False, 'message': "Invalid resell price. Please enter a valid number."}, status=400)
+                    return JsonResponse({'success': False, 
+                                         'message': "Invalid resell price. Please enter a valid number."}, 
+                                         status=400)
 
                 response, product = StoreHelper.get_or_create_product(product_ean, product_name, resell_price, discount, self.logger)
                 data, status = response.json_data()
