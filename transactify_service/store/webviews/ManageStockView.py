@@ -57,7 +57,12 @@ class ManageStockView(View):
                     try:
                         ean = data.get('ean')
                         quantity = data.get('quantity')
-                        purchase_price = data.get('purchase_price') 
+                        price_input_method = data.get('price_input_method') # direct or expression
+
+                        purchase_price = data.get('purchase_price') if price_input_method == 'direct' else eval(data.get('logic_expression'))
+                        # quantize purchase_price
+                        purchase_price = Decimal(purchase_price).quantize(Decimal('0.01'))
+
                         store_equity = bool(data.get('store_equity', False))
                         quantity = int(quantity)  # Validate Decimal conversion
                         purchase_price = Decimal(purchase_price)

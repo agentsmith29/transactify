@@ -14,7 +14,7 @@ export default class ActionTriggerHandler {
      * @param {string} cmd - Command type (e.g., 'start_process', 'shutdown')
      * @param {string} url - Endpoint URL for the request.
      */
-    sendAction(cmd, url) {
+    sendAction(cmd, url, data = {}) {
         console.log(`🚀 Sending action '${cmd}' to: ${url}`);
 
         return fetch(url, {
@@ -26,7 +26,7 @@ export default class ActionTriggerHandler {
                 "X-Requested-With": "XMLHttpRequest",
                 "cmd": cmd // Only sending command in headers
             },
-            body: JSON.stringify({}), // Empty body
+            body: JSON.stringify(data), // Empty body
         })
             .then((response) => {
                 if (!response.ok) {

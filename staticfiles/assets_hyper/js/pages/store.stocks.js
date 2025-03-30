@@ -229,31 +229,53 @@ class ManageStock {
     }
 
     deleteRestockEntry(deleteRestockEntryID) {
-        fetch(this.page_url, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json', // Ensure this header is correctly set
-                'X-CSRFToken': this.csrftoken , // Pass CSRF token here
-                'cmd': 'deleteRestockEntry' // Custom command header
-            },
-            body: JSON.stringify({ deleteRestockEntryID: deleteRestockEntryID })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                //location.reload();
-                this.toastManager.success(`Entry deleted successfully`, data.message, "", true);
+        // fetch(this.page_url, {
+        //     method: 'POST',
+        //     headers: {
+        //         'Accept': 'application/json',
+        //         'Content-Type': 'application/json', // Ensure this header is correctly set
+        //         'X-CSRFToken': this.csrftoken , // Pass CSRF token here
+        //         'cmd': 'deleteRestockEntry' // Custom command header
+        //     },
+        //     body: JSON.stringify({ deleteRestockEntryID: deleteRestockEntryID })
+        // })
+        // .then(response => response.json())
+        // .then(data => {
+        //     if (data.success) {
+        //         //location.reload();
+        //         this.toastManager.success(`Entry deleted successfully`, data.message, "", true);
                 
-            } else {
-                this.toastManager.error("Failed to deleted entry", data.message, "Please try again.", false);
-            }
-        })
-        .catch(error => {
-            console.error('Error deleting entry:', error);
-            this.toastManager.error("Failed to deleted entry", error, "Please try again.", false);
-        });
+        //     } else {
+        //         this.toastManager.error("Failed to deleted entry", data.message, "Please try again.", false);
+        //     }
+        // })
+        // .catch(error => {
+        //     console.error('Error deleting entry:', error);
+        //     this.toastManager.error("Failed to deleted entry", error, "Please try again.", false);
+        // });
+        
+        // cmd, jsonData, url
+        this.requestHandler.sendRequest('deleteRestockEntry',{ 'deleteRestockEntryID': deleteRestockEntryID },  this.page_url);
     }
+
+    initiateRestockProduct(ean) {
+        const eanDropdown = document.getElementById('ean');
+        if (!eanDropdown) {
+            console.error("EAN dropdown not found.");
+            return;
+        }
+    
+        // Set the value
+        eanDropdown.value = ean;
+    
+        // Dispatch a change event to trigger updateResellPrice and other listeners
+        const event = new Event('change', { bubbles: true });
+        eanDropdown.dispatchEvent(event);
+    
+        // Optional: Scroll into view or focus relevant section
+        document.getElementById('addStockForm')?.scrollIntoView({ behavior: 'smooth' });
+    }
+    
 
 }
 
