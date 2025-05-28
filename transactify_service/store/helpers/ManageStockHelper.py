@@ -87,6 +87,7 @@ class StoreHelper:
         """
         Handle customer purchase transaction with atomic database operations.
         """
+        time_start = datetime.now()
         logger.info(f"Initiating purchase of product with EAN {ean}, Quantity: {quantity}, Card Number: {card_number}")
         try:
             try:
@@ -171,13 +172,20 @@ class StoreHelper:
                 logger.warning(f"Error sending email to customer {card_number}: {e}.")
                                   
             logger.info(f"Purchase successful. Updated stock for {product.name}: {product.stock_quantity} (was {old_stock_quantity})")
+            time_end = datetime.now()
+            logger.debug(f"Purchase completed in {time_end - time_start}s.")
             return HTTPResponses.HTTP_STATUS_PURCHASE_SUCCESS(product.name), customer_purchase  # Change No. #3: Return actual customer object.
 
         except Exception as e:
             logger.error(f"Purchase failed due to error: {e}."
                          f"\nTraceback: {traceback.format_exc()}")
+                         
             raise HelperException(f"", HTTPResponses.HTTP_STATUS_PURCHASE_FAILED(e))
 
+    def customer_multiple_purchase(products: list, customer, logger: logging.Logger, prepaid = False, *args, **kwargs):
+        pass
+
+    
     @staticmethod
     @transaction.atomic
     @journal_command()
@@ -598,8 +606,13 @@ class StoreHelper:
 
     @staticmethod
     @transaction.atomic
-    def update_customer_details(card_number: str, first_name: str = None,  
-                                last_name: str = None, email: str = None, password: str = None, logger: logging.Logger = None
+    def update_customer_details(customer: Customer, 
+                                card_number: str = None,
+                                first_name: str = None,  
+                                last_name: str = None,
+                                email: str = None, password: str = None, 
+                                autodeposit: bool = None,
+                                logger: logging.Logger = None
     ) -> tuple[Response, Customer]:
         """
         Update customer details including first name, last name, email, and password.
@@ -618,25 +631,34 @@ class StoreHelper:
         if logger is None:
             logger = logging.getLogger(__name__)
 
-        logger.info(f"Initiating update for customer ID: {card_number}.")
+        logger.info(f"Initiating update for customer ID: {customer.id}.")
 
         # Fetch the customer record
         try:
-            customer = Customer.objects.get(card_number=card_number)
             user = customer.user
-            logger.info(f"Customer record found: {user.username} (Card Number: {card_number}).")
+            logger.info(f"Customer record found: {user.username} (Card Number: {customer.id}).")
         except Customer.DoesNotExist:
-            msg = f"Customer with ID {card_number} not found."
+            msg = f"Customer with ID {customer.id} not found."
             logger.error(msg)
-            return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(card_number, msg), None
+            return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(customer.id, msg), None
         except Exception as e:
-            msg = f"Unexpected error retrieving customer {card_number}: {e}."
+            msg = f"Unexpected error retrieving customer {customer.id}: {e}."
             logger.error(f"{msg}\n\nTraceback:\n{traceback.format_exc()}\n")
-            return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(card_number, msg), None
+            return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(customer.id, msg), None
 
         updated_fields = {}
 
         try:
+            if card_number is not None:
+                # Check for duplicate card numbers
+                if Customer.objects.filter(card_number=card_number).exclude(pk=customer.id).exists():
+                    msg = f"Card number {card_number} is already in use by another customer."
+                    logger.error(msg)
+                    return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(customer.id, msg), None
+
+                customer.card_number = card_number.strip()
+                updated_fields["card_number"] = card_number.strip
+
             # Apply changes if parameters are provided
             if first_name is not None:
                 user.first_name = first_name.strip()
@@ -650,10 +672,14 @@ class StoreHelper:
                 if User.objects.filter(email=email).exclude(pk=user.pk).exists():
                     msg = f"Email {email} is already in use by another customer."
                     logger.error(msg)
-                    return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(card_number, msg), None
+                    return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(customer.id, msg), None
                 
                 user.email = email.strip()
                 updated_fields["email"] = email.strip()
+
+            if autodeposit is not None:
+                customer.config.auto_deposit = autodeposit
+                updated_fields["auto_deposit"] = autodeposit
             
             if password is not None:
                 user.set_password(password)
@@ -661,18 +687,19 @@ class StoreHelper:
 
             if updated_fields:
                 user.save()
-                logger.info(f"Updated customer {card_number}: {updated_fields}.")
+                logger.info(f"Updated customer {customer.id}: {updated_fields}.")
             else:
-                logger.info(f"No updates applied for customer {card_number}. No parameters provided.")
-                return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_NO_CHANGES(card_number), customer
+                logger.info(f"No updates applied for customer {customer.id}. No parameters provided.")
+                return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_NO_CHANGES(customer.id), customer
 
         except Exception as e:
-            msg = f"Failed to update customer {card_number}: {e}."
+            msg = f"Failed to update customer {customer.id}: {e}."
             logger.error(f"{msg}\n\nTraceback:\n{traceback.format_exc()}\n")
-            return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(card_number, msg), None
-
-        logger.info(f"Customer {card_number} update successful.")
-        return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_SUCCESS(card_number), customer
+            return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_FAILED(customer.id, msg), None
+        customer.save()
+        
+        logger.info(f"Customer {customer.id} update successful.")
+        return HTTPResponses.HTTP_STATUS_CUSTOMER_UPDATE_SUCCESS(customer.id), customer
 
     @staticmethod
     @transaction.atomic
@@ -795,7 +822,7 @@ class StoreHelper:
            
         try:
             product, created = StoreProduct.objects.get_or_create(ean=ean)
-            StoreHelper.update_product_details(product, name=name, resell_price=resell_price, discount=discount, 
+            StoreHelper.update_product_details(product, product_name=name, resell_price=resell_price, discount=discount, 
                                                logger=logger)
             # Assign nutrition facts if available
             if CONFIG.webservice.HAS_INTERNET_ACCESS:

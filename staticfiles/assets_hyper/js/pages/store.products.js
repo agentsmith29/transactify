@@ -54,11 +54,13 @@ class ManageProducts {
             console.log("🚀 Initializing Product Manager...");
             this.requestHandler = App.requestHandler;
             this.actionTrigger = App.actionTrigger;
-
+            this.webSocketHandler = App.webSocketHandler;
+            this.toastManager = App.toastManager;
             this.csrftoken = document.cookie.match(/csrftoken=([^;]+)/)[1];
-    
+            this.offParser = new OFFParser();
     
             // Bind event listeners
+            this.initSocket();
             this.initActions();
         });
     }
@@ -69,7 +71,7 @@ class ManageProducts {
     }
 
     initSocket() {
-        window.storeManager.webSocketHandler.onmessage = async (event) => {
+        this.webSocketHandler.onmessage = async (event) => {
             try {
                 const data = JSON.parse(event.data);
                 console.log("Message received from server:", data);
@@ -81,7 +83,7 @@ class ManageProducts {
                     } else {
                         console.error("EAN field not found.");
                     }
-                    window.storeManager.toastManager.info("Barcode recieved", `New scanned barcode: ${data.barcode}`, "", false);
+                    this.toastManager.info("Barcode recieved", `New scanned barcode: ${data.barcode}`, "", false);
 
                     // Fetch product name and populate input field
                     const productName = await this.offParser.fetchProduct(data.barcode);

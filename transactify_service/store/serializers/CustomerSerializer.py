@@ -1,13 +1,21 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from store.webmodels.Customer import Customer
+from store.webmodels.CustomerConfig import CustomerConfig
 #from store.webmodels.CustomerBalance import CustomerBalance
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email']
-
+#
+class ConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerConfig
+        fields = ['id', 'auto_deposit', 'customer_enabled',
+                'email_enabled', 'email_on_deposit', 'email_on_purchase',
+                'email_on_low_balance', 'email_on_disabled', 'email_on_enabled',
+                'email_on_deleted', 'email_on_balance_change', 'email_on_purchase_change']
 #class CustomerBalanceSerializer(serializers.ModelSerializer):
 #    class Meta:
 #        model = CustomerBalance
@@ -15,6 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class CustomerSerializer(serializers.ModelSerializer):
     user = UserSerializer()  # Nested serializer for User fields
+    config = ConfigSerializer()
    # balance = serializers.SerializerMethodField()  # Custom method for CustomerBalance
 
     class Meta:
@@ -27,3 +36,4 @@ class CustomerSerializer(serializers.ModelSerializer):
     #    """Retrieve the balance details for the customer."""
     #    #customer_balance = CustomerBalance.objects.filter(customer=obj).first()
     #    return CustomerBalanceSerializer(obj.balance).data if obj.balance else None
+

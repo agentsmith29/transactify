@@ -207,7 +207,8 @@ class OLEDPage():
             symb = ImageOps.invert(symb)
             image.paste(symb, pos)  # Paste at (2, 2) in the top-left corner
         except Exception as e:
-            self.logger.error(f"Error loading symbol: {e}")
+            # self.logger.error(f"Error loading symbol: {e}")
+            pass
             #symb = PIL.Image.open('/app/static/icons/png_16/coin.png')
             #symb = symb.convert('RGB')
             #symb = ImageOps.invert(symb)

@@ -12,6 +12,12 @@ class ManageCustomer {
             this.csrftoken = document.cookie.match(/csrftoken=([^;]+)/)[1];
             this.customerCardNumber = this.config.customerCardNumber;
             this.customerDetailUrl = this.config.customerDetailUrl;
+
+            this.editCustomerModalManager = new App.classes.ModalDialogManager(
+                'editCustomerModal',
+                '#editCustomerModalHeader', '#editCustomerModal', 
+                '#editCustomerModalSubmit', '#editCustomerModalClose'
+            );
     
             // Initialize the WebSocket connection
             //this.webSocketHandler = window.storeManager.webSocketHandler;
@@ -119,6 +125,58 @@ class ManageCustomer {
 
     };
 
+    handleCardNumber(cardNumber) {
+        this.cardNumber = cardNumber;
+        const existingCustomer = document.querySelector(`[data-card-number="${cardNumber}"]`);
+        if (existingCustomer) {
+            const redirectUrl = existingCustomer.getAttribute("data-url");
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+                return;
+            }
+        }
+        const cardNumberInput = document.getElementById("modal_card_number");
+        cardNumberInput.style.color = "red";
+        cardNumberInput.style.fontWeight = "bold";
+        cardNumberInput.value = "New Card Number";
+        const modalElementHeader = document.getElementById("editCustomerModalHeader");
+        modalElementHeader.innerText = "New Customer Card";
+
+        const modalElement = document.getElementById("editCustomerModal");
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        document.getElementById("modal_card_number").value = cardNumber;
+        //document.getElementById("card_number_container").style.display = "block";
+        modal.show();
+    }
+
+    initWebSocketHandlers() {
+        this.webSocketHandler.onopen = () => console.log("WebSocket connection established");
+
+        this.webSocketHandler.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.card_number) {
+                    this.handleCardNumber(data.card_number);
+                }
+                if (data.message) {
+                    this.toastManager.info("Card detected", data.message, "", false);
+                }
+            } catch (error) {
+                console.error("Error parsing WebSocket message:", error);
+            }
+        };
+
+        this.webSocketHandler.onclose = () => {
+            console.log("WebSocket connection closed");
+            this.toastManager.warning("WebSocket connection closed", "WebSocket was reset.", "", false);
+        };
+
+        this.webSocketHandler.onerror = (error) => {
+            console.error("WebSocket error:", error);
+            this.toastManager.error("WebSocket error", "WebSocket encountered an error.", "", false);
+        };
+    }
+
     initSimpleMDE() {
         this.simplemde = new SimpleMDE({ 
             element: document.getElementById("simplemde1"), 
@@ -134,7 +192,8 @@ class ManageCustomer {
         return  value === "True" || value === "true" || value === "on" || value === 1 || value === "1";
     }
 
-    openEditModal(first_name, last_name, email, auto_deposit) {
+    openEditModal(card_number, first_name, last_name, email, auto_deposit) {
+        document.getElementById("modal_card_number").value = card_number;
         document.getElementById("modal_first_name").value = first_name;
         document.getElementById("modal_last_name").value = last_name;
         document.getElementById("modal_email").value = email;

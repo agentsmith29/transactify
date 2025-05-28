@@ -33,7 +33,7 @@ class MailTemplate:
             
         if send_to_admin:
             admin = User.objects.get(username="admin")
-            EmailHelper.send_email(mail_address=admin.email, 
+            EmailHelper.send_email_threaded(mail_address=admin.email, 
                    subject="Thank you for your purchase!", 
                     html_message=email_content,
                     logger=logger)
@@ -52,15 +52,14 @@ class MailTemplate:
                                 .replace("{{ store }}", str(store))
         
         if customer.config.email_enabled and customer.config.email_on_deposit:
-            EmailHelper.send_email(mail_address=customer.user.email, 
+            EmailHelper.send_email_threaded(mail_address=customer.user.email, 
                         subject=f"New Deposit: {balanced_added}€ added", 
                         html_message=email_content,
                         logger=logger)
             
         if send_to_admin:
             admin = User.objects.get(username="admin")
-            EmailHelper.send_email(mail_address=admin.email, 
+            EmailHelper.send_email_threaded(mail_address=admin.email, 
                     subject=f"New Deposit: {balanced_added}€ added (Admin Mirror)", 
                     html_message=email_content,
                     logger=logger)
-

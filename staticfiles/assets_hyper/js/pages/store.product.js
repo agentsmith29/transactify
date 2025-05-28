@@ -20,12 +20,14 @@ class ManageProduct {
             );
             this.requestHandler = App.requestHandler;
             this.actionTrigger = App.actionTrigger;
+          
 
             this.csrftoken = document.cookie.match(/csrftoken=([^;]+)/)[1];
            
     
             // Bind event listeners
             this.initActions();
+            this.initSocket();
         });
     }
 
@@ -45,6 +47,8 @@ class ManageProduct {
 
   
     }
+
+
 
     init_upload_image_modal() {
         const sourceSelect = document.getElementById('image_source');

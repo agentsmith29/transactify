@@ -103,10 +103,12 @@ class SingleCustomerView(View):
                 response, customer_deposit = StoreHelper.customer_add_deposit(customer, amount, self.logger )
                 return JsonResponse({'message': 'Deposit successful'}, status=200)
             elif cmd == "update":
-                first_name = data.get("first_name")
-                last_name = data.get("last_name")
-                email = data.get("email")
-                password = data.get("password")
+                card_number = str(data.get("card_number"))
+                first_name = str(data.get("first_name"))
+                last_name = str(data.get("last_name"))
+                email = str(data.get("email"))
+                password = str(data.get("password"))
+                autodeposit = bool(data.get("autodeposit"))
 
                 if not id:
                     msg = "Customer ID is required for updating details."
@@ -114,11 +116,13 @@ class SingleCustomerView(View):
                     return JsonResponse({'error': 'Invalid JSON data'}, status=400)
 
                 response, updated_customer = StoreHelper.update_customer_details(
-                    id=id,
+                    customer=customer,
+                    card_number=card_number,
                     first_name=first_name,
                     last_name=last_name,
                     email=email,
                     password=password,
+                    autodeposit=autodeposit,
                     logger=self.logger
                 )
                 data, status = response.json_data()

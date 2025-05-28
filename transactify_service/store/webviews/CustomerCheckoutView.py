@@ -65,7 +65,7 @@ class CustomerCheckoutView(View, LoginRequiredMixin):
                 quantity = int(item.get("quantity"))            
                 response, _ = StoreHelper.customer_purchase(ean=ean, quantity=quantity, card_number=customer.card_number, logger=self.logger, prepaid = prepaid)
                 data, status = response.json_data()
-                return JsonResponse(data=data, status=status)
+            return JsonResponse(data=data, status=status)
             return status
 
         except json.JSONDecodeError:

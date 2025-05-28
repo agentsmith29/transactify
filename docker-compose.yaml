@@ -95,6 +95,10 @@ services:
       context: .
       dockerfile: ./transactify_service/Dockerfile
     restart: always
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     container_name: doncaramello
     environment:
       - MIGRATE_HISTORICAL=0
@@ -129,6 +133,10 @@ services:
       dockerfile: ./transactify_service/Dockerfile
     restart: always
     container_name: dontesterello
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       - MIGRATE_HISTORICAL=0
     depends_on:

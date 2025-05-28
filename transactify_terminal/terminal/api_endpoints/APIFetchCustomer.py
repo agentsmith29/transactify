@@ -10,13 +10,23 @@ from .APIBaseClass import APIBaseClass
 import traceback
 import logging
 from transactify_terminal.settings import CONFIG
+import time
+
+class CustomerConfig():
+     def __init__(self, id, auto_deposit: bool, customer_enabled: bool):
+        super().__init__()
+        self.id = id
+        self.auto_deposit = auto_deposit
+        self.customer_enabled = customer_enabled
+
 
 class Customer():
     
     def __init__(self, store: Store,
                     username: str, first_name: str, last_name: str, email: str,
                     card_number: str, issued_at: str, balance: Decimal,
-                    total_deposits: Decimal, total_purchases: Decimal, last_changed: str):
+                    total_deposits: Decimal, total_purchases: Decimal, last_changed: str,
+                    config: CustomerConfig = None):
         super().__init__()
 
         self.store = store
@@ -30,6 +40,10 @@ class Customer():
         self.total_deposits = total_deposits
         self.total_purchases = total_purchases
         self.last_changed = last_changed
+
+        self.config = CustomerConfig(id = config.get("id"),
+                                    auto_deposit=config.get("auto_deposit"),
+                                    customer_enabled=config.get("customer_enabled"))
 
     @classmethod
     def get_from_api(cls, store: Store, card_number: str, logger: logging.Logger = None):
@@ -47,6 +61,7 @@ class Customer():
             raise ValueError("Card number cannot be empty.")
 
         try:
+            time_start = time.time()
             api_url = f"{store.web_address}/api/customers/{card_number}/?format=json"
             logger.debug(f"Fetching customer data API: {api_url}")
             # Fetch product details using the rest framework request object
@@ -56,6 +71,8 @@ class Customer():
 
             customer_data = response.json()
             user = customer_data.get("user", {})
+            time_end = time.time()
+            logger.debug(f"Customer fetch API response time: {time_end - time_start:.2f} seconds")
             return cls(
                 store=store,
                 username=user.get("username"),
@@ -68,6 +85,7 @@ class Customer():
                 total_deposits=customer_data.get("total_deposits"),
                 total_purchases=customer_data.get("total_purchases"),
                 last_changed=customer_data.get("last_changed"),
+                config=customer_data.get("config", {}),
             )
         except requests.exceptions.RequestException as e:
             logger.error(f"Error in Line {traceback.extract_stack(None, 2)[0].lineno}, File {traceback.extract_stack(None, 2)[0].filename}:\n"

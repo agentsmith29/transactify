@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from store.webmodels.Customer import Customer
 from transactify_service.settings import CONFIG
+import  threading
 
 class EmailHelper:
     @staticmethod
@@ -134,6 +135,13 @@ class EmailHelper:
             logger.error(f"Error sending email to {mail_address}: {e}")
             return False
 
+    def send_email_threaded(mail_address: str, subject: str, html_message: str, logger: logging.Logger = None) -> None:
+        ### Run the send_email method in a separate thread
+        _send_email_thread = threading.Thread(target=EmailHelper.send_email, 
+                                              args=(mail_address, subject, html_message, logger),
+                                              daemon=True)
+        _send_email_thread.start()
+        
     @staticmethod
     def get_sent_email(customer: Customer, logger: logging.Logger = None):
         """

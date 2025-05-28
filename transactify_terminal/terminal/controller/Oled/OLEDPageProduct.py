@@ -78,8 +78,10 @@ class OLEDPageProduct(OLEDPage):
     
     def on_barcode_read(self, sender, barcode, **kwargs):
         self._on_barcode_read_request_products_view(view_controller=self.view_controller, 
-                                               stores=self.stores,
-                                               barcode=barcode) 
+                                              stores=self.stores,
+                                              barcode=barcode) 
+        # pass
+
 
     def on_nfc_read(self, sender, id, **kwargs):
         self._make_purchase(view_controller=self.view_controller, product=self.product, card_number=id)
@@ -100,7 +102,8 @@ class OLEDPageProduct(OLEDPage):
         try:
             self.input_amount = int(f"{self.input_amount}{key}")  # Concatenate
         except ValueError:
-            pass  # Ignore non-numeric inputs
+            self.input_amount = 1
+        self.logger.debug(f"Input amount updated to: {self.input_amount}")
 
     def _make_purchase(self, view_controller: 'OLEDViewController', product: APIFetchStoreProduct, card_number: str):
         view_controller: OLEDViewController

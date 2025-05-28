@@ -33,7 +33,12 @@ class OLEDPagePurchaseSuccessfull(OLEDPage):
         # Content Section: Display Name, Surname, and Balance
         content_y_start = header_height + 5
         self.paste_image(image, f"{self.ICONS}/png_16/cash-stack.png", (0, content_y_start))
-        draw.text((30, content_y_start+2), f"Balance: EUR: {customer.balance}", font=self.font_regular, fill=(255,255,255))
+        
+        if customer.config.auto_deposit:
+            draw.text((30, content_y_start), f"Please deposit EUR {product.final_price}", font=self.font_large, fill=(255,255,255))
+        else:
+            draw.text((30, content_y_start+2), f"Detucted from balance. Balance: EUR: {customer.balance}", font=self.font_regular, fill=(255,255,255))
+        
         #self.paste_image(image, f"{self.ICONS}/png_16/cart4.png", (0, content_y_start+18))
         self.draw_text_warp(0, content_y_start+20, f"Thank you for shopping at {product.store.name}", self.font_regular, fill=(255,255,255))
        

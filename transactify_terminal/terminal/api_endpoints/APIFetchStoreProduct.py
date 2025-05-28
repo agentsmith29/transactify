@@ -15,6 +15,7 @@ from rest_framework.request import Request
 from .APIBaseClass import APIBaseClass
 import logging
 from transactify_terminal.settings import CONFIG
+import time
 
 class APIFetchStoreProduct():
     def __init__(self, store: Store, ean: str, name: str, stock_quantity: int, discount: Decimal, resell_price: Decimal, final_price: Decimal):
@@ -110,7 +111,7 @@ class APIFetchStoreProduct():
         headers = {
             "Content-Type": "application/json"
         }
-
+        time_start = time.time()
         self.logger.info(f"Making purchase: {payload}")
         try:
             api_url = f"{self.store.web_address}/api/purchase/"
@@ -124,6 +125,7 @@ class APIFetchStoreProduct():
             self.logger.error(f"Unexpected error during purchase: {e}")
             tb = traceback.format_exc()
             raise APIFetchException(f"Unexpected error during purchase: {e}", tb)
-        
+        time_end = time.time()
+        self.logger.debug(f"Purchase API response time: {time_end - time_start:.2f} seconds")
         self.logger.info(f"Purchase successful of {self.name} for {customer.card_number}")
         return response
